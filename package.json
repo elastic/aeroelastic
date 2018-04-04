@@ -1,0 +1,9 @@
+{
+  "name": "aeroelastic",
+  "version": "0.0.1",
+  "description": "A predictable layout editor that isolates the view model from the view",
+  "main": "index.js",
+  "repository": "http://github.com/elastic/aeroelastic",
+  "author": "Robert Monfera <robert.monfera@elastic.co>",
+  "license": "Apache-2.0"
+}
