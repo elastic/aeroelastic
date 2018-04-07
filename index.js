@@ -24,9 +24,39 @@
 
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
 
+    let dragStartEvent = null
+    const events = transactions.mouseEvents
+    for(let i = events.length - 1; i >= 0; i--) {
+      const e = events[i]
+      if(e.event === 'mouseUp') {
+        break
+      }
+      if(e.event === 'mouseDown' && e.onShape) {
+        dragStartEvent = e
+        break
+      }
+    }
+
+    const dragLineOriginX = dragStartEvent && dragStartEvent.x
+    const dragLineOriginY = dragStartEvent && dragStartEvent.y
+
+    const dragLineX0 = dragLineOriginX
+    const dragLineY0 = dragLineOriginY
+    const dragLineX1 = cursor.x
+    const dragLineY1 = cursor.y
+    const dragLineDeltaX = dragLineX1 - dragLineX0
+    const dragLineDeltaY = dragLineY1 - dragLineY0
+    const dragLineFullLength = Math.sqrt(Math.pow(dragLineDeltaX, 2) + Math.pow(dragLineDeltaY, 2))
+    const dragLineLength = Math.max(0, dragLineFullLength - metaCursorRadius)
+    const dragLineAngle = Math.atan2(dragLineDeltaY, dragLineDeltaX) * 180 / Math.PI - 90
+    const dragStartShape = dragStartEvent && dragStartEvent.onShape
+
     const shapes = {}
     transactions.shapes.forEach(s => shapes[s.key] = shapes[s.key] ? shapes[s.key].concat(s) : [s])
-    const currentShapes = Object.values(shapes).map(a => a[a.length - 1])
+    const currentPreDragShapes = Object.values(shapes).map(a => a[a.length - 1])
+    const currentShapes = currentPreDragShapes.map(s => {
+      return s === dragStartShape ? Object.assign({}, s, {x: s.x + dragLineDeltaX, y: s.y + dragLineDeltaY}) : s
+    })
 
     const hoveredShapes = currentShapes.filter(s => s.shape === 'rectangle' && s.x <= cursor.x && cursor.x <= s.x + s.width && s.y <= cursor.y && cursor.y < s.y + s.height)
     const hoveringShape = hoveredShapes.length > 0
@@ -36,21 +66,8 @@
 
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
 
-    let dragStartShape = null
-    const events = transactions.mouseEvents
-    for(let i = events.length - 1; i >= 0; i--) {
-      const e = events[i]
-      if(e.event === 'mouseUp') {
-        break
-      }
-      if(e.event === 'mouseDown' && e.onShape) {
-        dragStartShape = e
-        break
-      }
-    }
-
     const dragInProcess = mouseIsDown
-    const shapeDragInProcess = dragStartShape && dragInProcess
+    const shapeDragInProcess = dragStartEvent && dragInProcess
     const metaCursorSaliency = shapeDragInProcess
     const metaCursorColor = metaCursorSaliency ? metaCursorSalientColor : 'lightgrey'
     const metaCursorThickness = hoveringShape ? 3 : 1
@@ -63,6 +80,7 @@
           height: s.shape === 'line' ? s.length : s.height,
           transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
           backgroundColor: s.backgroundColor,
+          border: s === dragStartShape ? '2px solid magenta' : null,
           opacity: s === hoveredShape ? 1 : 0.8
         }
       })
@@ -79,19 +97,6 @@
         boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
       }
     })
-
-    const dragLineOriginX = dragStartShape && dragStartShape.x
-    const dragLineOriginY = dragStartShape && dragStartShape.y
-
-    const dragLineX0 = dragLineOriginX
-    const dragLineY0 = dragLineOriginY
-    const dragLineX1 = cursor.x
-    const dragLineY1 = cursor.y
-    const dragLineDeltaX = dragLineX1 - dragLineX0
-    const dragLineDeltaY = dragLineY1 - dragLineY0
-    const dragLineFullLength = Math.sqrt(Math.pow(dragLineDeltaX, 2) + Math.pow(dragLineDeltaY, 2))
-    const dragLineLength = Math.max(0, dragLineFullLength - metaCursorRadius)
-    const dragLineAngle = Math.atan2(dragLineDeltaY, dragLineDeltaX) * 180 / Math.PI - 90
 
     const dragLines = shapeDragInProcess ? [h('div', {
       className: 'line',
