@@ -1,14 +1,22 @@
 (() => {
 
-  const scenegraph = React.createElement('div', {
+  const metaCursor = React.createElement('div', {
     className: 'circle',
-    onClick: () => console.log('clicked'),
     style: {
       width: 100,
       height: 100
     }
   })
-  const root = document.getElementById('root')
-  ReactDOM.render(scenegraph, root)
+
+  const substrate = React.createElement('div', {
+    id: 'root',
+    onClick: () => console.log('clicked')
+  },
+    [metaCursor]
+  )
+
+  const root = document.body
+
+  ReactDOM.render(substrate, root)
 
 })()
