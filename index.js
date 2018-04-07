@@ -70,7 +70,12 @@
       const events = transactions.mouseEvents
       for(let i = events.length - 1; i >= 0; i--) {
         const e = events[i]
-        if(e.event = 'mouseDown') {
+        if(e.event === 'mouseUp') {
+          dragLineOriginX = 0
+          dragLineOriginY = 0
+          break
+        }
+        if(e.event === 'mouseDown' && e.onShape) {
           dragLineOriginX = e.x
           dragLineOriginY = e.y
           break
