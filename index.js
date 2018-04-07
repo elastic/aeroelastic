@@ -46,7 +46,7 @@
         style: {
           width: s.shape === 'line' ? 0 : s.width,
           height: s.shape === 'line' ? s.length : s.height,
-          transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotate(${s.rotation}deg)`,
+          transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
           backgroundColor: s.backgroundColor,
           opacity: s === hoveredShape ? 1 : 0.8
         }
@@ -80,7 +80,7 @@
         width: 0,
         height: dragLineLength,
         opacity: dragInProcess ? 1 : 0,
-        transform: `translate(${dragLineX0}px, ${dragLineY0}px) rotate(${dragLineAngle}deg)`,
+        transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${dragLineAngle}deg)`,
         border: `1px solid ${dragLineColor}`,
         boxShadow: `0 0 1px 0 ${'white'} inset, 0 0 1px 0 ${'white'}`,
       }
