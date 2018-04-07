@@ -77,8 +77,8 @@
         break
       }
     }
-    const dragLineOriginX = dragStartShape ? dragStartShape.x : 0
-    const dragLineOriginY = dragStartShape ? dragStartShape.y : 0
+    const dragLineOriginX = dragStartShape && dragStartShape.x
+    const dragLineOriginY = dragStartShape && dragStartShape.y
 
     const dragLineX0 = dragLineOriginX
     const dragLineY0 = dragLineOriginY
@@ -89,7 +89,7 @@
     const dragLineLength = Math.sqrt(Math.pow(dragLineDeltaX, 2) + Math.pow(dragLineDeltaY, 2))
     const dragLineAngle = Math.atan2(dragLineDeltaY, dragLineDeltaX) * 180 / Math.PI - 90
 
-    const dragLine = h('div', {
+    const dragLines = dragStartShape && dragInProcess ? [h('div', {
       className: 'line',
       style: {
         width: 0,
@@ -99,8 +99,8 @@
         border: `1px solid ${dragLineColor}`,
         boxShadow: `0 0 1px 0 ${'white'} inset, 0 0 1px 0 ${'white'}`,
       }
-    })
-
+    })]
+      : []
     const updateMetaCursor = event => {
       transactions.cursorPositions.push({x: event.clientX, y: event.clientY})
       render(transactions)
@@ -125,7 +125,7 @@
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
-      shapeFrags.concat([metaCursor, dragLine])
+      shapeFrags.concat([metaCursor, ...dragLines])
     )
 
     ReactDOM.render(substrate, root)
