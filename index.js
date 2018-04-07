@@ -11,7 +11,7 @@
     shapes: [
       {key: 'aRect', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
       {key: 'bRect', shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
-      {key: 'aLine', shape: 'line', x: 300, y: -50, rotation: 75, length: 500, z: 0},
+      {key: 'aLine', shape: 'line', x: 600, y: 150, rotation: 75, length: 500, z: 0},
     ],
     cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}],
     mouseEvents: [{event: 'mouseUp'}]
@@ -79,7 +79,7 @@
       style: {
         width: 0,
         height: dragLineLength,
-       // opacity: dragInProcess ? 1 : 0,
+        opacity: dragInProcess ? 1 : 0,
         transform: `translate(${dragLineX0}px, ${dragLineY0}px) rotate(${dragLineAngle}deg)`,
         border: `1px solid ${dragLineColor}`,
         boxShadow: `0 0 1px 0 ${'white'} inset, 0 0 1px 0 ${'white'}`,
