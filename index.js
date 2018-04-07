@@ -68,7 +68,7 @@
         id: 'root',
         onMouseMove: updateMetaCursor,
         onDrag: updateMetaCursor,
-        onDragStart: e => e.preventDefault(), // prevents little dragged doc cursor icon
+        // onDragStart: e => e.preventDefault(), // prevents little dragged doc cursor icon but user-select: none solves it too
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
