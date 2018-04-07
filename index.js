@@ -42,7 +42,6 @@
         style: {
           width: s.shape === 'line' ? 0 : s.width,
           height: s.shape === 'line' ? s.length : s.height,
-          //transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotate(${s.rotation}deg)`,
           transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotate(${s.rotation}deg)`,
           backgroundColor: s.backgroundColor,
           opacity: s === hoveredShape ? 1 : 0.8
