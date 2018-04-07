@@ -32,7 +32,7 @@ body {
     padding: 0;
     position: absolute;
     display: block;
-    border-left: 1px solid rgba(127,127,127,0.25);
+    border: 1px solid rgba(127,127,127,0.25);
     box-shadow: 0 0 0.5px 0 rgba(127,127,127, 0.25);
     transform-origin: top;
 }

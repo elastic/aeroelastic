@@ -5,7 +5,7 @@
   const metaCursorRadius = 10
   const metaCursorZ = 1000
   const dragLineZ = metaCursorZ - 1 // just below the metaCursor
-  const dragLineColor = 'rgba(255,0,255,0.25)'
+  const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
 
   const transactions = {
