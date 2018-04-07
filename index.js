@@ -35,12 +35,17 @@
       }
     })
 
+    const metaCursorSaliency = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
+    const metaCursorColor = metaCursorSaliency ? 'black' : 'lightgrey'
+
     const metaCursor = h('div', {
       className: 'circle metaCursor',
       style: {
         width: metaCursorRadius * 2,
         height: metaCursorRadius * 2,
-        transform: `translate(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px)`
+        transform: `translate(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px)`,
+        border: `1px solid ${metaCursorColor}`,
+        boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 0.5px 0 ${metaCursorColor}`,
       }
     })
 
@@ -50,12 +55,12 @@
     }
 
     const mouseUp = () => {
-      transactions.mouseEvents.push({evt: 'mouseUp'})
+      transactions.mouseEvents.push({event: 'mouseUp'})
       render(transactions)
     }
 
     const mouseDown = () => {
-      transactions.mouseEvents.push({evt: 'mouseDown'})
+      transactions.mouseEvents.push({event: 'mouseDown'})
       render(transactions)
     }
 
