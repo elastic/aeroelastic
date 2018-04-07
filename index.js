@@ -36,7 +36,7 @@
     })
 
     const metaCursorSaliency = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
-    const metaCursorColor = metaCursorSaliency ? 'black' : 'lightgrey'
+    const metaCursorColor = metaCursorSaliency ? 'red' : 'lightgrey'
 
     const metaCursor = h('div', {
       className: 'circle metaCursor',
@@ -68,6 +68,7 @@
         id: 'root',
         onMouseMove: updateMetaCursor,
         onDrag: updateMetaCursor,
+        onDragStart: e => e.preventDefault(), // prevents little dragged doc cursor icon
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
