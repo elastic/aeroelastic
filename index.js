@@ -35,10 +35,13 @@
     })
 
     const hoveredShapes = currentShapes.filter(s => s.shape === 'rectangle' && s.x <= cursor.x && cursor.x <= s.x + s.width && s.y <= cursor.y && cursor.y < s.y + s.height)
+    const hoveringShape = hoveredShapes.length > 0
 
-    const metaCursorSaliency = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
+    const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
+    const metaCursorSaliency = mouseIsDown
     const metaCursorColor = metaCursorSaliency ? 'red' : 'lightgrey'
-    const metaCursorThickness = hoveredShapes.length ? 3 : 1
+    const metaCursorThickness = hoveringShape ? 3 : 1
+    const metaCursorFill = hoveringShape && mouseIsDown
 
     const metaCursor = h('div', {
       className: 'circle metaCursor',
@@ -47,6 +50,7 @@
         height: metaCursorRadius * 2,
         transform: `translate(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px)`,
         border: `${metaCursorThickness}px solid ${metaCursorColor}`,
+        backgroundColor: metaCursorFill ? 'red' : null,
         boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 0.5px 0 ${metaCursorColor}`,
       }
     })
