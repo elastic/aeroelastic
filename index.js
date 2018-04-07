@@ -22,14 +22,13 @@
 
   const currentDragStartEventViewer = events => {
     let dragStartEvent = null
-    for(let i = events.length - 1; i >= 0; i--) {
+    for(let i = 0; i < events.length; i++) {
       const e = events[i]
       if(e.event === 'mouseUp') {
-        break
+        dragStartEvent = null
       }
       if(e.event === 'mouseDown' && e.onShape) {
         dragStartEvent = e
-        break
       }
     }
     return dragStartEvent
