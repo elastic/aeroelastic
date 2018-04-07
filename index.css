@@ -1,22 +1,39 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
 #root {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     border: 0;
-    background-color: rgba(0,0,255,0.2);
+    background-color: rgba(0,0,255,0);
     height: 100%;
     width: 100%;
     position: absolute;
     display: block;
 }
 
-div {
+.rectangle {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    border: 0;
-    background-color: rgba(255,0,0,0.2);
+    background-color: rgba(255,0,0,0.5);
     position: absolute;
     display: block;
+    border: 1px solid black;
+}
+
+.circle {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    background-color: rgba(255,0,0,0);
+    position: absolute;
+    display: block;
+    border: 1px solid black;
+    border-radius: 50%;
+    box-shadow: 0 0 1px 0 black inset, 0 0 1px 0 black;
 }
 
