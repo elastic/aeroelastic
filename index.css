@@ -1,6 +1,7 @@
 body {
     margin: 0;
     padding: 0;
+    overflow: hidden;
 }
 
 #root {
@@ -15,7 +16,6 @@ body {
     display: block;
     user-select: none; /* disables drag doc cursor icon in lieu of onDrag preventDefault() */
     transform-style: preserve-3d;
-    overflow: hidden;
 }
 
 .rectangle {
