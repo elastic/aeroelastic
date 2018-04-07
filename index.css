@@ -38,6 +38,7 @@ body {
 }
 
 .circle {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
     background-color: rgba(255,0,0,0);
