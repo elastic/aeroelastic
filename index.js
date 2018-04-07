@@ -5,7 +5,8 @@
   const metaCursorRadius = 10
   const metaCursorZ = 1000
   const dragLineZ = metaCursorZ - 1 // just below the metaCursor
-  const dragLineColor = 'rgba(255,0,0,0.25)'
+  const dragLineColor = 'rgba(255,0,255,0.25)'
+  const metaCursorSalientColor = 'magenta'
 
   const transactions = {
     shapes: [
@@ -34,11 +35,25 @@
     }, null)
 
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
+
+    let dragStartShape = null
+    const events = transactions.mouseEvents
+    for(let i = events.length - 1; i >= 0; i--) {
+      const e = events[i]
+      if(e.event === 'mouseUp') {
+        break
+      }
+      if(e.event === 'mouseDown' && e.onShape) {
+        dragStartShape = e
+        break
+      }
+    }
+
     const dragInProcess = mouseIsDown
-    const metaCursorSaliency = dragInProcess
-    const metaCursorColor = metaCursorSaliency ? 'red' : 'lightgrey'
+    const shapeDragInProcess = dragStartShape && dragInProcess
+    const metaCursorSaliency = shapeDragInProcess
+    const metaCursorColor = metaCursorSaliency ? metaCursorSalientColor : 'lightgrey'
     const metaCursorThickness = hoveringShape ? 3 : 1
-    const metaCursorFill = hoveringShape && mouseIsDown
 
     const shapeFrags = currentShapes.map(s => {
       return h('div', {
@@ -60,23 +75,11 @@
         height: metaCursorRadius * 2,
         transform: `translate3d(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px, ${metaCursorZ}px)`,
         border: `${metaCursorThickness}px solid ${metaCursorColor}`,
-        backgroundColor: metaCursorFill ? 'red' : null,
-        boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 0.5px 0 ${metaCursorColor}`,
+        backgroundColor: shapeDragInProcess ? metaCursorSalientColor : null,
+        boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
       }
     })
 
-    let dragStartShape = null
-    const events = transactions.mouseEvents
-    for(let i = events.length - 1; i >= 0; i--) {
-      const e = events[i]
-      if(e.event === 'mouseUp') {
-        break
-      }
-      if(e.event === 'mouseDown' && e.onShape) {
-        dragStartShape = e
-        break
-      }
-    }
     const dragLineOriginX = dragStartShape && dragStartShape.x
     const dragLineOriginY = dragStartShape && dragStartShape.y
 
@@ -86,18 +89,19 @@
     const dragLineY1 = cursor.y
     const dragLineDeltaX = dragLineX1 - dragLineX0
     const dragLineDeltaY = dragLineY1 - dragLineY0
-    const dragLineLength = Math.sqrt(Math.pow(dragLineDeltaX, 2) + Math.pow(dragLineDeltaY, 2))
+    const dragLineFullLength = Math.sqrt(Math.pow(dragLineDeltaX, 2) + Math.pow(dragLineDeltaY, 2))
+    const dragLineLength = Math.max(0, dragLineFullLength - metaCursorRadius)
     const dragLineAngle = Math.atan2(dragLineDeltaY, dragLineDeltaX) * 180 / Math.PI - 90
 
-    const dragLines = dragStartShape && dragInProcess ? [h('div', {
+    const dragLines = shapeDragInProcess ? [h('div', {
       className: 'line',
       style: {
         width: 0,
         height: dragLineLength,
-        opacity: dragInProcess ? 1 : 0,
+        opacity: shapeDragInProcess ? 1 : 0,
         transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${dragLineAngle}deg)`,
         border: `1px solid ${dragLineColor}`,
-        boxShadow: `0 0 1px 0 ${'white'} inset, 0 0 1px 0 ${'white'}`,
+        boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
       }
     })]
       : []
@@ -112,7 +116,6 @@
     }
 
     const mouseDown = event => {
-      console.log(hoveredShape)
       transactions.mouseEvents.push({event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
       render(transactions)
     }
