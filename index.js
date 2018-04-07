@@ -1,6 +1,8 @@
 (() => {
 
-  const metaCursorRadius = 5
+  const h = React.createElement
+
+  const metaCursorRadius = 10
 
   const transactions = {
     cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}]
@@ -12,7 +14,25 @@
 
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
 
-    const metaCursor = React.createElement('div', {
+    const aRect = h('div', {
+      className: 'rectangle',
+      style: {
+        width: 150,
+        height: 100,
+        transform: `translate(500px, 200px)`
+      }
+    })
+
+    const aLine = h('div', {
+      className: 'line',
+      style: {
+        width: 0,
+        height: 500,
+        transform: `translate(300px, -50px) rotate(75deg)`
+      }
+    })
+
+    const metaCursor = h('div', {
       className: 'circle metaCursor',
       style: {
         width: metaCursorRadius * 2,
@@ -26,11 +46,15 @@
       render(transactions)
     }
 
-    const substrate = React.createElement('div', {
+    const substrate = h('div', {
         id: 'root',
         onMouseMove: updateMetaCursor,
       },
-      [metaCursor]
+      [
+        metaCursor,
+        aRect,
+        aLine
+      ]
     )
 
     ReactDOM.render(substrate, root)

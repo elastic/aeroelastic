@@ -22,6 +22,16 @@ body {
     position: absolute;
     display: block;
     border: 1px solid black;
+    box-shadow: 0 0 0.5px 0 black inset, 0 0 0.5px 0 black;
+}
+
+.line {
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    display: block;
+    border-left: 1px solid rgba(0,0,0,0.5);
+    box-shadow: 0 0 0.5px 0 black;
 }
 
 .circle {
@@ -32,7 +42,7 @@ body {
     display: block;
     border: 1px solid black;
     border-radius: 50%;
-    box-shadow: 0 0 1px 0 black inset, 0 0 1px 0 black;
+    box-shadow: 0 0 0.5px 0 black inset, 0 0 0.5px 0 black;
 }
 
 .metaCursor {
