@@ -65,23 +65,20 @@
       }
     })
 
-    let dragLineOriginX = 0, dragLineOriginY = 0
-    if(dragInProcess) {
-      const events = transactions.mouseEvents
-      for(let i = events.length - 1; i >= 0; i--) {
-        const e = events[i]
-        if(e.event === 'mouseUp') {
-          dragLineOriginX = 0
-          dragLineOriginY = 0
-          break
-        }
-        if(e.event === 'mouseDown' && e.onShape) {
-          dragLineOriginX = e.x
-          dragLineOriginY = e.y
-          break
-        }
+    let dragStartShape = null
+    const events = transactions.mouseEvents
+    for(let i = events.length - 1; i >= 0; i--) {
+      const e = events[i]
+      if(e.event === 'mouseUp') {
+        break
+      }
+      if(e.event === 'mouseDown' && e.onShape) {
+        dragStartShape = e
+        break
       }
     }
+    const dragLineOriginX = dragStartShape ? dragStartShape.x : 0
+    const dragLineOriginY = dragStartShape ? dragStartShape.y : 0
 
     const dragLineX0 = dragLineOriginX
     const dragLineY0 = dragLineOriginY
