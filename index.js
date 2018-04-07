@@ -1,35 +1,34 @@
 (() => {
 
-  const transactions = {
-    cursorPositions: []
-  }
+  const metaCursorRadius = 5
 
-  const cursor = {
-    x: 200,
-    y: 200
+  const transactions = {
+    cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}]
   }
 
   const root = document.body
 
-  const render = () => {
+  const render = transactions => {
+
+    const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
 
     const metaCursor = React.createElement('div', {
-      className: 'circle',
+      className: 'metaCursor',
       style: {
-        width: 100,
-        height: 100,
-        transform: `translate(${cursor.x}px, ${cursor.y}px)`
+        width: metaCursorRadius * 2,
+        height: metaCursorRadius * 2,
+        transform: `translate(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px)`
       }
     })
 
+    const updateMetaCursor = event => {
+      transactions.cursorPositions.push({x: event.clientX, y: event.clientY})
+      render(transactions)
+    }
+
     const substrate = React.createElement('div', {
         id: 'root',
-        onMouseMove: event => {
-          cursor.x = event.clientX
-          cursor.y = event.clientY
-          console.log('clicked')
-          render()
-        }
+        onMouseMove: updateMetaCursor,
       },
       [metaCursor]
     )
@@ -37,6 +36,6 @@
     ReactDOM.render(substrate, root)
   }
 
-  render()
+  render(transactions)
 
 })()
