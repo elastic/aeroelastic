@@ -6,8 +6,9 @@
 
   const transactions = {
     shapes: [
-      {key: 'aRect', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100},
-      {key: 'aLine', shape: 'line', x: 300, y: -50, rotation: 75, length: 500},
+      {key: 'aRect', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 1},
+      {key: 'bRect', shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0},
+      {key: 'aLine', shape: 'line', x: 300, y: -50, rotation: 75, length: 500, z: 0},
     ],
     cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}],
     mouseEvents: [{event: 'mouseUp'}]
@@ -29,13 +30,19 @@
         style: {
           width: s.shape === 'line' ? 0 : s.width,
           height: s.shape === 'line' ? s.length : s.height,
-          transform: `translate(${s.x}px, ${s.y}px) rotate(${s.rotation}deg)`
+          transform: `translate(${s.x}px, ${s.y}px) rotate(${s.rotation}deg)`,
+          zIndex: s.z
         }
       })
     })
 
     const hoveredShapes = currentShapes.filter(s => s.shape === 'rectangle' && s.x <= cursor.x && cursor.x <= s.x + s.width && s.y <= cursor.y && cursor.y < s.y + s.height)
     const hoveringShape = hoveredShapes.length > 0
+    const hoveredShape = hoveredShapes.reduce((prev, next) => {
+      return prev ? (next.z >= prev.z ? next : prev) : next
+    }, null)
+
+    console.log(hoveredShape)
 
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
     const metaCursorSaliency = mouseIsDown
