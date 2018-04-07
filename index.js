@@ -5,7 +5,10 @@
   const metaCursorRadius = 10
 
   const transactions = {
-    cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}]
+    cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}],
+    mouseEvents: [
+      {event: 'mouseUp'}
+    ]
   }
 
   const root = document.body
@@ -46,9 +49,22 @@
       render(transactions)
     }
 
+    const mouseUp = () => {
+      transactions.mouseEvents.push({evt: 'mouseUp'})
+      render(transactions)
+    }
+
+    const mouseDown = () => {
+      transactions.mouseEvents.push({evt: 'mouseDown'})
+      render(transactions)
+    }
+
     const substrate = h('div', {
         id: 'root',
         onMouseMove: updateMetaCursor,
+        onDrag: updateMetaCursor,
+        onMouseUp: mouseUp,
+        onMouseDown: mouseDown,
       },
       [
         metaCursor,
