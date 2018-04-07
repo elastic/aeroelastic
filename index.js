@@ -1,5 +1,8 @@
 (() => {
 
+  let currentId = 0
+  const getId = () => currentId++
+  const getTime = () => performance.now()
   const h = React.createElement
 
   const metaCursorRadius = 10
@@ -10,12 +13,12 @@
 
   const transactions = {
     shapes: [
-      {key: 'aRect', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
-      {key: 'bRect', shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
-      {key: 'aLine', shape: 'line', x: 600, y: 150, rotation: 75, length: 500, z: 0},
+      {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
+      {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
+      {key: 'aLine', id: getId(), time: getTime(), shape: 'line', x: 600, y: 150, rotation: 75, length: 500, z: 0},
     ],
-    cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}],
-    mouseEvents: [{event: 'mouseUp'}]
+    cursorPositions: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
+    mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}]
   }
 
   const root = document.body
@@ -114,17 +117,17 @@
     })]
       : []
     const updateMetaCursor = event => {
-      transactions.cursorPositions.push({x: event.clientX, y: event.clientY})
+      transactions.cursorPositions.push({id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
       render(transactions)
     }
 
     const mouseUp = event => {
-      transactions.mouseEvents.push({event: 'mouseUp', x: event.clientX, y: event.clientY})
+      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
       render(transactions)
     }
 
     const mouseDown = event => {
-      transactions.mouseEvents.push({event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
+      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
       render(transactions)
     }
 
