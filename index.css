@@ -14,12 +14,12 @@ body {
     position: absolute;
     display: block;
     user-select: none; /* disables drag doc cursor icon in lieu of onDrag preventDefault() */
+    transform-style: preserve-3d;
 }
 
 .rectangle {
     margin: 0;
     padding: 0;
-    background-color: rgba(255,0,0,0.5);
     position: absolute;
     display: block;
     border: 1px solid grey;
@@ -45,6 +45,6 @@ body {
 }
 
 .metaCursor {
-  opacity: 0.5
+  opacity: 0.7
 }
 
