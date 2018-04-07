@@ -30,8 +30,7 @@
         style: {
           width: s.shape === 'line' ? 0 : s.width,
           height: s.shape === 'line' ? s.length : s.height,
-          transform: `translate(${s.x}px, ${s.y}px) rotate(${s.rotation}deg)`,
-          zIndex: s.z
+          transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotate(${s.rotation}deg)`,
         }
       })
     })
