@@ -16,7 +16,6 @@ body {
 }
 
 .rectangle {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
     background-color: rgba(255,0,0,0.5);
@@ -25,8 +24,7 @@ body {
     border: 1px solid black;
 }
 
-.metaCursor {
-    box-sizing: border-box;
+.circle {
     margin: 0;
     padding: 0;
     background-color: rgba(255,0,0,0);
@@ -35,5 +33,9 @@ body {
     border: 1px solid black;
     border-radius: 50%;
     box-shadow: 0 0 1px 0 black inset, 0 0 1px 0 black;
+}
+
+.metaCursor {
+  opacity: 0.5
 }
 

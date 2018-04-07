@@ -13,7 +13,7 @@
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
 
     const metaCursor = React.createElement('div', {
-      className: 'metaCursor',
+      className: 'circle metaCursor',
       style: {
         width: metaCursorRadius * 2,
         height: metaCursorRadius * 2,
