@@ -5,10 +5,12 @@
   const metaCursorRadius = 10
 
   const transactions = {
+    shapes: [
+      {key: 'aRect', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100},
+      {key: 'aLine', shape: 'line', x: 300, y: -50, rotation: 75, length: 500},
+    ],
     cursorPositions: [{x: -metaCursorRadius, y: -metaCursorRadius}],
-    mouseEvents: [
-      {event: 'mouseUp'}
-    ]
+    mouseEvents: [{event: 'mouseUp'}]
   }
 
   const root = document.body
@@ -17,22 +19,19 @@
 
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
 
-    const aRect = h('div', {
-      className: 'rectangle',
-      style: {
-        width: 150,
-        height: 100,
-        transform: `translate(500px, 200px)`
-      }
-    })
+    const shapes = {}
+    transactions.shapes.forEach(s => shapes[s.key] = shapes[s.key] ? shapes[s.key].concat(s) : [s])
+    const currentShapes = Object.values(shapes).map(a => a[a.length - 1])
 
-    const aLine = h('div', {
-      className: 'line',
-      style: {
-        width: 0,
-        height: 500,
-        transform: `translate(300px, -50px) rotate(75deg)`
-      }
+    const shapeFrags = currentShapes.map(s => {
+      return h('div', {
+        className: s.shape,
+        style: {
+          width: s.shape === 'line' ? 0 : s.width,
+          height: s.shape === 'line' ? s.length : s.height,
+          transform: `translate(${s.x}px, ${s.y}px) rotate(${s.rotation}deg)`
+        }
+      })
     })
 
     const metaCursorSaliency = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
@@ -72,11 +71,7 @@
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
-      [
-        metaCursor,
-        aRect,
-        aLine
-      ]
+      shapeFrags.concat([metaCursor])
     )
 
     ReactDOM.render(substrate, root)
