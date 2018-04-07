@@ -39,6 +39,72 @@
     return dragStartEvent
   }
 
+  const renderShapeFrags = (shapes, dragStartShape, hoveredShape) => shapes.map(s => {
+    return h('div', {
+      className: s.shape,
+      style: {
+        width: s.shape === 'line' ? 0 : s.width,
+        height: s.shape === 'line' ? s.length : s.height,
+        transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
+        backgroundColor: s.backgroundColor,
+        border: s === dragStartShape ? '2px solid magenta' : null,
+        opacity: s === hoveredShape ? 1 : 0.8
+      }
+    })
+  })
+
+  const renderMetaCursorFrag = (cursor, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
+    className: 'circle metaCursor',
+    style: {
+      width: metaCursorRadius * 2,
+      height: metaCursorRadius * 2,
+      transform: `translate3d(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px, ${metaCursorZ}px)`,
+      border: `${metaCursorThickness}px solid ${metaCursorColor}`,
+      backgroundColor: shapeDragInProcess ? metaCursorSalientColor : null,
+      boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
+    }
+  })
+
+  const renderDragLineFrags = (shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, dragLineAngle) => shapeDragInProcess ? [h('div', {
+      className: 'line',
+      style: {
+        width: 0,
+        height: dragLineLength,
+        opacity: shapeDragInProcess ? 1 : 0,
+        transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${dragLineAngle}deg)`,
+        border: `1px solid ${dragLineColor}`,
+        boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
+      }
+    })]
+    : []
+
+  const renderSubstrateFrag = (transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape) => {
+
+    const updateMetaCursor = event => {
+      transactions.cursorPositions.push({id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
+      render(transactions)
+    }
+
+    const mouseUp = event => {
+      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
+      render(transactions)
+    }
+
+    const mouseDown = event => {
+      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
+      render(transactions)
+    }
+
+    return h('div', {
+        id: 'root',
+        onMouseMove: updateMetaCursor,
+        onMouseUp: mouseUp,
+        onMouseDown: mouseDown,
+      },
+      shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
+    )
+  }
+
   const render = transactions => {
 
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
@@ -82,71 +148,12 @@
     const metaCursorColor = metaCursorSaliency ? metaCursorSalientColor : 'lightgrey'
     const metaCursorThickness = hoveringShape ? 3 : 1
 
-    const shapeFrags = currentShapes.map(s => {
-      return h('div', {
-        className: s.shape,
-        style: {
-          width: s.shape === 'line' ? 0 : s.width,
-          height: s.shape === 'line' ? s.length : s.height,
-          transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
-          backgroundColor: s.backgroundColor,
-          border: s === dragStartShape ? '2px solid magenta' : null,
-          opacity: s === hoveredShape ? 1 : 0.8
-        }
-      })
-    })
-
-    const metaCursor = h('div', {
-      className: 'circle metaCursor',
-      style: {
-        width: metaCursorRadius * 2,
-        height: metaCursorRadius * 2,
-        transform: `translate3d(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px, ${metaCursorZ}px)`,
-        border: `${metaCursorThickness}px solid ${metaCursorColor}`,
-        backgroundColor: shapeDragInProcess ? metaCursorSalientColor : null,
-        boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
-      }
-    })
-
-    const dragLines = shapeDragInProcess ? [h('div', {
-      className: 'line',
-      style: {
-        width: 0,
-        height: dragLineLength,
-        opacity: shapeDragInProcess ? 1 : 0,
-        transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${dragLineAngle}deg)`,
-        border: `1px solid ${dragLineColor}`,
-        boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
-      }
-    })]
-      : []
-    const updateMetaCursor = event => {
-      transactions.cursorPositions.push({id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
-      render(transactions)
-    }
-
-    const mouseUp = event => {
-      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
-      render(transactions)
-    }
-
-    const mouseDown = event => {
-      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
-      render(transactions)
-    }
-
-    const substrate = h('div', {
-        id: 'root',
-        onMouseMove: updateMetaCursor,
-        onDrag: updateMetaCursor,
-        // onDragStart: e => e.preventDefault(), // prevents little dragged doc cursor icon but user-select: none solves it too
-        onMouseUp: mouseUp,
-        onMouseDown: mouseDown,
-      },
-      shapeFrags.concat([metaCursor, ...dragLines])
-    )
-
-    ReactDOM.render(substrate, root)
+    // rendering
+    const shapeFrags = renderShapeFrags(currentShapes, dragStartShape, hoveredShape)
+    const metaCursorFrag = renderMetaCursorFrag(cursor, shapeDragInProcess, metaCursorThickness, metaCursorColor)
+    const dragLineFrags = renderDragLineFrags(shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, dragLineAngle)
+    const substrateFrag = renderSubstrateFrag(transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape)
+    ReactDOM.render(substrateFrag, root)
   }
 
   render(transactions)
