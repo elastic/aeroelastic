@@ -3,6 +3,9 @@
   const h = React.createElement
 
   const metaCursorRadius = 10
+  const metaCursorZ = 1000
+  const dragLineZ = metaCursorZ - 1 // just below the metaCursor
+  const dragLineColor = 'rgba(255,0,0,0.5)'
 
   const transactions = {
     shapes: [
@@ -31,7 +34,8 @@
     }, null)
 
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
-    const metaCursorSaliency = mouseIsDown
+    const dragInProcess = mouseIsDown
+    const metaCursorSaliency = dragInProcess
     const metaCursorColor = metaCursorSaliency ? 'red' : 'lightgrey'
     const metaCursorThickness = hoveringShape ? 3 : 1
     const metaCursorFill = hoveringShape && mouseIsDown
@@ -54,10 +58,22 @@
       style: {
         width: metaCursorRadius * 2,
         height: metaCursorRadius * 2,
-        transform: `translate3d(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px, 1000px)`,
+        transform: `translate3d(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px, ${metaCursorZ}px)`,
         border: `${metaCursorThickness}px solid ${metaCursorColor}`,
         backgroundColor: metaCursorFill ? 'red' : null,
         boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 0.5px 0 ${metaCursorColor}`,
+      }
+    })
+
+    const dragLine = h('div', {
+      className: 'line',
+      style: {
+        width: 0,
+        height: 100,
+        opacity: dragInProcess ? 1 : 0,
+        transform: `translate3d(${cursor.x}px, ${cursor.y}px, ${dragLineZ}px)`,
+        border: `1px solid ${dragLineColor}`,
+        boxShadow: `0 0 1px 0 ${'white'} inset, 0 0 1px 0 ${'white'}`,
       }
     })
 
@@ -84,7 +100,7 @@
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
-      shapeFrags.concat([metaCursor])
+      shapeFrags.concat([metaCursor, dragLine])
     )
 
     ReactDOM.render(substrate, root)
