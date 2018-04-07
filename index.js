@@ -20,12 +20,8 @@
 
   const root = document.body
 
-  const render = transactions => {
-
-    const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
-
+  const currentDragStartEventViewer = events => {
     let dragStartEvent = null
-    const events = transactions.mouseEvents
     for(let i = events.length - 1; i >= 0; i--) {
       const e = events[i]
       if(e.event === 'mouseUp') {
@@ -36,6 +32,14 @@
         break
       }
     }
+    return dragStartEvent
+  }
+
+  const render = transactions => {
+
+    const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
+
+    const dragStartEvent = currentDragStartEventViewer(transactions.mouseEvents)
 
     const dragLineOriginX = dragStartEvent && dragStartEvent.x
     const dragLineOriginY = dragStartEvent && dragStartEvent.y
