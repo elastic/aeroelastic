@@ -65,13 +65,22 @@
       }
     })
 
+    const dragLineX0 = 100
+    const dragLineY0 = 100
+    const dragLineX1 = cursor.x
+    const dragLineY1 = cursor.y
+    const dragLineDeltaX = dragLineX1 - dragLineX0
+    const dragLineDeltaY = dragLineY1 - dragLineY0
+    const dragLineLength = Math.sqrt(Math.pow(dragLineDeltaX, 2) + Math.pow(dragLineDeltaY, 2))
+    const dragLineAngle = Math.atan2(dragLineDeltaY, dragLineDeltaX) * 180 / Math.PI - 90
+
     const dragLine = h('div', {
       className: 'line',
       style: {
         width: 0,
-        height: 100,
-        opacity: dragInProcess ? 1 : 0,
-        transform: `translate3d(${cursor.x}px, ${cursor.y}px, ${dragLineZ}px)`,
+        height: dragLineLength,
+       // opacity: dragInProcess ? 1 : 0,
+        transform: `translate(${dragLineX0}px, ${dragLineY0}px) rotate(${dragLineAngle}deg)`,
         border: `1px solid ${dragLineColor}`,
         boxShadow: `0 0 1px 0 ${'white'} inset, 0 0 1px 0 ${'white'}`,
       }
