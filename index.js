@@ -88,7 +88,6 @@
     shapes: [
       {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
       {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
-      {key: 'aLine', id: getId(), time: getTime(), shape: 'line', x: 600, y: 150, rotation: 75, length: 500, z: 0},
     ],
     cursorPositions: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
     mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}]
