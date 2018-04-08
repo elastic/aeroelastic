@@ -122,6 +122,11 @@
     return {length, angle, deltaX, deltaY}
   }
 
+  const topShape = shapes => shapes.reduce((prev, next) => {
+    return prev ? (next.z >= prev.z ? next : prev) : next
+  }, null)
+
+
   /**
    * What is it?
    */
@@ -146,10 +151,7 @@
 
     const hoveredShapes = currentShapes.filter(s => s.shape === 'rectangle' && s.x <= cursor.x && cursor.x <= s.x + s.width && s.y <= cursor.y && cursor.y < s.y + s.height)
     const hoveringShape = hoveredShapes.length > 0
-    const hoveredShape = hoveredShapes.reduce((prev, next) => {
-      return prev ? (next.z >= prev.z ? next : prev) : next
-    }, null)
-
+    const hoveredShape = topShape(hoveredShapes)
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
 
     const dragInProcess = mouseIsDown
