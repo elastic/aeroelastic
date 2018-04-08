@@ -150,19 +150,22 @@
     return Object.values(shapesMap).map(a => a[a.length - 1])
   }
 
+
+  const hoveredAt = (transactions, tid) => {
+    const cursor = cursorAt(transactions.cursorPositions, tid)
+    const currentPreDragShapes = shapesAt(transactions.shapes, tid)
+    const hoveredShapes = shapesAtPoint(currentPreDragShapes, cursor.x, cursor.y, tid)
+    const hoveredShape = topShape(hoveredShapes)
+    return hoveredShape
+  }
+
   /**
    * What is it?
    */
 
   const render = (transactions, tid) => {
     const cursor = cursorAt(transactions.cursorPositions, tid)
-
-    const currentPreDragShapes = shapesAt(transactions.shapes, tid)
-    const hoveredShapes = shapesAtPoint(currentPreDragShapes, cursor.x, cursor.y, tid)
-    const hoveringShape = hoveredShapes.length > 0
-    const hoveredShape = topShape(hoveredShapes)
-
-   console.log(hoveredShape)
+    const hoveredShape = hoveredAt(transactions, tid)
 
     const dragStartEvent = true /*dragStartAt(db.mouseEvents, tid)*/
 
@@ -171,7 +174,7 @@
     const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
 
     const dragStartShape = null /*dragStartEvent && dragStartEvent.onShape*/
-    const currentShapes = currentPreDragShapes.map(s => {
+    const currentShapes = transactions.shapes/*currentPreDragShapes*/.map(s => {
       return s === /*dragStartShape*/ false ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
@@ -183,7 +186,7 @@
     const shapeDragInProcess = dragStartEvent && dragInProcess
     const metaCursorSaliency = false /*shapeDragInProcess*/
     const metaCursorColor = metaCursorSaliency ? metaCursorSalientColor : 'lightgrey'
-    const metaCursorThickness = hoveringShape ? 3 : 1
+    const metaCursorThickness = hoveredShape ? 3 : 1
 
     // rendering
     const shapeFrags = renderShapeFrags(currentShapes, dragStartShape, hoveredShape)
