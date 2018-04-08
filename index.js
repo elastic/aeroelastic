@@ -150,13 +150,23 @@
     return Object.values(shapesMap).map(a => a[a.length - 1])
   }
 
-
   const hoveredAt = (transactions, tid) => {
     const cursor = cursorAt(transactions.cursorPositions, tid)
     const currentPreDragShapes = shapesAt(transactions.shapes, tid)
     const hoveredShapes = shapesAtPoint(currentPreDragShapes, cursor.x, cursor.y, tid)
     const hoveredShape = topShape(hoveredShapes)
     return hoveredShape
+  }
+
+  const mouseDownAt = (transactions, tid) => {
+    const events = transactions.mouseEvents
+    for(let i = events.length - 1; i >= 0; i--) {
+      const e = events[i]
+      if(e.id > tid) continue
+      if(events[i].event === 'mouseDown') return true
+      if(events[i].event === 'mouseUp') return false
+    }
+    return false
   }
 
   /**
@@ -178,7 +188,7 @@
       return s === /*dragStartShape*/ false ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
-    const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
+    const mouseIsDown = mouseDownAt(transactions, tid)
 
 
 
