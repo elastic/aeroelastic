@@ -142,6 +142,11 @@
     return prev ? (next.z >= prev.z ? next : prev) : next
   }, null)
 
+  const shapesAt = (shapes, tid) => {
+    const shapesMap = {}
+    shapes.forEach(s => shapesMap[s.key] = shapesMap[s.key] && s.id <= tid ? shapesMap[s.key].concat(s) : [s])
+    return Object.values(shapesMap).map(a => a[a.length - 1])
+  }
 
   /**
    * What is it?
@@ -157,9 +162,7 @@
     const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
 
     const dragStartShape = dragStartEvent && dragStartEvent.onShape
-    const shapes = {}
-    transactions.shapes.forEach(s => shapes[s.key] = shapes[s.key] ? shapes[s.key].concat(s) : [s])
-    const currentPreDragShapes = Object.values(shapes).map(a => a[a.length - 1])
+    const currentPreDragShapes = shapesAt(transactions.shapes, Infinity)
     const currentShapes = currentPreDragShapes.map(s => {
       return s === dragStartShape ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
