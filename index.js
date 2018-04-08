@@ -112,18 +112,21 @@
     return dragStartEvent
   }
 
-  const positionsToLineAttribsViewer = (dragLineX0, dragLineY0, dragLineX1, dragLineY1) => {
+  // map x0, y0, x1, y1 to deltas, length and angle
+  const positionsToLineAttribsViewer = (x0, y0, x1, y1) => {
 
-    const deltaX = dragLineX1 - dragLineX0
-    const deltaY = dragLineY1 - dragLineY0
+    const deltaX = x1 - x0
+    const deltaY = y1 - y0
     const length = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
     const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
 
     return {length, angle, deltaX, deltaY}
   }
 
-  const hoveredShapesAtPoint = (currentShapes, x, y) => currentShapes.filter(s => s.shape === 'rectangle' && s.x <= x && x <= s.x + s.width && s.y <= y && y < s.y + s.height)
+  // set of shapes under a specific point
+  const shapesAtPoint = (shapes, x, y) => shapes.filter(s => s.shape === 'rectangle' && s.x <= x && x <= s.x + s.width && s.y <= y && y < s.y + s.height)
 
+  // pick top shape out of possibly several shapes (presumably under the same point)
   const topShape = shapes => shapes.reduce((prev, next) => {
     return prev ? (next.z >= prev.z ? next : prev) : next
   }, null)
@@ -151,7 +154,7 @@
       return s === dragStartShape ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
-    const hoveredShapes = hoveredShapesAtPoint(currentShapes, cursor.x, cursor.y)
+    const hoveredShapes = shapesAtPoint(currentShapes, cursor.x, cursor.y)
     const hoveringShape = hoveredShapes.length > 0
     const hoveredShape = topShape(hoveredShapes)
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
