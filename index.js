@@ -94,7 +94,7 @@
   }
 
   /**
-   * View makers
+   * Pure functions
    */
 
   const dragStartEventViewer = (events, tid) => {
@@ -121,6 +121,8 @@
 
     return {length, angle, deltaX, deltaY}
   }
+
+  const hoveredShapesAtPoint = (currentShapes, x, y) => currentShapes.filter(s => s.shape === 'rectangle' && s.x <= x && x <= s.x + s.width && s.y <= y && y < s.y + s.height)
 
   const topShape = shapes => shapes.reduce((prev, next) => {
     return prev ? (next.z >= prev.z ? next : prev) : next
@@ -149,7 +151,7 @@
       return s === dragStartShape ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
-    const hoveredShapes = currentShapes.filter(s => s.shape === 'rectangle' && s.x <= cursor.x && cursor.x <= s.x + s.width && s.y <= cursor.y && cursor.y < s.y + s.height)
+    const hoveredShapes = hoveredShapesAtPoint(currentShapes, cursor.x, cursor.y)
     const hoveringShape = hoveredShapes.length > 0
     const hoveredShape = topShape(hoveredShapes)
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
