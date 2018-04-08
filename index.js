@@ -64,11 +64,11 @@
     })]
     : []
 
-  const renderSubstrateFrag = (transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape) => {
+  const renderSubstrateFrag = (transactions, shapeFrags, metaCursorFrag, dragLineFrags) => {
 
     const updateMetaCursor = event => dispatch('cursorPositions', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
     const mouseUp = event => dispatch('mouseEvents', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
-    const mouseDown = event => dispatch('mouseEvents', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
+    const mouseDown = event => dispatch('mouseEvents', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
 
     return h('div', {
         id: 'root',
@@ -135,7 +135,7 @@
   }
 
   // set of shapes under a specific point
-  const shapesAtPoint = (shapes, x, y) => shapes.filter(s => s.shape === 'rectangle' && s.x <= x && x <= s.x + s.width && s.y <= y && y < s.y + s.height)
+  const shapesAtPoint = (shapes, x, y, tid) => shapes.filter(s => s.shape === 'rectangle' && s.x <= x && x <= s.x + s.width && s.y <= y && y < s.y + s.height && s.id <= tid)
 
   // pick top shape out of possibly several shapes (presumably under the same point)
   const topShape = shapes => shapes.reduce((prev, next) => {
@@ -155,26 +155,27 @@
   const render = (transactions, tid) => {
 
     const cursor = cursorAt(transactions.cursorPositions, tid)
-    const dragStartEvent = dragStartAt(transactions.mouseEvents, tid)
 
-    const dragLineOriginX = dragStartEvent && dragStartEvent.x
-    const dragLineOriginY = dragStartEvent && dragStartEvent.y
+    const dragStartEvent = true /*dragStartAt(transactions.mouseEvents, tid)*/
+
+    const dragLineOriginX = 0 /*dragStartEvent && dragStartEvent.x*/
+    const dragLineOriginY = 0 /*dragStartEvent && dragStartEvent.y*/
     const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
 
-    const dragStartShape = dragStartEvent && dragStartEvent.onShape
+    const dragStartShape = null /*dragStartEvent && dragStartEvent.onShape*/
     const currentPreDragShapes = shapesAt(transactions.shapes, tid)
     const currentShapes = currentPreDragShapes.map(s => {
-      return s === dragStartShape ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
+      return s === /*dragStartShape*/ false ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
-    const hoveredShapes = shapesAtPoint(currentShapes, cursor.x, cursor.y)
+    const hoveredShapes = shapesAtPoint(currentShapes, cursor.x, cursor.y, tid)
     const hoveringShape = hoveredShapes.length > 0
     const hoveredShape = topShape(hoveredShapes)
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
 
     const dragInProcess = mouseIsDown
     const shapeDragInProcess = dragStartEvent && dragInProcess
-    const metaCursorSaliency = shapeDragInProcess
+    const metaCursorSaliency = false /*shapeDragInProcess*/
     const metaCursorColor = metaCursorSaliency ? metaCursorSalientColor : 'lightgrey'
     const metaCursorThickness = hoveringShape ? 3 : 1
 
@@ -182,7 +183,7 @@
     const shapeFrags = renderShapeFrags(currentShapes, dragStartShape, hoveredShape)
     const metaCursorFrag = renderMetaCursorFrag(cursor.x, cursor.y, shapeDragInProcess, metaCursorThickness, metaCursorColor)
     const dragLineFrags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, dragLineOriginX, dragLineOriginY, lineAttribs.angle)
-    const substrateFrag = renderSubstrateFrag(transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape)
+    const substrateFrag = renderSubstrateFrag(transactions, shapeFrags, metaCursorFrag, dragLineFrags)
     ReactDOM.render(substrateFrag, root)
   }
 
