@@ -39,6 +39,16 @@
     return dragStartEvent
   }
 
+  const positionsToLineAttribsViewer = (dragLineX0, dragLineY0, dragLineX1, dragLineY1) => {
+
+    const deltaX = dragLineX1 - dragLineX0
+    const deltaY = dragLineY1 - dragLineY0
+    const length = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
+    const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI - 90
+
+    return {length, angle, deltaX, deltaY}
+  }
+
   const renderShapeFrags = (shapes, dragStartShape, hoveredShape) => shapes.map(s => {
     return h('div', {
       className: s.shape,
@@ -65,13 +75,13 @@
     }
   })
 
-  const renderDragLineFrags = (shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, dragLineAngle) => shapeDragInProcess ? [h('div', {
+  const renderDragLineFrags = (shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, angle) => shapeDragInProcess ? [h('div', {
       className: 'line',
       style: {
         width: 0,
         height: dragLineLength,
         opacity: shapeDragInProcess ? 1 : 0,
-        transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${dragLineAngle}deg)`,
+        transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
         border: `1px solid ${dragLineColor}`,
         boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
       }
@@ -115,23 +125,15 @@
 
     const dragLineOriginX = dragStartEvent && dragStartEvent.x
     const dragLineOriginY = dragStartEvent && dragStartEvent.y
-
-    const dragLineX0 = dragLineOriginX
-    const dragLineY0 = dragLineOriginY
-    const dragLineX1 = cursor.x
-    const dragLineY1 = cursor.y
-    const dragLineDeltaX = dragLineX1 - dragLineX0
-    const dragLineDeltaY = dragLineY1 - dragLineY0
-    const dragLineFullLength = Math.sqrt(Math.pow(dragLineDeltaX, 2) + Math.pow(dragLineDeltaY, 2))
-    const dragLineLength = Math.max(0, dragLineFullLength - metaCursorRadius)
-    const dragLineAngle = Math.atan2(dragLineDeltaY, dragLineDeltaX) * 180 / Math.PI - 90
+    const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
+    const dragLineLength = Math.max(0, lineAttribs.length - metaCursorRadius)
+    
     const dragStartShape = dragStartEvent && dragStartEvent.onShape
-
     const shapes = {}
     everCurrentShapes.forEach(s => shapes[s.key] = shapes[s.key] ? shapes[s.key].concat(s) : [s])
     const currentPreDragShapes = Object.values(shapes).map(a => a[a.length - 1])
     const currentShapes = currentPreDragShapes.map(s => {
-      return s === dragStartShape ? Object.assign({}, s, {x: s.x + dragLineDeltaX, y: s.y + dragLineDeltaY}) : s
+      return s === dragStartShape ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
     const hoveredShapes = currentShapes.filter(s => s.shape === 'rectangle' && s.x <= cursor.x && cursor.x <= s.x + s.width && s.y <= cursor.y && cursor.y < s.y + s.height)
@@ -151,7 +153,7 @@
     // rendering
     const shapeFrags = renderShapeFrags(currentShapes, dragStartShape, hoveredShape)
     const metaCursorFrag = renderMetaCursorFrag(cursor, shapeDragInProcess, metaCursorThickness, metaCursorColor)
-    const dragLineFrags = renderDragLineFrags(shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, dragLineAngle)
+    const dragLineFrags = renderDragLineFrags(shapeDragInProcess, dragLineLength, dragLineOriginX, dragLineOriginY, lineAttribs.angle)
     const substrateFrag = renderSubstrateFrag(transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape)
     ReactDOM.render(substrateFrag, root)
   }
