@@ -163,8 +163,8 @@
     for(let i = events.length - 1; i >= 0; i--) {
       const e = events[i]
       if(e.id > tid) continue
-      if(events[i].event === 'mouseDown') return true
-      if(events[i].event === 'mouseUp') return false
+      if(e.event === 'mouseDown') return e
+      if(e.event === 'mouseUp') return false
     }
     return false
   }
@@ -179,20 +179,20 @@
 
     const dragStartEvent = true /*dragStartAt(db.mouseEvents, tid)*/
 
-    const dragLineOriginX = 0 /*dragStartEvent && dragStartEvent.x*/
-    const dragLineOriginY = 0 /*dragStartEvent && dragStartEvent.y*/
-    const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
 
     const dragStartShape = null /*dragStartEvent && dragStartEvent.onShape*/
     const currentShapes = transactions.shapes/*currentPreDragShapes*/.map(s => {
       return s === /*dragStartShape*/ false ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
-    const mouseIsDown = mouseDownAt(transactions, tid)
+    const mouseDownEvent = mouseDownAt(transactions, tid)
 
 
+    const dragLineOriginX = mouseDownEvent && mouseDownEvent.x
+    const dragLineOriginY = mouseDownEvent && mouseDownEvent.y
+    const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
 
-    const dragInProcess = mouseIsDown
+    const dragInProcess = mouseDownEvent
     const shapeDragInProcess = dragStartEvent && dragInProcess
     const metaCursorSaliency = false /*shapeDragInProcess*/
     const metaCursorColor = metaCursorSaliency ? metaCursorSalientColor : 'lightgrey'
