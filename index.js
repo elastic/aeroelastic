@@ -18,7 +18,7 @@
 
   const dispatch = (action, payload) => {
     transactions[action].push(payload)
-    render(transactions)
+    render(transactions, Infinity)
   }
 
   /**
@@ -152,17 +152,17 @@
    * What is it?
    */
 
-  const render = transactions => {
+  const render = (transactions, tid) => {
 
-    const cursor = cursorAt(transactions.cursorPositions, Infinity)
-    const dragStartEvent = dragStartAt(transactions.mouseEvents, Infinity)
+    const cursor = cursorAt(transactions.cursorPositions, tid)
+    const dragStartEvent = dragStartAt(transactions.mouseEvents, tid)
 
     const dragLineOriginX = dragStartEvent && dragStartEvent.x
     const dragLineOriginY = dragStartEvent && dragStartEvent.y
     const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
 
     const dragStartShape = dragStartEvent && dragStartEvent.onShape
-    const currentPreDragShapes = shapesAt(transactions.shapes, Infinity)
+    const currentPreDragShapes = shapesAt(transactions.shapes, tid)
     const currentShapes = currentPreDragShapes.map(s => {
       return s === dragStartShape ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
@@ -186,6 +186,6 @@
     ReactDOM.render(substrateFrag, root)
   }
 
-  render(transactions)
+  render(transactions, Infinity)
 
 })()
