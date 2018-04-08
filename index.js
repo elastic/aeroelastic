@@ -155,7 +155,6 @@
    */
 
   const render = (transactions, tid) => {
-
     const cursor = cursorAt(transactions.cursorPositions, tid)
 
     const currentPreDragShapes = shapesAt(transactions.shapes, tid)
@@ -163,7 +162,7 @@
     const hoveringShape = hoveredShapes.length > 0
     const hoveredShape = topShape(hoveredShapes)
 
-    console.log(hoveredShape)
+   console.log(hoveredShape)
 
     const dragStartEvent = true /*dragStartAt(db.mouseEvents, tid)*/
 
@@ -195,5 +194,11 @@
   }
 
   render(db, Infinity)
+
+  let currentTid = 0
+  if(1)
+    window.setTimeout(() => {
+      window.setInterval(() => render(db, currentTid++), 16)
+    }, 5000)
 
 })()
