@@ -16,6 +16,11 @@
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
 
+  const dispatch = (action, payload) => {
+    transactions[action].push(payload)
+    render(transactions)
+  }
+
   /**
    * Fragment makers (pure)
    */
@@ -61,20 +66,9 @@
 
   const renderSubstrateFrag = (transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape) => {
 
-    const updateMetaCursor = event => {
-      transactions.cursorPositions.push({id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
-      render(transactions)
-    }
-
-    const mouseUp = event => {
-      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
-      render(transactions)
-    }
-
-    const mouseDown = event => {
-      transactions.mouseEvents.push({id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
-      render(transactions)
-    }
+    const updateMetaCursor = event => dispatch('cursorPositions', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
+    const mouseUp = event => dispatch('mouseEvents', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
+    const mouseDown = event => dispatch('mouseEvents', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY, onShape: hoveredShape})
 
     return h('div', {
         id: 'root',
