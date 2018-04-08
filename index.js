@@ -44,7 +44,7 @@
     const deltaX = dragLineX1 - dragLineX0
     const deltaY = dragLineY1 - dragLineY0
     const length = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
-    const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI - 90
+    const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
 
     return {length, angle, deltaX, deltaY}
   }
@@ -78,8 +78,8 @@
   const renderDragLineFrags = (shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, angle) => shapeDragInProcess ? [h('div', {
       className: 'line',
       style: {
-        width: 0,
-        height: dragLineLength,
+        width: dragLineLength,
+        height: 0,
         opacity: shapeDragInProcess ? 1 : 0,
         transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
         border: `1px solid ${dragLineColor}`,
