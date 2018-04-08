@@ -17,48 +17,6 @@
   const metaCursorSalientColor = 'magenta'
 
   /**
-   * Database
-   */
-
-  const transactions = {
-    shapes: [
-      {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
-      {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
-      {key: 'aLine', id: getId(), time: getTime(), shape: 'line', x: 600, y: 150, rotation: 75, length: 500, z: 0},
-    ],
-    cursorPositions: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
-    mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}]
-  }
-
-  /**
-   * View makers
-   */
-
-  const currentDragStartEventViewer = events => {
-    let dragStartEvent = null
-    for(let i = 0; i < events.length; i++) {
-      const e = events[i]
-      if(e.event === 'mouseUp') {
-        dragStartEvent = null
-      }
-      if(e.event === 'mouseDown' && e.onShape) {
-        dragStartEvent = e
-      }
-    }
-    return dragStartEvent
-  }
-
-  const positionsToLineAttribsViewer = (dragLineX0, dragLineY0, dragLineX1, dragLineY1) => {
-
-    const deltaX = dragLineX1 - dragLineX0
-    const deltaY = dragLineY1 - dragLineY0
-    const length = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
-    const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
-
-    return {length, angle, deltaX, deltaY}
-  }
-
-  /**
    * Fragment makers
    */
 
@@ -126,6 +84,48 @@
       },
       shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
     )
+  }
+
+  /**
+   * Database
+   */
+
+  const transactions = {
+    shapes: [
+      {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
+      {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
+      {key: 'aLine', id: getId(), time: getTime(), shape: 'line', x: 600, y: 150, rotation: 75, length: 500, z: 0},
+    ],
+    cursorPositions: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
+    mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}]
+  }
+
+  /**
+   * View makers
+   */
+
+  const currentDragStartEventViewer = events => {
+    let dragStartEvent = null
+    for(let i = 0; i < events.length; i++) {
+      const e = events[i]
+      if(e.event === 'mouseUp') {
+        dragStartEvent = null
+      }
+      if(e.event === 'mouseDown' && e.onShape) {
+        dragStartEvent = e
+      }
+    }
+    return dragStartEvent
+  }
+
+  const positionsToLineAttribsViewer = (dragLineX0, dragLineY0, dragLineX1, dragLineY1) => {
+
+    const deltaX = dragLineX1 - dragLineX0
+    const deltaY = dragLineY1 - dragLineY0
+    const length = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
+    const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
+
+    return {length, angle, deltaX, deltaY}
   }
 
   /**
