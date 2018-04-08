@@ -23,8 +23,6 @@
 
   const root = document.body
 
-  const shapeSnapshotViewer = (shapes, positions, events) => shapes
-
   const currentDragStartEventViewer = events => {
     let dragStartEvent = null
     for(let i = 0; i < events.length; i++) {
@@ -119,8 +117,6 @@
 
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
 
-    const everCurrentShapes = shapeSnapshotViewer(transactions.shapes, transactions.cursorPositions, transactions.mouseEvents)
-
     const dragStartEvent = currentDragStartEventViewer(transactions.mouseEvents)
 
     const dragLineOriginX = dragStartEvent && dragStartEvent.x
@@ -129,7 +125,7 @@
 
     const dragStartShape = dragStartEvent && dragStartEvent.onShape
     const shapes = {}
-    everCurrentShapes.forEach(s => shapes[s.key] = shapes[s.key] ? shapes[s.key].concat(s) : [s])
+    transactions.shapes.forEach(s => shapes[s.key] = shapes[s.key] ? shapes[s.key].concat(s) : [s])
     const currentPreDragShapes = Object.values(shapes).map(a => a[a.length - 1])
     const currentShapes = currentPreDragShapes.map(s => {
       return s === dragStartShape ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
