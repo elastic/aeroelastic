@@ -97,7 +97,7 @@
    * Pure functions
    */
 
-  const dragStartEventViewer = (events, tid) => {
+  const dragStartAt = (events, tid) => {
     let dragStartEvent = null
     for(let i = 0; i < events.length; i++) {
       const e = events[i]
@@ -110,6 +110,17 @@
       }
     }
     return dragStartEvent
+  }
+
+  const cursorAt = (positions, tid) => {
+    let result
+    for(let i = positions.length - 1; i >= 0; i--) {
+      const p = positions[i]
+      result = p
+      if(p.id < tid)
+        break
+    }
+    return result
   }
 
   // map x0, y0, x1, y1 to deltas, length and angle
@@ -138,9 +149,8 @@
 
   const render = transactions => {
 
-    const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
-
-    const dragStartEvent = dragStartEventViewer(transactions.mouseEvents, Infinity)
+    const cursor = cursorAt(transactions.cursorPositions, Infinity)
+    const dragStartEvent = dragStartAt(transactions.mouseEvents, Infinity)
 
     const dragLineOriginX = dragStartEvent && dragStartEvent.x
     const dragLineOriginY = dragStartEvent && dragStartEvent.y
