@@ -1,15 +1,24 @@
 (() => {
 
+  /**
+   * Constants and utilities
+   */
+
   let currentId = 0
   const getId = () => currentId++
   const getTime = () => performance.now()
   const h = React.createElement
+  const root = document.body
 
   const metaCursorRadius = 10
   const metaCursorZ = 1000
   const dragLineZ = metaCursorZ - 1 // just below the metaCursor
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
+
+  /**
+   * Database
+   */
 
   const transactions = {
     shapes: [
@@ -21,7 +30,9 @@
     mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}]
   }
 
-  const root = document.body
+  /**
+   * View makers
+   */
 
   const currentDragStartEventViewer = events => {
     let dragStartEvent = null
@@ -47,6 +58,10 @@
     return {length, angle, deltaX, deltaY}
   }
 
+  /**
+   * Fragment makers
+   */
+
   const renderShapeFrags = (shapes, dragStartShape, hoveredShape) => shapes.map(s => {
     return h('div', {
       className: s.shape,
@@ -61,12 +76,12 @@
     })
   })
 
-  const renderMetaCursorFrag = (cursor, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
+  const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
     className: 'circle metaCursor',
     style: {
       width: metaCursorRadius * 2,
       height: metaCursorRadius * 2,
-      transform: `translate3d(${cursor.x - metaCursorRadius}px, ${cursor.y - metaCursorRadius}px, ${metaCursorZ}px)`,
+      transform: `translate3d(${x - metaCursorRadius}px, ${y - metaCursorRadius}px, ${metaCursorZ}px)`,
       border: `${metaCursorThickness}px solid ${metaCursorColor}`,
       backgroundColor: shapeDragInProcess ? metaCursorSalientColor : null,
       boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
@@ -113,6 +128,10 @@
     )
   }
 
+  /**
+   * What is it?
+   */
+
   const render = transactions => {
 
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
@@ -147,7 +166,7 @@
 
     // rendering
     const shapeFrags = renderShapeFrags(currentShapes, dragStartShape, hoveredShape)
-    const metaCursorFrag = renderMetaCursorFrag(cursor, shapeDragInProcess, metaCursorThickness, metaCursorColor)
+    const metaCursorFrag = renderMetaCursorFrag(cursor.x, cursor.y, shapeDragInProcess, metaCursorThickness, metaCursorColor)
     const dragLineFrags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, dragLineOriginX, dragLineOriginY, lineAttribs.angle)
     const substrateFrag = renderSubstrateFrag(transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape)
     ReactDOM.render(substrateFrag, root)
