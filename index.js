@@ -78,7 +78,7 @@
   const renderDragLineFrags = (shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, angle) => shapeDragInProcess ? [h('div', {
       className: 'line',
       style: {
-        width: dragLineLength,
+        width: Math.max(0, dragLineLength - metaCursorRadius),
         height: 0,
         opacity: shapeDragInProcess ? 1 : 0,
         transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
@@ -126,8 +126,7 @@
     const dragLineOriginX = dragStartEvent && dragStartEvent.x
     const dragLineOriginY = dragStartEvent && dragStartEvent.y
     const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
-    const dragLineLength = Math.max(0, lineAttribs.length - metaCursorRadius)
-    
+
     const dragStartShape = dragStartEvent && dragStartEvent.onShape
     const shapes = {}
     everCurrentShapes.forEach(s => shapes[s.key] = shapes[s.key] ? shapes[s.key].concat(s) : [s])
@@ -153,7 +152,7 @@
     // rendering
     const shapeFrags = renderShapeFrags(currentShapes, dragStartShape, hoveredShape)
     const metaCursorFrag = renderMetaCursorFrag(cursor, shapeDragInProcess, metaCursorThickness, metaCursorColor)
-    const dragLineFrags = renderDragLineFrags(shapeDragInProcess, dragLineLength, dragLineOriginX, dragLineOriginY, lineAttribs.angle)
+    const dragLineFrags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, dragLineOriginX, dragLineOriginY, lineAttribs.angle)
     const substrateFrag = renderSubstrateFrag(transactions, shapeFrags, metaCursorFrag, dragLineFrags, hoveredShape)
     ReactDOM.render(substrateFrag, root)
   }
