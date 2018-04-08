@@ -17,8 +17,8 @@
   const metaCursorSalientColor = 'magenta'
 
   const dispatch = (action, payload) => {
-    transactions[action].push(payload)
-    render(transactions, Infinity)
+    db[action].push(payload)
+    render(db, Infinity)
   }
 
   /**
@@ -84,13 +84,15 @@
    * Database
    */
 
-  const transactions = {
+  const db = {
+
+    // tables
     shapes: [
       {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
       {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
     ],
     cursorPositions: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
-    mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}]
+    mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}],
   }
 
   /**
@@ -156,22 +158,27 @@
 
     const cursor = cursorAt(transactions.cursorPositions, tid)
 
-    const dragStartEvent = true /*dragStartAt(transactions.mouseEvents, tid)*/
+    const currentPreDragShapes = shapesAt(transactions.shapes, tid)
+    const hoveredShapes = shapesAtPoint(currentPreDragShapes, cursor.x, cursor.y, tid)
+    const hoveringShape = hoveredShapes.length > 0
+    const hoveredShape = topShape(hoveredShapes)
+
+    console.log(hoveredShape)
+
+    const dragStartEvent = true /*dragStartAt(db.mouseEvents, tid)*/
 
     const dragLineOriginX = 0 /*dragStartEvent && dragStartEvent.x*/
     const dragLineOriginY = 0 /*dragStartEvent && dragStartEvent.y*/
     const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
 
     const dragStartShape = null /*dragStartEvent && dragStartEvent.onShape*/
-    const currentPreDragShapes = shapesAt(transactions.shapes, tid)
     const currentShapes = currentPreDragShapes.map(s => {
       return s === /*dragStartShape*/ false ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
     })
 
-    const hoveredShapes = shapesAtPoint(currentShapes, cursor.x, cursor.y, tid)
-    const hoveringShape = hoveredShapes.length > 0
-    const hoveredShape = topShape(hoveredShapes)
     const mouseIsDown = transactions.mouseEvents[transactions.mouseEvents.length - 1].event === 'mouseDown'
+
+
 
     const dragInProcess = mouseIsDown
     const shapeDragInProcess = dragStartEvent && dragInProcess
@@ -187,6 +194,6 @@
     ReactDOM.render(substrateFrag, root)
   }
 
-  render(transactions, Infinity)
+  render(db, Infinity)
 
 })()
