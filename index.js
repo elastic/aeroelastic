@@ -17,7 +17,7 @@
   const metaCursorSalientColor = 'magenta'
 
   /**
-   * Fragment makers
+   * Fragment makers (pure)
    */
 
   const renderShapeFrags = (shapes, dragStartShape, hoveredShape) => shapes.map(s => {
@@ -104,10 +104,11 @@
    * View makers
    */
 
-  const currentDragStartEventViewer = events => {
+  const dragStartEventViewer = (events, tid) => {
     let dragStartEvent = null
     for(let i = 0; i < events.length; i++) {
       const e = events[i]
+      if(e.id > tid) break
       if(e.event === 'mouseUp') {
         dragStartEvent = null
       }
@@ -136,7 +137,7 @@
 
     const cursor = transactions.cursorPositions[transactions.cursorPositions.length - 1]
 
-    const dragStartEvent = currentDragStartEventViewer(transactions.mouseEvents)
+    const dragStartEvent = dragStartEventViewer(transactions.mouseEvents, Infinity)
 
     const dragLineOriginX = dragStartEvent && dragStartEvent.x
     const dragLineOriginY = dragStartEvent && dragStartEvent.y
