@@ -268,35 +268,30 @@
   const substrate = xl.cell('Frag Substrate')
   const shapePrimer = xl.cell('Shape primer')
 
-  const metaCursorFrag = xl.lift(function(positionList) {
-    const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
+  const cursorPosition = xl.lift(positionList => positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0})(cursorPositions)
+
+  const metaCursorFrag = xl.lift(function(cursor) {
     // if(positionList.length) debugger
     const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, 1, 'red')
     return frag
-  })(cursorPositions)
+  })(cursorPosition)
 
   const currentShapes = xl.lift(d => d)(shapePrimer)
 
-  const hoveredShape = xl.lift((shapes, positionList) => {
-
-    const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
-
+  const hoveredShape = xl.lift((shapes, cursor) => {
     return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
-
-    return {key: 'aRect'}
-  })(currentShapes, cursorPositions)
+  })(currentShapes, cursorPosition)
 
   const shapeFrags = xl.lift((currentShapes, hoveredShape) => {
     return renderShapeFrags2(currentShapes, hoveredShape)
   })(currentShapes, hoveredShape)
 
-  const dragLineFrags = xl.lift(positionList => {
-    const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
+  const dragLineFrags = xl.lift(cursor => {
     const shapeDragInProcess = true
     const lineAttribs = positionsToLineAttribsViewer(0, 0, cursor.x, cursor.y)
     const frags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, 0, 0, lineAttribs.angle)
     return frags
-  })(cursorPositions)
+  })(cursorPosition)
 
   const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag2(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
 
