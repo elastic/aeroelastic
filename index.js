@@ -48,7 +48,7 @@
     })
   })
 
-  const renderShapeFrags2 = (shapes) => shapes.map(s => {
+  const renderShapeFrags2 = (shapes, hoveredShape) => shapes.map(s => {
     const frag =  h('div', {
       className: s.shape,
       style: {
@@ -57,7 +57,7 @@
         transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
         backgroundColor: s.backgroundColor,
         border: s === false /*dragStartShape*/ ? '2px solid magenta' : null,
-        opacity: s === false /*hoveredShape*/ ? 1 : 0.8
+        opacity: s.key === hoveredShape.key ? 1 : 0.5
       }
     })
     return frag
@@ -267,13 +267,24 @@
 
   const substrate = xl.cell('Frag Substrate')
   const shapePrimer = xl.cell('Shape primer')
+
   const metaCursorFrag = xl.lift(function(positionList) {
     const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
     // if(positionList.length) debugger
     const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, 1, 'red')
     return frag
   })(cursorPositions)
-  const shapeFrags = xl.lift(currentShapes => renderShapeFrags2(currentShapes))(shapePrimer)
+
+  const currentShapes = xl.lift(d => d)(shapePrimer)
+
+  const hoveredShape = xl.lift((shapes, position) => {
+    return {key: 'aRect'}
+  })(currentShapes, cursorPositions)
+
+  const shapeFrags = xl.lift((currentShapes, hoveredShape) => {
+    return renderShapeFrags2(currentShapes, hoveredShape)
+  })(currentShapes, hoveredShape)
+
   const dragLineFrags = xl.lift(positionList => {
     const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
     const shapeDragInProcess = true
@@ -281,7 +292,12 @@
     const frags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, 0, 0, lineAttribs.angle)
     return frags
   })(cursorPositions)
+
   const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag2(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
+
+
+
+  // final render
   const finalRender = xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
 
   xl.put(substrate, null)
