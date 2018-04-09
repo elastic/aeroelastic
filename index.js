@@ -276,11 +276,21 @@
     return result
   })(cursorPositions)
 
-  const metaCursorFrag = xl.lift(function(cursor) {
-    // if(positionList.length) debugger
-    const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, 1, 'red')
+  const mouseDown = xl.lift(function(eventList) {
+    const previous = this && this.value || false
+    for(let i = eventList.length - 1; i >= 0; i < eventList) {
+      const type = eventList[i].event
+      if(type === 'mouseUp') return false
+      if(type === 'mouseDown') return true
+    }
+    return previous
+  })(mouseEvents)
+
+  const metaCursorFrag = xl.lift(function(cursor, mouseDown) {
+    const thickness = mouseDown ? 3 : 1
+    const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, thickness, 'red')
     return frag
-  })(cursorPosition)
+  })(cursorPosition, mouseDown)
 
   const currentShapes = xl.lift(d => d)(shapePrimer)
 
