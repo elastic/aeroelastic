@@ -286,6 +286,13 @@
     return previous
   })(mouseEvents)
 
+  const lastMouseDownAt = xl.lift(function(down, {x, y}) {
+    const previous = this.value || {down: false}
+    const result = down ? (!previous.down ? {down, x, y} : previous) : {down: false}
+    console.log(result)
+    return result
+  })(mouseDown, cursorPosition)
+
   const metaCursorFrag = xl.lift(function(cursor, mouseDown) {
     const thickness = mouseDown ? 3 : 1
     const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, thickness, 'red')
