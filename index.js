@@ -294,7 +294,7 @@
 
   const dragStartAt = xl.lift(function(down, {x, y}, hoveredShape) {
     const previous = this.value || {down: false}
-    const result = down ? (!previous.down && hoveredShape ? {down, x, y} : previous) : {down: false}
+    const result = down ? (!previous.down && hoveredShape ? {down, x, y, draggedShape: hoveredShape} : previous) : {down: false}
     return result
   })(mouseDown, cursorPosition, hoveredShape)
 
