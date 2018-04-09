@@ -1,6 +1,14 @@
 (() => {
 
   /**
+   * Crosslink seeds
+   */
+
+  const xl = crosslink
+
+  const transactions = xl.cell("Transactions")
+
+  /**
    * Constants and utilities
    */
 
@@ -18,6 +26,7 @@
 
   const dispatch = (action, payload) => {
     db[action].push(payload)
+    transactions.put({action, payload})
     render(db, Infinity)
   }
 
@@ -37,6 +46,21 @@
         opacity: s === hoveredShape ? 1 : 0.8
       }
     })
+  })
+
+  const renderShapeFrags2 = (shapes) => shapes.map(s => {
+    const frag =  h('div', {
+      className: s.shape,
+      style: {
+        width: s.shape === 'line' ? 0 : s.width,
+        height: s.shape === 'line' ? s.length : s.height,
+        transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
+        backgroundColor: s.backgroundColor,
+        border: s === false /*dragStartShape*/ ? '2px solid magenta' : null,
+        opacity: s === false /*hoveredShape*/ ? 1 : 0.8
+      }
+    })
+    return frag
   })
 
   const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
@@ -66,9 +90,9 @@
 
   const renderSubstrateFrag = (transactions, shapeFrags, metaCursorFrag, dragLineFrags) => {
 
-    const updateMetaCursor = event => dispatch('cursorPositions', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
-    const mouseUp = event => dispatch('mouseEvents', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
-    const mouseDown = event => dispatch('mouseEvents', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
+    const updateMetaCursor = event => dispatch('cursorPosition', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
+    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
+    const mouseDown = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
 
     return h('div', {
         id: 'root',
@@ -77,6 +101,25 @@
         onMouseDown: mouseDown,
       },
       shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
+    )
+  }
+
+  const renderSubstrateFrag2 = (shapeFrags/*transactions, shapeFrags, metaCursorFrag, dragLineFrags*/) => {
+
+/*
+    const updateMetaCursor = event => dispatch('cursorPosition', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
+    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
+    const mouseDown = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
+*/
+
+    return h('div', {
+        id: 'root',
+        //onMouseMove: updateMetaCursor,
+        //onMouseUp: mouseUp,
+        //onMouseDown: mouseDown,
+      },
+      shapeFrags
+     // shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
     )
   }
 
@@ -94,6 +137,11 @@
     cursorPositions: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
     mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}],
   }
+
+  const originalShapes = xl.lift(transactions => transactions.filter(t => t.action === 'shape').map(t => t.payload))(transactions)
+  const cursorPositions = xl.lift(transactions => transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload))(transactions)
+  const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
+
 
   /**
    * Pure functions
@@ -204,12 +252,26 @@
     ReactDOM.render(substrateFrag, root)
   }
 
-  render(db, Infinity)
+  //render(db, Infinity)
 
+  db.shapes.forEach(s => xl.put(transactions, [{action: 'shape', payload: s}]))
+
+  const substrate = xl.cell('Frag Substrate')
+  const shapePrimer = xl.cell('Shape primer')
+  const shapeFrags = xl.lift(currentShapes => renderShapeFrags2(currentShapes))(shapePrimer)
+  const scenegraph = xl.lift((sub, shap) => renderSubstrateFrag2(shap))(substrate, shapeFrags)
+  const finalRender = xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
+
+  xl.put(substrate, null)
+  xl.put(shapePrimer, db.shapes)
+
+
+/*
   let currentTid = 0
-  if(1)
+  if(0)
     window.setTimeout(() => {
       window.setInterval(() => render(db, currentTid++), 16)
     }, 5000)
+*/
 
 })()
