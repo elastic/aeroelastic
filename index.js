@@ -159,7 +159,7 @@
    * Pure functions
    */
 
-  const dragStartAt = (events, tid) => {
+  const dragStartAtOld = (events, tid) => {
     let dragStartEvent = null
     for(let i = 0; i < events.length; i++) {
       const e = events[i]
@@ -286,24 +286,23 @@
     return previous
   })(mouseEvents)
 
-  const lastMouseDownAt = xl.lift(function(down, {x, y}) {
+  const currentShapes = xl.lift(d => d)(shapePrimer)
+
+  const hoveredShape = xl.lift((shapes, cursor) => {
+    return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
+  })(currentShapes, cursorPosition)
+
+  const dragStartAt = xl.lift(function(down, {x, y}, hoveredShape) {
     const previous = this.value || {down: false}
-    const result = down ? (!previous.down ? {down, x, y} : previous) : {down: false}
-    console.log(result)
+    const result = down ? (!previous.down && hoveredShape ? {down, x, y} : previous) : {down: false}
     return result
-  })(mouseDown, cursorPosition)
+  })(mouseDown, cursorPosition, hoveredShape)
 
   const metaCursorFrag = xl.lift(function(cursor, mouseDown) {
     const thickness = mouseDown ? 3 : 1
     const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, thickness, 'red')
     return frag
   })(cursorPosition, mouseDown)
-
-  const currentShapes = xl.lift(d => d)(shapePrimer)
-
-  const hoveredShape = xl.lift((shapes, cursor) => {
-    return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
-  })(currentShapes, cursorPosition)
 
   const shapeFrags = xl.lift((currentShapes, hoveredShape) => {
     return renderShapeFrags2(currentShapes, hoveredShape)
@@ -315,7 +314,7 @@
     const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
     const frags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
     return frags
-  })(cursorPosition, lastMouseDownAt)
+  })(cursorPosition, dragStartAt)
 
   const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag2(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
 
