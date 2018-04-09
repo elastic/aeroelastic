@@ -57,7 +57,7 @@
         transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
         backgroundColor: s.backgroundColor,
         border: s === false /*dragStartShape*/ ? '2px solid magenta' : null,
-        opacity: s.key === hoveredShape.key ? 1 : 0.5
+        opacity: s.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
       }
     })
     return frag
@@ -277,7 +277,12 @@
 
   const currentShapes = xl.lift(d => d)(shapePrimer)
 
-  const hoveredShape = xl.lift((shapes, position) => {
+  const hoveredShape = xl.lift((shapes, positionList) => {
+
+    const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
+
+    return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
+
     return {key: 'aRect'}
   })(currentShapes, cursorPositions)
 
