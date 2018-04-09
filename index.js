@@ -104,7 +104,7 @@
     )
   }
 
-  const renderSubstrateFrag2 = (shapeFrags, metaCursorFrag, dragLineFrags=[]/*transactions, shapeFrags, metaCursorFrag, dragLineFrags*/) => {
+  const renderSubstrateFrag2 = (shapeFrags, metaCursorFrag, dragLineFrags/*transactions, shapeFrags, metaCursorFrag, dragLineFrags*/) => {
 
     const updateMetaCursor = event => {
       const x = event.clientX
@@ -274,7 +274,14 @@
     return frag
   })(cursorPositions)
   const shapeFrags = xl.lift(currentShapes => renderShapeFrags2(currentShapes))(shapePrimer)
-  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag) => renderSubstrateFrag2(shapeFrags, metaCursorFrag))(substrate, shapeFrags, metaCursorFrag)
+  const dragLineFrags = xl.lift(positionList => {
+    const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
+    const shapeDragInProcess = true
+    const lineAttribs = positionsToLineAttribsViewer(0, 0, cursor.x, cursor.y)
+    const frags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, 0, 0, lineAttribs.angle)
+    return frags
+  })(cursorPositions)
+  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag2(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
   const finalRender = xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
 
   xl.put(substrate, null)
