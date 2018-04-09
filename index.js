@@ -25,8 +25,13 @@
   const metaCursorSalientColor = 'magenta'
 
   const dispatch = (action, payload) => {
-    db[action].push(payload)
-    xl.put(transactions, [{action, payload}])
+
+    window.setTimeout(() => {
+      //db[action].push(payload)
+      xl.put(transactions, [{action, payload}])
+    }, 0)
+
+
     //ender(db, Infinity)
   }
 
@@ -109,20 +114,18 @@
     const updateMetaCursor = event => {
       const x = event.clientX
       const y = event.clientY
-      window.setTimeout(() => {
-        dispatch('cursorPosition', {id: getId(), time: getTime(), x, y})
-      }, 0)
+      dispatch('cursorPosition', {id: getId(), time: getTime(), x, y})
 
     }
-/*    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
+    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
     const mouseDown = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
-*/
+
 
     return h('div', {
         id: 'root',
         onMouseMove: updateMetaCursor,
-        //onMouseUp: mouseUp,
-        //onMouseDown: mouseDown,
+        onMouseUp: mouseUp,
+        onMouseDown: mouseDown,
       },
       //shapeFrags
      shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
@@ -149,7 +152,7 @@
     const result = transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload)
     return result
   })(transactions)
-  //const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
+  const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
 
 
   /**
@@ -268,7 +271,10 @@
   const substrate = xl.cell('Frag Substrate')
   const shapePrimer = xl.cell('Shape primer')
 
-  const cursorPosition = xl.lift(positionList => positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0})(cursorPositions)
+  const cursorPosition = xl.lift(function(positionList) {
+    const result = positionList.length ? positionList[positionList.length - 1] : this && this.value || {x: 0, y: 0}
+    return result
+  })(cursorPositions)
 
   const metaCursorFrag = xl.lift(function(cursor) {
     // if(positionList.length) debugger
