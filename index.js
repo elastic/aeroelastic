@@ -114,7 +114,7 @@
     return dragStartEvent
   }
 
-  const cursorAt = (positions, tid) => {
+  const cursorPositionAt = (positions, tid) => {
     let result
     for(let i = positions.length - 1; i >= 0; i--) {
       const p = positions[i]
@@ -150,12 +150,9 @@
     return Object.values(shapesMap).map(a => a[a.length - 1])
   }
 
-  const hoveredAt = (transactions, tid) => {
-    const cursor = cursorAt(transactions.cursorPositions, tid)
-    const currentPreDragShapes = shapesAt(transactions.shapes, tid)
-    const hoveredShapes = shapesAtPoint(currentPreDragShapes, cursor.x, cursor.y, tid)
-    const hoveredShape = topShape(hoveredShapes)
-    return hoveredShape
+  const hoveredAt = (shapes, x, y, tid) => {
+    const hoveredShapes = shapesAtPoint(shapes, x, y, tid - 1)
+    return topShape(hoveredShapes)
   }
 
   const mouseDownAt = (transactions, tid) => {
@@ -174,11 +171,12 @@
    */
 
   const render = (transactions, tid) => {
-    const cursor = cursorAt(transactions.cursorPositions, tid)
-    const hoveredShape = hoveredAt(transactions, tid)
+
+    const cursor = cursorPositionAt(transactions.cursorPositions, tid)
+    const shapes = shapesAt(transactions.shapes, tid - 1)
+    const hoveredShape = hoveredAt(shapes, cursor.x, cursor.y, tid)
 
     const dragStartEvent = true /*dragStartAt(db.mouseEvents, tid)*/
-
 
     const dragStartShape = null /*dragStartEvent && dragStartEvent.onShape*/
     const currentShapes = transactions.shapes/*currentPreDragShapes*/.map(s => {
