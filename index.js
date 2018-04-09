@@ -26,8 +26,8 @@
 
   const dispatch = (action, payload) => {
     db[action].push(payload)
-    transactions.put({action, payload})
-    render(db, Infinity)
+    xl.put(transactions, [{action, payload}])
+    //ender(db, Infinity)
   }
 
   /**
@@ -104,22 +104,28 @@
     )
   }
 
-  const renderSubstrateFrag2 = (shapeFrags/*transactions, shapeFrags, metaCursorFrag, dragLineFrags*/) => {
+  const renderSubstrateFrag2 = (shapeFrags, metaCursorFrag, dragLineFrags=[]/*transactions, shapeFrags, metaCursorFrag, dragLineFrags*/) => {
 
-/*
-    const updateMetaCursor = event => dispatch('cursorPosition', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
-    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
+    const updateMetaCursor = event => {
+      const x = event.clientX
+      const y = event.clientY
+      window.setTimeout(() => {
+        dispatch('cursorPosition', {id: getId(), time: getTime(), x, y})
+      }, 0)
+
+    }
+/*    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
     const mouseDown = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
 */
 
     return h('div', {
         id: 'root',
-        //onMouseMove: updateMetaCursor,
+        onMouseMove: updateMetaCursor,
         //onMouseUp: mouseUp,
         //onMouseDown: mouseDown,
       },
-      shapeFrags
-     // shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
+      //shapeFrags
+     shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
     )
   }
 
@@ -134,13 +140,16 @@
       {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
       {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
     ],
-    cursorPositions: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
+    cursorPosition: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
     mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}],
   }
 
-  const originalShapes = xl.lift(transactions => transactions.filter(t => t.action === 'shape').map(t => t.payload))(transactions)
-  const cursorPositions = xl.lift(transactions => transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload))(transactions)
-  const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
+  //const originalShapes = xl.lift(transactions => transactions.filter(t => t.action === 'shape').map(t => t.payload))(transactions)
+  const cursorPositions = xl.lift(transactions => {
+    const result = transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload)
+    return result
+  })(transactions)
+  //const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
 
 
   /**
@@ -258,8 +267,14 @@
 
   const substrate = xl.cell('Frag Substrate')
   const shapePrimer = xl.cell('Shape primer')
+  const metaCursorFrag = xl.lift(function(positionList) {
+    const cursor = positionList.length ? positionList[positionList.length - 1] : {x: 0, y: 0}
+    // if(positionList.length) debugger
+    const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, 1, 'red')
+    return frag
+  })(cursorPositions)
   const shapeFrags = xl.lift(currentShapes => renderShapeFrags2(currentShapes))(shapePrimer)
-  const scenegraph = xl.lift((sub, shap) => renderSubstrateFrag2(shap))(substrate, shapeFrags)
+  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag) => renderSubstrateFrag2(shapeFrags, metaCursorFrag))(substrate, shapeFrags, metaCursorFrag)
   const finalRender = xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
 
   xl.put(substrate, null)
