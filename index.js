@@ -309,12 +309,13 @@
     return renderShapeFrags2(currentShapes, hoveredShape)
   })(currentShapes, hoveredShape)
 
-  const dragLineFrags = xl.lift(cursor => {
+  const dragLineFrags = xl.lift((cursor, lastMouseDownAt) => {
     const shapeDragInProcess = true
-    const lineAttribs = positionsToLineAttribsViewer(0, 0, cursor.x, cursor.y)
-    const frags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, 0, 0, lineAttribs.angle)
+    const origin = lastMouseDownAt.down ? lastMouseDownAt : cursor
+    const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
+    const frags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
     return frags
-  })(cursorPosition)
+  })(cursorPosition, lastMouseDownAt)
 
   const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag2(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
 
