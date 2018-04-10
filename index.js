@@ -6,7 +6,7 @@
 
   const xl = crosslink
 
-  const transactions = xl.cell("Transactions")
+  const primaryActions = xl.cell("Transactions")
 
   /**
    * Constants and utilities
@@ -26,7 +26,7 @@
 
   const dispatch = (action, payload) => {
     window.setTimeout(() => {
-      xl.put(transactions, [{action, payload}])
+      xl.put(primaryActions, [{action, payload}])
     }, 0)
   }
 
@@ -121,8 +121,8 @@
   const cursorPositions = xl.lift(transactions => {
     const result = transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload)
     return result
-  })(transactions)
-  const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
+  })(primaryActions)
+  const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(primaryActions)
 
   const initialShapes = [
     {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: '#b3e2cd'},
@@ -132,7 +132,7 @@
     {key: 'eRect', id: getId(), time: getTime(), shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9'},
   ]
 
-  initialShapes.forEach(s => xl.put(transactions, [{action: 'shape', payload: s}]))
+  initialShapes.forEach(s => xl.put(primaryActions, [{action: 'shape', payload: s}]))
 
   const substrate = xl.cell('Frag Substrate')
   const primedShapes = xl.cell('Shape primer')
