@@ -101,15 +101,15 @@
   }
 
   // set of shapes under a specific point
-  const shapesAtPoint = (shapes, x, y, tid) => shapes.filter(s => s.shape === 'rectangle' && s.x <= x && x <= s.x + s.width && s.y <= y && y < s.y + s.height && s.id <= tid)
+  const shapesAtPoint = (shapes, x, y) => shapes.filter(s => s.shape === 'rectangle' && s.x <= x && x <= s.x + s.width && s.y <= y && y < s.y + s.height)
 
   // pick top shape out of possibly several shapes (presumably under the same point)
   const topShape = shapes => shapes.reduce((prev, next) => {
     return prev ? (next.z >= prev.z ? next : prev) : next
   }, null)
 
-  const hoveredAt = (shapes, x, y, tid) => {
-    const hoveredShapes = shapesAtPoint(shapes, x, y, tid - 1)
+  const hoveredAt = (shapes, x, y) => {
+    const hoveredShapes = shapesAtPoint(shapes, x, y)
     return topShape(hoveredShapes)
   }
 
@@ -192,7 +192,7 @@
 
 
   const hoveredShape = xl.lift((shapes, cursor) => {
-    return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
+    return hoveredAt(shapes, cursor.x, cursor.y)
   })(currentShapes, cursorPosition)
 
   const dragStartAt = xl.lift(function(dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) {
