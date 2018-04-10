@@ -18,7 +18,7 @@
   const h = React.createElement
   const root = document.body
 
-  const metaCursorRadius = 10
+  const metaCursorRadius = 15
   const metaCursorZ = 1000
   const dragLineZ = metaCursorZ - 1 // just below the metaCursor
   const dragLineColor = 'rgba(255,0,255,0.5)'
@@ -34,21 +34,7 @@
    * Fragment makers (pure)
    */
 
-  const renderShapeFrags = (shapes, dragStartShape, hoveredShape) => shapes.map(s => {
-    return h('div', {
-      className: s.shape,
-      style: {
-        width: s.shape === 'line' ? 0 : s.width,
-        height: s.shape === 'line' ? s.length : s.height,
-        transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
-        backgroundColor: s.backgroundColor,
-        border: s === dragStartShape ? '2px solid magenta' : null,
-        opacity: s === hoveredShape ? 1 : 0.8
-      }
-    })
-  })
-
-  const renderShapeFrags2 = (shapes, hoveredShape) => shapes.map(s => {
+  const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => {
     const frag =  h('div', {
       className: s.shape,
       style: {
@@ -56,7 +42,7 @@
         height: s.shape === 'line' ? s.length : s.height,
         transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
         backgroundColor: s.backgroundColor,
-        border: s === false /*dragStartShape*/ ? '2px solid magenta' : null,
+        border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? '2px solid magenta' : null,
         opacity: s.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
       }
     })
@@ -88,33 +74,11 @@
     })]
     : []
 
-  const renderSubstrateFrag = (transactions, shapeFrags, metaCursorFrag, dragLineFrags) => {
+  const renderSubstrateFrag = (shapeFrags, metaCursorFrag, dragLineFrags) => {
 
     const updateMetaCursor = event => dispatch('cursorPosition', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
     const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
     const mouseDown = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
-
-    return h('div', {
-        id: 'root',
-        onMouseMove: updateMetaCursor,
-        onMouseUp: mouseUp,
-        onMouseDown: mouseDown,
-      },
-      shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
-    )
-  }
-
-  const renderSubstrateFrag2 = (shapeFrags, metaCursorFrag, dragLineFrags/*transactions, shapeFrags, metaCursorFrag, dragLineFrags*/) => {
-
-    const updateMetaCursor = event => {
-      const x = event.clientX
-      const y = event.clientY
-      dispatch('cursorPosition', {id: getId(), time: getTime(), x, y})
-
-    }
-    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
-    const mouseDown = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
-
 
     return h('div', {
         id: 'root',
@@ -166,11 +130,11 @@
   const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
 
   const initialShapes = [
-    {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: 'blue'},
-    {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: 'green'},
-    {key: 'cRect', id: getId(), time: getTime(), shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: 'red'},
-    {key: 'dRect', id: getId(), time: getTime(), shape: 'rectangle', x: 300, y: 250, rotation: 0, width: 150, height: 190, z: 8, backgroundColor: 'orange'},
-    {key: 'eRect', id: getId(), time: getTime(), shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: 'purple'},
+    {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: '#b3e2cd'},
+    {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac'},
+    {key: 'cRect', id: getId(), time: getTime(), shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
+    {key: 'dRect', id: getId(), time: getTime(), shape: 'rectangle', x: 300, y: 250, rotation: 0, width: 150, height: 190, z: 8, backgroundColor: '#f4cae4'},
+    {key: 'eRect', id: getId(), time: getTime(), shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9'},
   ]
 
   initialShapes.forEach(s => xl.put(transactions, [{action: 'shape', payload: s}]))
@@ -239,7 +203,7 @@
   const dragStartAt = xl.lift(function(dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) {
     const previous = this.value || {down: false}
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-    const result = down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1} : previous) : {down: false}
+    const result = down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1, dragStartShape: hoveredShape} : previous) : {down: false}
     return result
   })(dragStartCandidate, dragGestures, hoveredShape)
 
@@ -250,15 +214,15 @@
 
 
 
-  const metaCursorFrag = xl.lift(function(cursor, mouseDown) {
-    const thickness = mouseDown ? 3 : 1
-    const frag = renderMetaCursorFrag(cursor.x, cursor.y, false, thickness, 'red')
+  const metaCursorFrag = xl.lift(function(cursor, mouseDown, dragStartAt) {
+    const thickness = mouseDown ? 5 : 1
+    const frag = renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
     return frag
-  })(cursorPosition, mouseDown)
+  })(cursorPosition, mouseDown, dragStartAt)
 
-  const shapeFrags = xl.lift((currentShapes, hoveredShape) => {
-    return renderShapeFrags2(currentShapes, hoveredShape)
-  })(currentShapes, hoveredShape)
+  const shapeFrags = xl.lift((currentShapes, hoveredShape, dragStartAt) => {
+    return renderShapeFrags(currentShapes, hoveredShape, dragStartAt)
+  })(currentShapes, hoveredShape, dragStartAt)
 
   const dragLineFrags = xl.lift((cursor, lastMouseDownAt) => {
     const shapeDragInProcess = true
@@ -268,13 +232,13 @@
     return frags
   })(cursorPosition, dragStartAt)
 
-  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag2(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
+  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
 
   /**
    *  Final render
    */
 
-  const finalRender = xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
+  xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
 
   /**
    *  Setting initial state
