@@ -4,18 +4,13 @@
    * Crosslink seeds
    */
 
+  const h = React.createElement
   const xl = crosslink
-
-  const primaryActions = xl.cell("Transactions")
 
   /**
    * Constants and utilities
    */
 
-  let currentId = 0
-  const getId = () => currentId++
-  const getTime = () => performance.now()
-  const h = React.createElement
   const root = document.body
 
   const metaCursorRadius = 15
@@ -24,6 +19,7 @@
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
 
+  const primaryActions = xl.cell("Transactions")
   const dispatch = (action, payload) => {
     window.setTimeout(() => {
       xl.put(primaryActions, [{action, payload}])
@@ -71,9 +67,9 @@
 
   const renderSubstrateFrag = (shapeFrags, metaCursorFrag, dragLineFrag) => {
 
-    const updateMetaCursor = event => dispatch('cursorPosition', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
-    const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
-    const mouseDown = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseDown', x: event.clientX, y: event.clientY})
+    const updateMetaCursor = event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY})
+    const mouseUp = event => dispatch('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY})
+    const mouseDown = event => dispatch('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY})
 
     return h('div', {
         id: 'root',
@@ -125,11 +121,11 @@
   const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(primaryActions)
 
   const initialShapes = [
-    {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: '#b3e2cd'},
-    {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac'},
-    {key: 'cRect', id: getId(), time: getTime(), shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
-    {key: 'dRect', id: getId(), time: getTime(), shape: 'rectangle', x: 300, y: 250, rotation: 0, width: 150, height: 190, z: 8, backgroundColor: '#f4cae4'},
-    {key: 'eRect', id: getId(), time: getTime(), shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9'},
+    {key: 'aRect', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: '#b3e2cd'},
+    {key: 'bRect', shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac'},
+    {key: 'cRect', shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
+    {key: 'dRect', shape: 'rectangle', x: 300, y: 250, rotation: 0, width: 150, height: 190, z: 8, backgroundColor: '#f4cae4'},
+    {key: 'eRect', shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9'},
   ]
 
   initialShapes.forEach(s => xl.put(primaryActions, [{action: 'shape', payload: s}]))
