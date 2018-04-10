@@ -35,6 +35,7 @@
   const metaCursorSalientColor = 'magenta'
   const hotspotSize = 12
   const devColor = 'magenta'
+  const gridPitch = 100
 
 
   /**
@@ -236,7 +237,9 @@
         const grabStart = !s.beingDragged && beingDragged
         const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
         const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-        return Object.assign({}, s, {x: beingDragged ? x1 + grabOffsetX: x, y: beingDragged ? y1 + grabOffsetY : y, beingDragged, grabOffsetX, grabOffsetY})
+        const newX = beingDragged ? x1 + grabOffsetX : x
+        const newY = beingDragged ? y1 + grabOffsetY : y
+        return Object.assign({}, s, {x: 100 * Math.round(newX / 100), y: 100 * Math.round(newY / 100), beingDragged, grabOffsetX, grabOffsetY})
       })
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
