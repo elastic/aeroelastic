@@ -1,33 +1,50 @@
 (() => {
 
   /**
-   * Crosslink seeds
+   * Mock `require()` bindings
    */
 
+  const reactRenderDOM = ReactDOM.render
   const h = React.createElement
   const xl = crosslink
 
+
   /**
-   * Constants and utilities
+   * Mock API values
    */
 
   const root = document.body
 
+  const initialShapes = [
+    {key: 'rect1', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: '#b3e2cd'},
+    {key: 'rect2', shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac'},
+    {key: 'rect3', shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
+    {key: 'rect4', shape: 'rectangle', x: 300, y: 250, rotation: 0, width: 150, height: 190, z: 8, backgroundColor: '#f4cae4'},
+    {key: 'rect5', shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9'},
+  ]
+
+
+  /**
+   * Mock config
+   */
+
   const metaCursorRadius = 15
   const metaCursorZ = 1000
-  const dragLineZ = metaCursorZ - 1 // just below the metaCursor
+  const dragLineZ = metaCursorZ - 1 // just beneath the metaCursor
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
 
-  const primaryActions = xl.cell("Transactions")
-  const dispatch = (action, payload) => {
-    window.setTimeout(() => {
-      xl.put(primaryActions, [{action, payload}])
-    }, 0)
-  }
 
   /**
-   * Fragment makers (pure)
+   * Mock action dispatch
+   */
+
+  const primaryActions = xl.cell('Transactions')
+  const dispatch = (action, payload) => xl.put(primaryActions, [{action, payload}])
+
+
+  /**
+   * Fragment makers (pure functional components)
    */
 
   const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => h('div', {
@@ -81,18 +98,17 @@
     )
   }
 
+
   /**
-   * Pure functions
+   * Pure calculations
    */
 
   // map x0, y0, x1, y1 to deltas, length and angle
   const positionsToLineAttribsViewer = (x0, y0, x1, y1) => {
-
     const deltaX = x1 - x0
     const deltaY = y1 - y0
     const length = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
     const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
-
     return {length, angle, deltaX, deltaY}
   }
 
@@ -111,7 +127,7 @@
 
 
   /**
-   * Priming
+   * Data streams
    */
 
   const cursorPositions = xl.lift(transactions => {
@@ -119,14 +135,6 @@
     return result
   })(primaryActions)
   const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(primaryActions)
-
-  const initialShapes = [
-    {key: 'aRect', shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: '#b3e2cd'},
-    {key: 'bRect', shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac'},
-    {key: 'cRect', shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
-    {key: 'dRect', shape: 'rectangle', x: 300, y: 250, rotation: 0, width: 150, height: 190, z: 8, backgroundColor: '#f4cae4'},
-    {key: 'eRect', shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9'},
-  ]
 
   initialShapes.forEach(s => xl.put(primaryActions, [{action: 'shape', payload: s}]))
 
@@ -228,7 +236,7 @@
    *  Final render
    */
 
-  xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
+  xl.lift(frag => reactRenderDOM(frag, root))(scenegraph)
 
   /**
    *  Setting initial state
