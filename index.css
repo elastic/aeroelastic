@@ -9,6 +9,7 @@ div {
     padding: 0;
     position: absolute;
     display: block;
+    transform: translate3d(0, 0, 0); /* activating compositing to avoid repaint on opacity change - it has performance pros and cons! */
 }
 
 #root {

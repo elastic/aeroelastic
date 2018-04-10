@@ -34,6 +34,7 @@
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
   const hotspotSize = 12
+  const devColor = 'magenta'
 
 
   /**
@@ -59,7 +60,7 @@
         width: s.shape === 'line' ? 0 : s.width,
         height: s.shape === 'line' ? s.length : s.height,
         backgroundColor: s.backgroundColor,
-        border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? '2px solid magenta' : null,
+        border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? `2px solid ${devColor}` : null,
         opacity: s.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
       }
     }),
@@ -205,7 +206,7 @@
 
 
   /**
-   * Start of interesting things
+   * Gestures
    */
 
   const dragGestures = xl.lift(({down, x0, y0}, cursor) => {
@@ -218,26 +219,30 @@
   })(dragGestures)
 
 
+  /**
+   * Positions
+   */
 
   const currentShapes = xl.lift(function (primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) {
-    const previousShapeState = this.value || primedShapes
+    const previousState = this.value || {shapes: primedShapes}
+    const previousShapeState = previousState.shapes
     const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y, Infinity)
     const dragInProgress = previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
-    return previousShapeState.map(s => {
-      const {x, y} = s
-      const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
-      const grabStart = !s.beingDragged && beingDragged
-      const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
-      const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-      return Object.assign({}, s, {x: beingDragged ? x1 + grabOffsetX: x, y: beingDragged ? y1 + grabOffsetY : y, beingDragged, grabOffsetX, grabOffsetY})
-    })
+    return {
+      hoveredShape,
+      shapes: previousShapeState.map(s => {
+        const {x, y} = s
+        const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
+        const grabStart = !s.beingDragged && beingDragged
+        const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
+        const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
+        return Object.assign({}, s, {x: beingDragged ? x1 + grabOffsetX: x, y: beingDragged ? y1 + grabOffsetY : y, beingDragged, grabOffsetX, grabOffsetY})
+      })
+    }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
 
-
-  const hoveredShape = xl.lift((shapes, cursor) => {
-    return hoveredAt(shapes, cursor.x, cursor.y)
-  })(currentShapes, cursorPosition)
+  const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
 
   const dragStartAt = xl.lift(function(dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) {
     const previous = this.value || {down: false}
@@ -248,26 +253,22 @@
 
 
   /**
-   * End of interesting things
+   * Update fragments
    */
-
-
 
   const metaCursorFrag = xl.lift(function(cursor, mouseDown, dragStartAt) {
     const thickness = mouseDown ? 8 : 1
-    const frag = renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
-    return frag
+    return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
   })(cursorPosition, mouseDown, dragStartAt)
 
-  const shapeFrags = xl.lift((currentShapes, hoveredShape, dragStartAt) => {
-    return renderShapeFrags(currentShapes, hoveredShape, dragStartAt)
+  const shapeFrags = xl.lift(({shapes}, hoveredShape, dragStartAt) => {
+    return renderShapeFrags(shapes, hoveredShape, dragStartAt)
   })(currentShapes, hoveredShape, dragStartAt)
 
-  const dragLineFrag = xl.lift((cursor, lastMouseDownAt) => {
-    const origin = lastMouseDownAt.down ? lastMouseDownAt : cursor
+  const dragLineFrag = xl.lift((cursor, dragStartAt) => {
+    const origin = dragStartAt.down ? dragStartAt : cursor
     const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
-    const frags = renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
-    return frags
+    return renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
   })(cursorPosition, dragStartAt)
 
   const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrag) => renderSubstrateFrag(shapeFrags, metaCursorFrag, dragLineFrag))(substrate, shapeFrags, metaCursorFrag, dragLineFrag)
