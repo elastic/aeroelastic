@@ -28,6 +28,7 @@ div {
 .rectangle {
     border: 1px solid grey;
     box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;
+    border-radius: 5px;
 }
 
 .line {
@@ -46,3 +47,12 @@ div {
   opacity: 0.7
 }
 
+.cornerHotspot {
+    border: 1px solid rgba(0,0,255,0.3);
+    border-radius: 3px;
+}
+
+.rotateHotspot {
+    border: 1px solid rgba(0,0,255,0.05);
+    box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;
+}

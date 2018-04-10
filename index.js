@@ -33,6 +33,7 @@
   const dragLineZ = metaCursorZ - 1 // just beneath the metaCursor
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
+  const hotspotSize = 12
 
 
   /**
@@ -59,9 +60,29 @@
         height: s.shape === 'line' ? s.length : s.height,
         backgroundColor: s.backgroundColor,
         border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? '2px solid magenta' : null,
-        opacity: s.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
+        opacity: s.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
       }
-    })
+    }),
+    h('div', {
+      className: 'rotateHotspot circle',
+      style: { width: hotspotSize * 1.5, height: hotspotSize * 1.5, transform: `translate(${s.width / 2}px, ${- 2 * hotspotSize}px)` }
+    }),
+    h('div', {
+      className: 'cornerHotspot rectangle',
+      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${- hotspotSize / 2}px)` }
+    }),
+    h('div', {
+      className: 'cornerHotspot rectangle',
+      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
+    }),
+    h('div', {
+      className: 'cornerHotspot rectangle',
+      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+    }),
+    h('div', {
+      className: 'cornerHotspot rectangle',
+      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+    }),
   ]))
 
   const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
@@ -71,7 +92,6 @@
       height: metaCursorRadius * 2,
       transform: `translate3d(${x - metaCursorRadius}px, ${y - metaCursorRadius}px, ${metaCursorZ}px)`,
       border: `${metaCursorThickness}px solid ${metaCursorColor}`,
-      //backgroundColor: shapeDragInProcess ? metaCursorSalientColor : null,
       boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
     }
   })
