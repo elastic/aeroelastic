@@ -310,8 +310,19 @@
 
 
 
-  const currentShapes = xl.lift((primedShapes, cursorPosition, dragStartCandidate, dragGestures) => {
-    return primedShapes
+
+  const currentShapes = xl.lift(function (primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) {
+    const previousShapeState = this.value || primedShapes
+    const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y, Infinity)
+    const dragInProgress = previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
+    return previousShapeState.map(s => {
+      const {x, y} = s
+      const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down// && !isNaN(x1)
+      const grabStart = !s.beingDragged && beingDragged
+      const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
+      const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
+      return Object.assign({}, s, {x: beingDragged ? x1 + grabOffsetX: x, y: beingDragged ? y1 + grabOffsetY : y, beingDragged, grabOffsetX, grabOffsetY})
+    })
   })(primedShapes, cursorPosition, dragStartCandidate, dragGestures)
 
 
@@ -320,10 +331,10 @@
     return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
   })(currentShapes, cursorPosition)
 
-  const dragStartAt = xl.lift(function(dragStartable, {down, x0, y0, x1, y1}, hoveredShape) {
+  const dragStartAt = xl.lift(function(dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) {
     const previous = this.value || {down: false}
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-    const result = down ? (!previous.down && dragStartable && hoveredShape ? {down, x: x1, y: y1} : previous) : {down: false}
+    const result = down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1} : previous) : {down: false}
     return result
   })(dragStartCandidate, dragGestures, hoveredShape)
 
