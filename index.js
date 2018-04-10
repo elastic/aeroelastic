@@ -48,16 +48,21 @@
    */
 
   const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => h('div', {
-    className: s.shape,
     style: {
-      width: s.shape === 'line' ? 0 : s.width,
-      height: s.shape === 'line' ? s.length : s.height,
       transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
-      backgroundColor: s.backgroundColor,
-      border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? '2px solid magenta' : null,
-      opacity: s.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
     }
-  }))
+  }, [
+    h('div', {
+      className: s.shape,
+      style: {
+        width: s.shape === 'line' ? 0 : s.width,
+        height: s.shape === 'line' ? s.length : s.height,
+        backgroundColor: s.backgroundColor,
+        border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? '2px solid magenta' : null,
+        opacity: s.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
+      }
+    })
+  ]))
 
   const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
     className: 'circle metaCursor',
