@@ -66,21 +66,36 @@
       height: metaCursorRadius * 2,
       transform: `translate3d(${x - metaCursorRadius}px, ${y - metaCursorRadius}px, ${metaCursorZ}px)`,
       border: `${metaCursorThickness}px solid ${metaCursorColor}`,
-      backgroundColor: shapeDragInProcess ? metaCursorSalientColor : null,
+      //backgroundColor: shapeDragInProcess ? metaCursorSalientColor : null,
       boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
     }
   })
 
-  const renderDragLineFrag = (dragLineLength, dragLineX0, dragLineY0, angle) => h('div', {
-    className: 'line',
+  const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
     style: {
-      width: Math.max(0, dragLineLength - metaCursorRadius),
-      height: 0,
-      transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
-      border: `1px solid ${dragLineColor}`,
-      boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
+      transform: `translate3d(${x}px, ${y}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
     }
-  })
+  }, [
+    h('div', {
+      className: 'line',
+      style: {
+        width: Math.max(0, dragLineLength - metaCursorRadius),
+        height: 0,
+        border: `1px solid ${dragLineColor}`,
+        boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
+      }
+    }),
+    h('div', {
+      className: 'circle metaCursor',
+      style: {
+        width: dragLineLength ? metaCursorRadius : 0,
+        height: dragLineLength ? metaCursorRadius : 0,
+        transform: `translate3d(${-metaCursorRadius / 2}px, ${-metaCursorRadius / 2}px, ${metaCursorZ}px)`,
+        backgroundColor: metaCursorSalientColor,
+        boxShadow: `0 0 0.5px 0 ${metaCursorSalientColor} inset, 0 0 2px 0 white`,
+      }
+    })
+  ])
 
   const renderSubstrateFrag = (shapeFrags, metaCursorFrag, dragLineFrag) => {
 
@@ -130,6 +145,9 @@
    * Data streams
    */
 
+  const substrate = xl.cell('Frag Substrate')
+  const shapeAdditions = xl.cell('Shape additions')
+
   const cursorPositions = xl.lift(transactions => {
     const result = transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload)
     return result
@@ -137,9 +155,6 @@
   const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(primaryActions)
 
   initialShapes.forEach(s => xl.put(primaryActions, [{action: 'shape', payload: s}]))
-
-  const substrate = xl.cell('Frag Substrate')
-  const primedShapes = xl.cell('Shape primer')
 
   const cursorPosition = xl.lift(function(positionList) {
     const result = positionList.length ? positionList[positionList.length - 1] : this && this.value || {x: 0, y: 0}
@@ -191,7 +206,7 @@
       const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
       return Object.assign({}, s, {x: beingDragged ? x1 + grabOffsetX: x, y: beingDragged ? y1 + grabOffsetY : y, beingDragged, grabOffsetX, grabOffsetY})
     })
-  })(primedShapes, cursorPosition, dragStartCandidate, dragGestures)
+  })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
 
 
@@ -214,7 +229,7 @@
 
 
   const metaCursorFrag = xl.lift(function(cursor, mouseDown, dragStartAt) {
-    const thickness = mouseDown ? 5 : 1
+    const thickness = mouseDown ? 8 : 1
     const frag = renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
     return frag
   })(cursorPosition, mouseDown, dragStartAt)
@@ -232,17 +247,19 @@
 
   const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrag) => renderSubstrateFrag(shapeFrags, metaCursorFrag, dragLineFrag))(substrate, shapeFrags, metaCursorFrag, dragLineFrag)
 
+
   /**
-   *  Final render
+   *  Render into supplied root
    */
 
   xl.lift(frag => reactRenderDOM(frag, root))(scenegraph)
 
+
   /**
-   *  Setting initial state
+   *  Providing initial state
    */
 
-  xl.put(substrate, null)
-  xl.put(primedShapes, initialShapes)
+  xl.put(substrate, null) // doesn't currently take actual input
+  xl.put(shapeAdditions, initialShapes)
 
 })()
