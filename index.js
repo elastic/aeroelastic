@@ -317,7 +317,7 @@
     const dragInProgress = previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
     return previousShapeState.map(s => {
       const {x, y} = s
-      const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down// && !isNaN(x1)
+      const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
       const grabStart = !s.beingDragged && beingDragged
       const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
       const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
