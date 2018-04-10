@@ -269,7 +269,7 @@
   db.shapes.forEach(s => xl.put(transactions, [{action: 'shape', payload: s}]))
 
   const substrate = xl.cell('Frag Substrate')
-  const shapePrimer = xl.cell('Shape primer')
+  const primedShapes = xl.cell('Shape primer')
 
   const cursorPosition = xl.lift(function(positionList) {
     const result = positionList.length ? positionList[positionList.length - 1] : this && this.value || {x: 0, y: 0}
@@ -292,9 +292,14 @@
     return result
   })(mouseDown, cursorPosition)
 
+
+
+  /**
+   * Start of interesting things
+   */
+
   const dragGestures = xl.lift(({down, x0, y0}, cursor) => {
-    const result = {down, x0, y0, x1: cursor.x, y1: cursor.y}
-    return result
+    return {down, x0, y0, x1: cursor.x, y1: cursor.y}
   })(dragGestureStartAt, cursorPosition)
 
   const dragStartCandidate = xl.lift(({down, x0, y0, x1, y1}) => {
@@ -302,7 +307,14 @@
     return down && x0 === x1 && y0 === y1
   })(dragGestures)
 
-  const currentShapes = xl.lift(d => d)(shapePrimer)
+
+
+
+  const currentShapes = xl.lift((primedShapes, cursorPosition, dragStartCandidate, dragGestures) => {
+    return primedShapes
+  })(primedShapes, cursorPosition, dragStartCandidate, dragGestures)
+
+
 
   const hoveredShape = xl.lift((shapes, cursor) => {
     return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
@@ -311,9 +323,16 @@
   const dragStartAt = xl.lift(function(dragStartable, {down, x0, y0, x1, y1}, hoveredShape) {
     const previous = this.value || {down: false}
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-    const result = down ? (!previous.down && dragStartable && hoveredShape ? {down, x: x1, y: y1, draggedShape: hoveredShape} : previous) : {down: false}
+    const result = down ? (!previous.down && dragStartable && hoveredShape ? {down, x: x1, y: y1} : previous) : {down: false}
     return result
   })(dragStartCandidate, dragGestures, hoveredShape)
+
+
+
+  /**
+   * End of interesting things
+   */
+
 
   const metaCursorFrag = xl.lift(function(cursor, mouseDown) {
     const thickness = mouseDown ? 3 : 1
@@ -341,7 +360,7 @@
   const finalRender = xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
 
   xl.put(substrate, null)
-  xl.put(shapePrimer, db.shapes)
+  xl.put(primedShapes, db.shapes)
 
 
 /*
