@@ -286,6 +286,18 @@
     return previous
   })(mouseEvents)
 
+  const dragGestureStartAt = xl.lift(function(down, {x, y}) {
+    const previous = this.value || {down: false}
+    const result = down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false}
+    return result
+  })(mouseDown, cursorPosition)
+
+  const dragGestures = xl.lift(({down, x0, y0}, cursor) => {
+    const result = {down, x0, y0, x1: cursor.x, y1: cursor.y}
+    if(down) console.log(result)
+    return result
+  })(dragGestureStartAt, cursorPosition)
+
   const currentShapes = xl.lift(d => d)(shapePrimer)
 
   const hoveredShape = xl.lift((shapes, cursor) => {
