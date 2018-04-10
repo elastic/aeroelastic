@@ -25,14 +25,9 @@
   const metaCursorSalientColor = 'magenta'
 
   const dispatch = (action, payload) => {
-
     window.setTimeout(() => {
-      //db[action].push(payload)
       xl.put(transactions, [{action, payload}])
     }, 0)
-
-
-    //ender(db, Infinity)
   }
 
   /**
@@ -127,63 +122,13 @@
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
-      //shapeFrags
-     shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
+      shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
     )
   }
 
   /**
-   * Database
-   */
-
-  const db = {
-
-    // tables
-    shapes: [
-      {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 150, height: 100, z: 10, backgroundColor: 'blue'},
-      {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 250, rotation: 0, width: 150, height: 100, z: 0, backgroundColor: 'green'},
-    ],
-    cursorPosition: [{id: getId(), time: getTime(), x: -metaCursorRadius, y: -metaCursorRadius}],
-    mouseEvents: [{id: getId(), time: getTime(), event: 'mouseUp'}],
-  }
-
-  //const originalShapes = xl.lift(transactions => transactions.filter(t => t.action === 'shape').map(t => t.payload))(transactions)
-  const cursorPositions = xl.lift(transactions => {
-    const result = transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload)
-    return result
-  })(transactions)
-  const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
-
-
-  /**
    * Pure functions
    */
-
-  const dragStartAtOld = (events, tid) => {
-    let dragStartEvent = null
-    for(let i = 0; i < events.length; i++) {
-      const e = events[i]
-      if(e.id > tid) break
-      if(e.event === 'mouseUp') {
-        dragStartEvent = null
-      }
-      if(e.event === 'mouseDown' && e.onShape) {
-        dragStartEvent = e
-      }
-    }
-    return dragStartEvent
-  }
-
-  const cursorPositionAt = (positions, tid) => {
-    let result
-    for(let i = positions.length - 1; i >= 0; i--) {
-      const p = positions[i]
-      result = p
-      if(p.id < tid)
-        break
-    }
-    return result
-  }
 
   // map x0, y0, x1, y1 to deltas, length and angle
   const positionsToLineAttribsViewer = (x0, y0, x1, y1) => {
@@ -204,69 +149,31 @@
     return prev ? (next.z >= prev.z ? next : prev) : next
   }, null)
 
-  const shapesAt = (shapes, tid) => {
-    const shapesMap = {}
-    shapes.forEach(s => shapesMap[s.key] = shapesMap[s.key] && s.id <= tid ? shapesMap[s.key].concat(s) : [s])
-    return Object.values(shapesMap).map(a => a[a.length - 1])
-  }
-
   const hoveredAt = (shapes, x, y, tid) => {
     const hoveredShapes = shapesAtPoint(shapes, x, y, tid - 1)
     return topShape(hoveredShapes)
   }
 
-  const mouseDownAt = (transactions, tid) => {
-    const events = transactions.mouseEvents
-    for(let i = events.length - 1; i >= 0; i--) {
-      const e = events[i]
-      if(e.id > tid) continue
-      if(e.event === 'mouseDown') return e
-      if(e.event === 'mouseUp') return false
-    }
-    return false
-  }
 
   /**
-   * What is it?
+   * Priming
    */
 
-  const render = (transactions, tid) => {
+  const cursorPositions = xl.lift(transactions => {
+    const result = transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload)
+    return result
+  })(transactions)
+  const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(transactions)
 
-    const cursor = cursorPositionAt(transactions.cursorPositions, tid)
-    const shapes = shapesAt(transactions.shapes, tid - 1)
-    const hoveredShape = hoveredAt(shapes, cursor.x, cursor.y, tid)
+  const initialShapes = [
+    {key: 'aRect', id: getId(), time: getTime(), shape: 'rectangle', x: 500, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: 'blue'},
+    {key: 'bRect', id: getId(), time: getTime(), shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: 'green'},
+    {key: 'cRect', id: getId(), time: getTime(), shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: 'red'},
+    {key: 'dRect', id: getId(), time: getTime(), shape: 'rectangle', x: 300, y: 250, rotation: 0, width: 150, height: 190, z: 8, backgroundColor: 'orange'},
+    {key: 'eRect', id: getId(), time: getTime(), shape: 'rectangle', x: 700, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: 'purple'},
+  ]
 
-    const dragStartEvent = true /*dragStartAt(db.mouseEvents, tid)*/
-
-    const dragStartShape = null /*dragStartEvent && dragStartEvent.onShape*/
-    const currentShapes = transactions.shapes/*currentPreDragShapes*/.map(s => {
-      return s === /*dragStartShape*/ false ? Object.assign({}, s, {x: s.x + lineAttribs.deltaX, y: s.y + lineAttribs.deltaY}) : s
-    })
-
-    const mouseDownEvent = mouseDownAt(transactions, tid)
-
-
-    const dragLineOriginX = mouseDownEvent && mouseDownEvent.x
-    const dragLineOriginY = mouseDownEvent && mouseDownEvent.y
-    const lineAttribs = positionsToLineAttribsViewer(dragLineOriginX, dragLineOriginY, cursor.x, cursor.y)
-
-    const dragInProcess = mouseDownEvent
-    const shapeDragInProcess = dragStartEvent && dragInProcess
-    const metaCursorSaliency = false /*shapeDragInProcess*/
-    const metaCursorColor = metaCursorSaliency ? metaCursorSalientColor : 'lightgrey'
-    const metaCursorThickness = hoveredShape ? 3 : 1
-
-    // rendering
-    const shapeFrags = renderShapeFrags(currentShapes, dragStartShape, hoveredShape)
-    const metaCursorFrag = renderMetaCursorFrag(cursor.x, cursor.y, shapeDragInProcess, metaCursorThickness, metaCursorColor)
-    const dragLineFrags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, dragLineOriginX, dragLineOriginY, lineAttribs.angle)
-    const substrateFrag = renderSubstrateFrag(transactions, shapeFrags, metaCursorFrag, dragLineFrags)
-    ReactDOM.render(substrateFrag, root)
-  }
-
-  //render(db, Infinity)
-
-  db.shapes.forEach(s => xl.put(transactions, [{action: 'shape', payload: s}]))
+  initialShapes.forEach(s => xl.put(transactions, [{action: 'shape', payload: s}]))
 
   const substrate = xl.cell('Frag Substrate')
   const primedShapes = xl.cell('Shape primer')
@@ -309,8 +216,6 @@
 
 
 
-
-
   const currentShapes = xl.lift(function (primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) {
     const previousShapeState = this.value || primedShapes
     const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y, Infinity)
@@ -339,10 +244,10 @@
   })(dragStartCandidate, dragGestures, hoveredShape)
 
 
-
   /**
    * End of interesting things
    */
+
 
 
   const metaCursorFrag = xl.lift(function(cursor, mouseDown) {
@@ -365,21 +270,17 @@
 
   const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag2(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
 
+  /**
+   *  Final render
+   */
 
-
-  // final render
   const finalRender = xl.lift(frag => ReactDOM.render(frag, root))(scenegraph)
 
+  /**
+   *  Setting initial state
+   */
+
   xl.put(substrate, null)
-  xl.put(primedShapes, db.shapes)
-
-
-/*
-  let currentTid = 0
-  if(0)
-    window.setTimeout(() => {
-      window.setInterval(() => render(db, currentTid++), 16)
-    }, 5000)
-*/
+  xl.put(primedShapes, initialShapes)
 
 })()
