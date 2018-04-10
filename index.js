@@ -297,18 +297,23 @@
     return result
   })(dragGestureStartAt, cursorPosition)
 
+  const dragStartCandidate = xl.lift(({down, x0, y0, x1, y1}) => {
+    // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
+    return down && x0 === x1 && y0 === y1
+  })(dragGestures)
+
   const currentShapes = xl.lift(d => d)(shapePrimer)
 
   const hoveredShape = xl.lift((shapes, cursor) => {
     return hoveredAt(shapes, cursor.x, cursor.y, Infinity)
   })(currentShapes, cursorPosition)
 
-  const dragStartAt = xl.lift(function({down, x0, y0, x1, y1}, hoveredShape) {
+  const dragStartAt = xl.lift(function(dragStartable, {down, x0, y0, x1, y1}, hoveredShape) {
     const previous = this.value || {down: false}
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-    const result = down ? (!previous.down && hoveredShape && x0 === x1 && y0 === y1 ? {down, x: x1, y: y1, draggedShape: hoveredShape} : previous) : {down: false}
+    const result = down ? (!previous.down && dragStartable && hoveredShape ? {down, x: x1, y: y1, draggedShape: hoveredShape} : previous) : {down: false}
     return result
-  })(dragGestures, hoveredShape)
+  })(dragStartCandidate, dragGestures, hoveredShape)
 
   const metaCursorFrag = xl.lift(function(cursor, mouseDown) {
     const thickness = mouseDown ? 3 : 1
