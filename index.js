@@ -34,20 +34,17 @@
    * Fragment makers (pure)
    */
 
-  const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => {
-    const frag =  h('div', {
-      className: s.shape,
-      style: {
-        width: s.shape === 'line' ? 0 : s.width,
-        height: s.shape === 'line' ? s.length : s.height,
-        transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
-        backgroundColor: s.backgroundColor,
-        border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? '2px solid magenta' : null,
-        opacity: s.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
-      }
-    })
-    return frag
-  })
+  const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => h('div', {
+    className: s.shape,
+    style: {
+      width: s.shape === 'line' ? 0 : s.width,
+      height: s.shape === 'line' ? s.length : s.height,
+      transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
+      backgroundColor: s.backgroundColor,
+      border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? '2px solid magenta' : null,
+      opacity: s.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
+    }
+  }))
 
   const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
     className: 'circle metaCursor',
@@ -61,20 +58,18 @@
     }
   })
 
-  const renderDragLineFrags = (shapeDragInProcess, dragLineLength, dragLineX0, dragLineY0, angle) => shapeDragInProcess ? [h('div', {
-      className: 'line',
-      style: {
-        width: Math.max(0, dragLineLength - metaCursorRadius),
-        height: 0,
-        opacity: shapeDragInProcess ? 1 : 0,
-        transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
-        border: `1px solid ${dragLineColor}`,
-        boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
-      }
-    })]
-    : []
+  const renderDragLineFrag = (dragLineLength, dragLineX0, dragLineY0, angle) => h('div', {
+    className: 'line',
+    style: {
+      width: Math.max(0, dragLineLength - metaCursorRadius),
+      height: 0,
+      transform: `translate3d(${dragLineX0}px, ${dragLineY0}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
+      border: `1px solid ${dragLineColor}`,
+      boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
+    }
+  })
 
-  const renderSubstrateFrag = (shapeFrags, metaCursorFrag, dragLineFrags) => {
+  const renderSubstrateFrag = (shapeFrags, metaCursorFrag, dragLineFrag) => {
 
     const updateMetaCursor = event => dispatch('cursorPosition', {id: getId(), time: getTime(), x: event.clientX, y: event.clientY})
     const mouseUp = event => dispatch('mouseEvent', {id: getId(), time: getTime(), event: 'mouseUp', x: event.clientX, y: event.clientY})
@@ -86,7 +81,7 @@
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
-      shapeFrags.concat([metaCursorFrag, ...dragLineFrags])
+      shapeFrags.concat([metaCursorFrag, dragLineFrag])
     )
   }
 
@@ -224,15 +219,14 @@
     return renderShapeFrags(currentShapes, hoveredShape, dragStartAt)
   })(currentShapes, hoveredShape, dragStartAt)
 
-  const dragLineFrags = xl.lift((cursor, lastMouseDownAt) => {
-    const shapeDragInProcess = true
+  const dragLineFrag = xl.lift((cursor, lastMouseDownAt) => {
     const origin = lastMouseDownAt.down ? lastMouseDownAt : cursor
     const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
-    const frags = renderDragLineFrags(shapeDragInProcess, lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
+    const frags = renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
     return frags
   })(cursorPosition, dragStartAt)
 
-  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrags) => renderSubstrateFrag(shapeFrags, metaCursorFrag, dragLineFrags))(substrate, shapeFrags, metaCursorFrag, dragLineFrags)
+  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrag) => renderSubstrateFrag(shapeFrags, metaCursorFrag, dragLineFrag))(substrate, shapeFrags, metaCursorFrag, dragLineFrag)
 
   /**
    *  Final render
