@@ -71,23 +71,39 @@
       }),
       h('div', {
         className: 'rotateHotspot circle',
-        style: { width: hotspotSize * 1.5, height: hotspotSize * 1.5, transform: `translate(${s.width / 2}px, ${- 2 * hotspotSize}px)` }
+        style: { width: hotspotSize * 1.5, height: hotspotSize * 1.5, transform: `translate(${s.width / 2 + hotspotSize}px, ${- 2 * hotspotSize}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle',
+        className: 'cornerHotspot rectangle topLeft',
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${- hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle',
+        className: 'cornerHotspot rectangle topRight',
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle',
+        className: 'cornerHotspot rectangle bottomLeft',
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle',
+        className: 'cornerHotspot rectangle bottomRight',
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle top',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle right',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle bottom',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle left',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${-hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
       }),
     ])
   })
@@ -267,7 +283,7 @@
   })(dragStartCandidate, dragGestures, hoveredShape)
 
   const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
-    shapes.filter(s => dragStartShape && s.key === dragStartShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.05)'}))
+    shapes.filter(s => dragStartShape && s.key === dragStartShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
   )(currentShapes, dragStartAt)
 
 
@@ -294,9 +310,7 @@
     return renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
   })(cursorPosition, dragStartAt)
 
-  const scenegraph = xl.lift((substrate, shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
-    renderSubstrateFrag(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
-  )(substrate, shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+  const scenegraph = xl.lift(renderSubstrateFrag)(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 
   /**

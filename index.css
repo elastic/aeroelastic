@@ -49,9 +49,18 @@ div {
 }
 
 .cornerHotspot {
-    border: 1px solid rgba(0,0,255,0.3);
-    border-radius: 3px;
+    box-shadow: none;
+    border-radius: 0;
 }
+
+.topLeft {border-width: 1px 0 0 1px;}
+.topRight {border-width: 1px 1px 0 0;}
+.bottomLeft {border-width: 0 0 1px 1px;}
+.bottomRight {border-width: 0 1px 1px 0;}
+.top {border-width: 1px 0 0 0;}
+.right {border-width: 0 1px 0 0;}
+.bottom {border-width: 0 0 1px 0;}
+.left {border-width: 0 0 0 1px;}
 
 .rotateHotspot {
     border: 1px solid rgba(0,0,255,0.05);
