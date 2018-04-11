@@ -7,6 +7,5 @@
   "author": "Robert Monfera <robert.monfera@elastic.co>",
   "license": "Apache-2.0",
   "dependencies": {
-    "crosslink": "^0.2.0"
   }
 }
