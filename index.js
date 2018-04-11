@@ -31,6 +31,7 @@
   const metaCursorRadius = 15
   const metaCursorZ = 1000
   const dragLineZ = metaCursorZ - 1 // just beneath the metaCursor
+  const freeDragZ = dragLineZ - 1 // just beneath the cursor scenegraph
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const metaCursorSalientColor = 'magenta'
   const hotspotSize = 12
@@ -50,42 +51,46 @@
    * Fragment makers (pure functional components)
    */
 
-  const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => h('div', {
-    style: {
-      transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
-    }
-  }, [
-    h('div', {
-      className: s.shape,
+  const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => {
+    const dragged = s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+    return h('div', {
+      className: dragged ? 'draggable' : null,
       style: {
-        width: s.shape === 'line' ? 0 : s.width,
-        height: s.shape === 'line' ? s.length : s.height,
-        backgroundColor: s.backgroundColor,
-        border: s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key) ? `2px solid ${devColor}` : null,
-        opacity: s.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
+        transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
       }
-    }),
-    h('div', {
-      className: 'rotateHotspot circle',
-      style: { width: hotspotSize * 1.5, height: hotspotSize * 1.5, transform: `translate(${s.width / 2}px, ${- 2 * hotspotSize}px)` }
-    }),
-    h('div', {
-      className: 'cornerHotspot rectangle',
-      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${- hotspotSize / 2}px)` }
-    }),
-    h('div', {
-      className: 'cornerHotspot rectangle',
-      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
-    }),
-    h('div', {
-      className: 'cornerHotspot rectangle',
-      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
-    }),
-    h('div', {
-      className: 'cornerHotspot rectangle',
-      style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
-    }),
-  ]))
+    }, [
+      h('div', {
+        className: s.shape,
+        style: {
+          width: s.shape === 'line' ? 0 : s.width,
+          height: s.shape === 'line' ? s.length : s.height,
+          backgroundColor: s.backgroundColor,
+          border: dragged ? `2px solid ${devColor}` : null,
+          opacity: s.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
+        }
+      }),
+      h('div', {
+        className: 'rotateHotspot circle',
+        style: { width: hotspotSize * 1.5, height: hotspotSize * 1.5, transform: `translate(${s.width / 2}px, ${- 2 * hotspotSize}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${- hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: 'cornerHotspot rectangle',
+        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+      }),
+    ])
+  })
 
   const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
     className: 'circle metaCursor',
@@ -241,8 +246,8 @@
         const newX = beingDragged ? x1 + grabOffsetX : x
         const newY = beingDragged ? y1 + grabOffsetY : y
         return Object.assign({}, s, {
-          x: 100 * Math.round(newX / 100),
-          y: 100 * Math.round(newY / 100),
+          x: gridPitch * Math.round(newX / gridPitch),
+          y: gridPitch * Math.round(newY / gridPitch),
           unconstrainedX: newX,
           unconstrainedY: newY,
           beingDragged,
@@ -254,7 +259,7 @@
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
   const currentFreeShapes = xl.lift(({draggedShape, shapes}) =>
-    shapes.filter(s => draggedShape && s.key === draggedShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY})))(currentShapes)
+    shapes.filter(s => draggedShape && s.key === draggedShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.05)'})))(currentShapes)
 
   const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
 
@@ -278,9 +283,9 @@
     return renderShapeFrags(shapes, hoveredShape, dragStartAt)
   })(currentShapes, hoveredShape, dragStartAt)
 
-  const freeShapeFrags = xl.lift((shapes, hoveredShape, dragStartAt) => {
-    return renderShapeFrags(shapes, hoveredShape, dragStartAt)
-  })(currentFreeShapes, hoveredShape, dragStartAt)
+  const freeShapeFrags = xl.lift(shapes => {
+    return renderShapeFrags(shapes, null, null)
+  })(currentFreeShapes)
 
   const dragLineFrag = xl.lift((cursor, dragStartAt) => {
     const origin = dragStartAt.down ? dragStartAt : cursor
