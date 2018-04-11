@@ -36,7 +36,7 @@
   const metaCursorSalientColor = 'magenta'
   const hotspotSize = 12
   const devColor = 'magenta'
-  const gridPitch = 100
+  const gridPitch = 50
 
 
   /**
@@ -192,13 +192,21 @@
     return topShape(hoveredShapes)
   }
 
+  const snapToGrid = x => gridPitch * Math.round(x / gridPitch)
+  const snapToGridUp = x => gridPitch * Math.ceil(x / gridPitch)
+
 
   /**
-   * Data streams
+   * Input cells
    */
 
   const substrate = xl.cell('Frag Substrate')
   const shapeAdditions = xl.cell('Shape additions')
+
+
+  /**
+   * Reducer cells
+   */
 
   const cursorPositions = xl.lift(transactions => {
     const result = transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload)
@@ -266,10 +274,12 @@
         const newX = beingDragged ? x1 + grabOffsetX : x
         const newY = beingDragged ? y1 + grabOffsetY : y
         return Object.assign({}, s, {
-          x: gridPitch * Math.round(newX / gridPitch),
-          y: gridPitch * Math.round(newY / gridPitch),
+          x: snapToGrid(newX),
+          y: snapToGrid(newY),
           unconstrainedX: newX,
           unconstrainedY: newY,
+          width: snapToGridUp(s.width),
+          height: snapToGridUp(s.height),
           beingDragged,
           grabOffsetX,
           grabOffsetY
