@@ -170,11 +170,15 @@
    * Pure calculations
    */
 
+  const vectorLength = (x, y) =>  Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
+
+  const distance = (a, b) => vectorLength(b.x - a.x, b.y - a.y)
+
   // map x0, y0, x1, y1 to deltas, length and angle
   const positionsToLineAttribsViewer = (x0, y0, x1, y1) => {
     const deltaX = x1 - x0
     const deltaY = y1 - y0
-    const length = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
+    const length = vectorLength(deltaX, deltaY)
     const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
     return {length, angle, deltaX, deltaY}
   }
@@ -287,6 +291,20 @@
       })
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
+
+  const closestCenter = xl.lift(({shapes}, cursor) => {
+    let closestShape = null, shortestDistance = Infinity
+    for(let i = 0; i < shapes.length; i++) {
+      const s = shapes[i]
+      const dist = distance(s, cursor)
+      if(dist < shortestDistance) {
+        closestShape = s
+        shortestDistance = dist
+      }
+    }
+    console.log(closestShape.key)
+    return closestShape
+  })(currentShapes, cursorPosition)
 
   const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
 
