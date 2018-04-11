@@ -124,7 +124,7 @@
     })
   ])
 
-  const renderSubstrateFrag = (shapeFrags, metaCursorFrag, dragLineFrag) => {
+  const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => {
 
     const updateMetaCursor = event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY})
     const mouseUp = event => dispatch('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY})
@@ -136,7 +136,7 @@
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
       },
-      shapeFrags.concat([metaCursorFrag, dragLineFrag])
+      shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
     )
   }
 
@@ -228,9 +228,10 @@
     const previousState = this.value || {shapes: primedShapes}
     const previousShapeState = previousState.shapes
     const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y, Infinity)
-    const dragInProgress = previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
+    const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
     return {
       hoveredShape,
+      draggedShape: dragInProgress && hoveredShape,
       shapes: previousShapeState.map(s => {
         const {x, y} = s
         const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
@@ -239,19 +240,28 @@
         const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
         const newX = beingDragged ? x1 + grabOffsetX : x
         const newY = beingDragged ? y1 + grabOffsetY : y
-        return Object.assign({}, s, {x: 100 * Math.round(newX / 100), y: 100 * Math.round(newY / 100), beingDragged, grabOffsetX, grabOffsetY})
+        return Object.assign({}, s, {
+          x: 100 * Math.round(newX / 100),
+          y: 100 * Math.round(newY / 100),
+          unconstrainedX: newX,
+          unconstrainedY: newY,
+          beingDragged,
+          grabOffsetX,
+          grabOffsetY
+        })
       })
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
+  const currentFreeShapes = xl.lift(({draggedShape, shapes}) =>
+    shapes.filter(s => draggedShape && s.key === draggedShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY})))(currentShapes)
 
   const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
 
   const dragStartAt = xl.lift(function(dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) {
     const previous = this.value || {down: false}
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-    const result = down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1, dragStartShape: hoveredShape} : previous) : {down: false}
-    return result
+    return down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1, dragStartShape: hoveredShape} : previous) : {down: false}
   })(dragStartCandidate, dragGestures, hoveredShape)
 
 
@@ -268,13 +278,19 @@
     return renderShapeFrags(shapes, hoveredShape, dragStartAt)
   })(currentShapes, hoveredShape, dragStartAt)
 
+  const freeShapeFrags = xl.lift((shapes, hoveredShape, dragStartAt) => {
+    return renderShapeFrags(shapes, hoveredShape, dragStartAt)
+  })(currentFreeShapes, hoveredShape, dragStartAt)
+
   const dragLineFrag = xl.lift((cursor, dragStartAt) => {
     const origin = dragStartAt.down ? dragStartAt : cursor
     const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
     return renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
   })(cursorPosition, dragStartAt)
 
-  const scenegraph = xl.lift((substrate, shapeFrags, metaCursorFrag, dragLineFrag) => renderSubstrateFrag(shapeFrags, metaCursorFrag, dragLineFrag))(substrate, shapeFrags, metaCursorFrag, dragLineFrag)
+  const scenegraph = xl.lift((substrate, shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
+    renderSubstrateFrag(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+  )(substrate, shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 
   /**
