@@ -258,9 +258,6 @@
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
-  const currentFreeShapes = xl.lift(({draggedShape, shapes}) =>
-    shapes.filter(s => draggedShape && s.key === draggedShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.05)'})))(currentShapes)
-
   const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
 
   const dragStartAt = xl.lift(function(dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) {
@@ -268,6 +265,10 @@
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
     return down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1, dragStartShape: hoveredShape} : previous) : {down: false}
   })(dragStartCandidate, dragGestures, hoveredShape)
+
+  const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
+    shapes.filter(s => dragStartShape && s.key === dragStartShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.05)'}))
+  )(currentShapes, dragStartAt)
 
 
   /**
