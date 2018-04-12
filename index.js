@@ -21,7 +21,7 @@
     {key: 'rect2', shape: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac', backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAZCAYAAADE6YVjAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAklJREFUeNqEVtlqVEEQ7a7bk0UFF4y+KBiXV8Fn/9rv8MEvSAgoKEIiuMTMnem2KpwKZyo1Y8PhzvRSe53uOsZ4VUoZwKRYK2rZHL4uYa4n+xutV59Y0+EVFgb+V9o8SJAL31fch3E2/iiuyKDrb8MGFsqCefi+FYx7rnhIClzGpeKz4qefqRqu17CsBDdHsF6g4EDxBt85KOBwnSrO7b9QTHsiVCiUHfteKhaKZYiA75thzAvFPZMvSVLZi0oKzZgjxV0IGQTP0SCD7cwztnaQpZxc9s72PYICDhF7w+GeYdChUD4kJJo9WyNEeyQkFkYJnvs45HgP+h2TWZOeqVv66ZbiBq09KeM4eqj/8R8FLmctlAvZocDL9yqEIttbEF437FKSUGwLj+EbNV/dETZBDi9cyUgoY5Bn3GR26DsKoAePprDXvP5i8y2pqonqXkJp2toZ5h5TWLjX9sBhJyjjyWjleAspZgRZyQDjrSdWorS+grdfucFbsGQbSfawNkHYD8ho2D9Tt0skMwn134NHzAqubEFzy5D0iWU16ug5dOwiNKiEyuuBlmpo5JtoNMTRFt+C0Owe+KT4TYoip3FIe1BUIw9a4p/q973iHdxuiPUHuqB6YAZJSFISg2463pj1GGU34/sAc3PCVyUpFgmKN66LlvAPu+yYyAsuCH949F3hEpTiCbjfGukO5s5wxdbkOpAgbApFsuF1w4vjo+IvEv8LiV8SfdTkxRIfGJJcXtdnveMH3XgdVSXJWyuWaEneYreu8H8CDACRPfht+odEKwAAAABJRU5ErkJggg==")'},
     {key: 'rect3', shape: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
     {key: 'rect4', shape: 'rectangle', x: 100, y: 250, rotation: 0, width: 250, height: 150, z: 8, backgroundColor: '#f4cae4'},
-    {key: 'rect5', shape: 'rectangle', x: 900, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9', backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGElEQVQYlWNgYGCQwoKxgqGgcJA5h3yFAAs8BRWVSwooAAAAAElFTkSuQmCC")'},
+    {key: 'rect5', shape: 'rectangle', x: 900, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9', yConstraint: 'line1', backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGElEQVQYlWNgYGCQwoKxgqGgcJA5h3yFAAs8BRWVSwooAAAAAElFTkSuQmCC")'},
   ]
 
 
@@ -263,14 +263,18 @@
    * Positions
    */
 
-  const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, s) => {
+  const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
     const {x, y} = s
     const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
     const grabStart = !s.beingDragged && beingDragged
     const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
     const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-    const newX = beingDragged ? x1 + grabOffsetX : x
-    const newY = beingDragged ? y1 + grabOffsetY : y
+    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0
+    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0
+    const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
+    const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
+    const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
+    const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
     return Object.assign({}, s, {
       x: snapToGrid(newX),
       y: snapToGrid(newY),
@@ -284,7 +288,7 @@
     })
   }
 
-  const nextLine = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, s) => {
+  const nextLine = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
     const x = s.x0
     const y = s.y0
     const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
@@ -325,10 +329,12 @@
     const previousShapeState = previousState.shapes
     const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y, Infinity)
     const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
+    const constraints = {}
+    previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
     return {
       hoveredShape,
       draggedShape: dragInProgress && hoveredShape,
-      shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, s))
+      shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
@@ -342,7 +348,7 @@
         shortestDistance = dist
       }
     }
-    //console.log(closestShape.key)
+    console.log(closestShape.key)
     return closestShape
   })(currentShapes, cursorPosition)
 
