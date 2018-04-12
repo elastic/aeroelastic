@@ -263,7 +263,7 @@
    * Positions
    */
 
-  const nextRectangle = (down, dragInProgress, hoveredShape, x0, y0, x1, y1, s) => {
+  const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, s) => {
     const {x, y} = s
     const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
     const grabStart = !s.beingDragged && beingDragged
@@ -284,7 +284,7 @@
     })
   }
 
-  const nextLine = (down, dragInProgress, hoveredShape, x0, y0, x1, y1, s) => {
+  const nextLine = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, s) => {
     const x = s.x0
     const y = s.y0
     const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
@@ -328,7 +328,7 @@
     return {
       hoveredShape,
       draggedShape: dragInProgress && hoveredShape,
-      shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, x0, y0, x1, y1, s))
+      shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, s))
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
