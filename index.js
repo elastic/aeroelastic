@@ -328,11 +328,10 @@
 
   const currentShapes = xl.lift(function (primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) {
     const previousState = this.value || {shapes: primedShapes, dropHappened: false, down: false}
-    const dropHappened = previousState.down && !down // ie. just released
-    const droppedShape = dropHappened && previousState.draggedShape
+    const releaseHappened = previousState.down && !down // ie. just released
+    const droppedShape = releaseHappened && previousState.draggedShape
     const previousShapeState = previousState.shapes
-    if(dropHappened && droppedShape.shape === 'rectangle') {
-      // console.log(droppedShape.x, droppedShape.y)
+    if(releaseHappened && droppedShape && droppedShape.shape === 'rectangle') {
       const lines = previousShapeState.filter(s => s.shape === 'line')
       let closestLine = null
       let closestLineDistance = Infinity
@@ -350,12 +349,13 @@
     const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
     const constraints = {}
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
-    return {
+    const result = {
       hoveredShape,
       down,
       draggedShape: dragInProgress && hoveredShape,
       shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
+    return result
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
   const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
