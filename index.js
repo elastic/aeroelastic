@@ -38,7 +38,7 @@
   const devColor = 'magenta'
   const pad = 10
   const gridPitch = 1
-  const snapDistance = 10
+  const snapDistance = 15
 
 
   /**
@@ -201,6 +201,7 @@
 
   const snapToGrid = x => gridPitch * Math.round(x / gridPitch)
   const snapToGridUp = x => gridPitch * Math.ceil(x / gridPitch)
+  const isHorizontal = line => line.y0 === line.y1
 
   const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
     const {x, y} = s
@@ -338,7 +339,7 @@
       for(let i = 0; i < lines.length; i++) {
         const line = lines[i]
         const dist = Math.abs(droppedShape.y - line.y0)
-        if(dist < closestLineDistance && dist <= snapDistance) {
+        if(dist < closestLineDistance && dist <= snapDistance && isHorizontal(line)) {
           closestLine = line
           closestLineDistance = dist
         }
@@ -356,20 +357,6 @@
       shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
-
-  const closestCenter = xl.lift(({shapes}, cursor) => {
-    let closestShape = null, shortestDistance = Infinity
-    for(let i = 0; i < shapes.length; i++) {
-      const s = shapes[i]
-      const dist = distance(s, cursor)
-      if(dist < shortestDistance) {
-        closestShape = s
-        shortestDistance = dist
-      }
-    }
-    // console.log(closestShape.key)
-    return closestShape
-  })(currentShapes, cursorPosition)
 
   const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
 
