@@ -37,7 +37,8 @@
   const hotspotSize = 12
   const devColor = 'magenta'
   const pad = 10
-  const gridPitch = 100
+  const gridPitch = 1
+  const snapDistance = 10
 
 
   /**
@@ -325,27 +326,36 @@
    */
 
   const currentShapes = xl.lift(function (primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) {
-    const previousState = this.value || {shapes: primedShapes}
+    const previousState = this.value || {shapes: primedShapes, dropHappened: false, down: false}
+    const dropHappened = previousState.down && !down // ie. just released
+    const droppedShape = dropHappened && previousState.draggedShape
     const previousShapeState = previousState.shapes
+    if(dropHappened && droppedShape.shape === 'rectangle') {
+      // console.log(droppedShape.x, droppedShape.y)
+      const lines = previousShapeState.filter(s => s.shape === 'line')
+      let closestLine = null
+      let closestLineDistance = Infinity
+      for(let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        const dist = Math.abs(droppedShape.y - line.y0)
+        if(dist < closestLineDistance && dist <= snapDistance) {
+          closestLine = line
+          closestLineDistance = dist
+        }
+      }
+      console.log(closestLine)
+    }
     const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y, Infinity)
     const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
     const constraints = {}
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
     return {
       hoveredShape,
+      down,
       draggedShape: dragInProgress && hoveredShape,
-      previouslyDraggedShape: previousState.draggedShape,
       shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
-
-  const droppedShape = xl.lift(function({down}, {previouslyDraggedShape}) {
-    const previous = this.value || {down: false, dropHappened: false}
-    const dropHappened = previous.down && !down// ie. just released
-    const droppedShape = dropHappened && previouslyDraggedShape
-    if(dropHappened) console.log(droppedShape)
-    return {down, dropHappened, droppedShape}
-  })(dragGestures, currentShapes)
 
   const closestCenter = xl.lift(({shapes}, cursor) => {
     let closestShape = null, shortestDistance = Infinity
