@@ -61,6 +61,7 @@ div {
 .right {border-width: 0 1px 0 0;}
 .bottom {border-width: 0 0 1px 0;}
 .left {border-width: 0 0 0 1px;}
+.center {border-width: 1px;}
 
 .rotateHotspot {
     border: 1px solid rgba(0,0,255,0.05);
@@ -69,4 +70,23 @@ div {
 
 .draggable {
     transition: transform 15ms ease-out;
+}
+
+.line ~ .cornerHotspot {
+    border-width: 0;
+}
+.line ~ .rotateHotspot {
+    opacity: 0;
+}
+
+.line ~ .topLeft {
+    border-width: 1px 0 1px 1px;
+}
+
+.line ~ .bottomRight {
+    border-width: 1px 1px 1px 0;
+}
+
+.line ~ .center {
+    border-width: 1px;
 }

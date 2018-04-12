@@ -108,7 +108,7 @@
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${-hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle',
+        className: 'cornerHotspot rectangle center',
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
       }),
     ])
