@@ -201,6 +201,67 @@
   const snapToGrid = x => gridPitch * Math.round(x / gridPitch)
   const snapToGridUp = x => gridPitch * Math.ceil(x / gridPitch)
 
+  const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
+    const {x, y} = s
+    const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
+    const grabStart = !s.beingDragged && beingDragged
+    const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
+    const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
+    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0
+    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0
+    const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
+    const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
+    const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
+    const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
+    return Object.assign({}, s, {
+      x: snapToGrid(newX),
+      y: snapToGrid(newY),
+      unconstrainedX: newX,
+      unconstrainedY: newY,
+      width: snapToGridUp(s.width),
+      height: snapToGridUp(s.height),
+      beingDragged,
+      grabOffsetX,
+      grabOffsetY
+    })
+  }
+
+  const nextLine = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
+    const x = s.x0
+    const y = s.y0
+    const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
+    const grabStart = !s.beingDragged && beingDragged
+    const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
+    const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
+    const newX = beingDragged ? x1 + grabOffsetX : x
+    const newY = beingDragged ? y1 + grabOffsetY : y
+    const snappedNewX = snapToGrid(newX)
+    const snappedNewY = snapToGrid(newY)
+    const deltaX = s.x1 - s.x0
+    const deltaY = s.y1 - s.y0
+    const length = vectorLength(deltaX, deltaY)
+    const result = Object.assign({}, s, {
+      x: snappedNewX,
+      y: snappedNewY,
+      x0: snappedNewX,
+      y0: snappedNewY,
+      x1: snappedNewX + deltaX,
+      y1: snappedNewY + deltaY,
+      rotation: Math.atan2(deltaY, deltaX) * 180 / Math.PI,
+      unconstrainedX: newX,
+      unconstrainedY: newY,
+      width: snapToGridUp(length),
+      height: 0,
+      length,
+      beingDragged,
+      grabOffsetX,
+      grabOffsetY
+    })
+    return result
+  }
+
+  // todo think of alternatives for increasing object type variety
+  const nextShapeFunction = {rectangle: nextRectangle, line: nextLine}
 
   /**
    * Input cells
@@ -263,67 +324,6 @@
    * Positions
    */
 
-  const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
-    const {x, y} = s
-    const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
-    const grabStart = !s.beingDragged && beingDragged
-    const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
-    const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0
-    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0
-    const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
-    const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
-    const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
-    const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-    return Object.assign({}, s, {
-      x: snapToGrid(newX),
-      y: snapToGrid(newY),
-      unconstrainedX: newX,
-      unconstrainedY: newY,
-      width: snapToGridUp(s.width),
-      height: snapToGridUp(s.height),
-      beingDragged,
-      grabOffsetX,
-      grabOffsetY
-    })
-  }
-
-  const nextLine = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
-    const x = s.x0
-    const y = s.y0
-    const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
-    const grabStart = !s.beingDragged && beingDragged
-    const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
-    const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-    const newX = beingDragged ? x1 + grabOffsetX : x
-    const newY = beingDragged ? y1 + grabOffsetY : y
-    const snappedNewX = snapToGrid(newX)
-    const snappedNewY = snapToGrid(newY)
-    const deltaX = s.x1 - s.x0
-    const deltaY = s.y1 - s.y0
-    const length = vectorLength(deltaX, deltaY)
-    const result = Object.assign({}, s, {
-      x: snappedNewX,
-      y: snappedNewY,
-      x0: snappedNewX,
-      y0: snappedNewY,
-      x1: snappedNewX + deltaX,
-      y1: snappedNewY + deltaY,
-      rotation: Math.atan2(deltaY, deltaX) * 180 / Math.PI,
-      unconstrainedX: newX,
-      unconstrainedY: newY,
-      width: snapToGridUp(length),
-      height: 0,
-      length,
-      beingDragged,
-      grabOffsetX,
-      grabOffsetY
-    })
-    return result
-  }
-
-  const nextShapeFunction = {rectangle: nextRectangle, line: nextLine}
-
   const currentShapes = xl.lift(function (primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) {
     const previousState = this.value || {shapes: primedShapes}
     const previousShapeState = previousState.shapes
@@ -334,9 +334,18 @@
     return {
       hoveredShape,
       draggedShape: dragInProgress && hoveredShape,
+      previouslyDraggedShape: previousState.draggedShape,
       shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
+
+  const droppedShape = xl.lift(function({down}, {previouslyDraggedShape}) {
+    const previous = this.value || {down: false, dropHappened: false}
+    const dropHappened = previous.down && !down// ie. just released
+    const droppedShape = dropHappened && previouslyDraggedShape
+    if(dropHappened) console.log(droppedShape)
+    return {down, dropHappened, droppedShape}
+  })(dragGestures, currentShapes)
 
   const closestCenter = xl.lift(({shapes}, cursor) => {
     let closestShape = null, shortestDistance = Infinity
@@ -348,7 +357,7 @@
         shortestDistance = dist
       }
     }
-    console.log(closestShape.key)
+    // console.log(closestShape.key)
     return closestShape
   })(currentShapes, cursorPosition)
 
