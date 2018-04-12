@@ -37,7 +37,7 @@
   const hotspotSize = 12
   const devColor = 'magenta'
   const pad = 10
-  const gridPitch = 50
+  const gridPitch = 100
 
 
   /**

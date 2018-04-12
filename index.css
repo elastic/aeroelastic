@@ -68,10 +68,6 @@ div {
     box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;
 }
 
-.draggable {
-    transition: transform 15ms ease-out;
-}
-
 .line ~ .cornerHotspot {
     border-width: 0;
 }
@@ -89,4 +85,8 @@ div {
 
 .line ~ .center {
     border-width: 1px;
+}
+
+.draggable {
+    transition: transform 0ms ease-out;
 }
