@@ -41,7 +41,7 @@
   const devColor = 'magenta'
   const pad = 10
   const gridPitch = 1
-  const snapDistance = 15
+  const snapDistance = 24
 
 
   /**
@@ -190,7 +190,7 @@
   }
 
   // set of shapes under a specific point
-  const shapesAtPoint = (shapes, x, y) => shapes.filter(s => /*s.shape === 'rectangle' && */s.x - pad <= x && x <= s.x + s.width + pad && s.y - pad <= y && y < s.y + s.height + pad)
+  const shapesAtPoint = (shapes, x, y) => shapes.filter(s => s.x - pad <= x && x <= s.x + s.width + pad && s.y - pad <= y && y < s.y + s.height + pad)
 
   // pick top shape out of possibly several shapes (presumably under the same point)
   const topShape = shapes => shapes.reduce((prev, next) => {
@@ -289,13 +289,11 @@
 
   initialShapes.forEach(s => xl.put(primaryActions, [{action: 'shape', payload: s}]))
 
-  const cursorPosition = xl.lift(function(positionList) {
-    const result = positionList.length ? positionList[positionList.length - 1] : this && this.value || {x: 0, y: 0}
-    return result
+  const cursorPosition = xl.reduce((previous = {x: 0, y: 0}, positionList) => {
+    return positionList.length ? positionList[positionList.length - 1] : previous
   })(cursorPositions)
 
-  const mouseDown = xl.lift(function(eventList) {
-    const previous = this && this.value || false
+  const mouseDown = xl.reduce((previous = false, eventList) => {
     for(let i = eventList.length - 1; i >= 0; i < eventList) {
       const type = eventList[i].event
       if(type === 'mouseUp') return false
@@ -304,10 +302,8 @@
     return previous
   })(mouseEvents)
 
-  const dragGestureStartAt = xl.lift(function(down, {x, y}) {
-    const previous = this.value || {down: false}
-    const result = down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false}
-    return result
+  const dragGestureStartAt = xl.reduce((previous = {down: false}, down, {x, y}) => {
+    return down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false}
   })(mouseDown, cursorPosition)
 
 
@@ -330,8 +326,8 @@
    * Positions
    */
 
-  const currentShapes = xl.lift(function (primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) {
-    const previousState = this.value || {shapes: primedShapes, dropHappened: false, down: false}
+  const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
+    const previousState = previous || {shapes: primedShapes, dropHappened: false, down: false}
     const releaseHappened = previousState.down && !down // ie. just released
     const droppedShape = releaseHappened && previousState.draggedShape
     const previousShapeState = previousState.shapes
@@ -377,8 +373,7 @@
 
   const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
 
-  const dragStartAt = xl.lift(function(dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) {
-    const previous = this.value || {down: false}
+  const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) => {
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
     return down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1, dragStartShape: hoveredShape} : previous) : {down: false}
   })(dragStartCandidate, dragGestures, hoveredShape)
