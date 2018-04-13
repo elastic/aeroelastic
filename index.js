@@ -213,6 +213,20 @@
   const isHorizontal = line => line.y0 === line.y1
   const isVertical = line => line.x0 === line.x1
 
+  const closestSnappableLine = (lines, droppedShape, dimension, dimension0) => {
+    let closestSnappableLine = null
+    let closestSnappableLineDistance = Infinity
+    for(let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      const distance = Math.abs(droppedShape[dimension] - line[dimension0])
+      if(distance < closestSnappableLineDistance && distance <= snapDistance) {
+        closestSnappableLine = line
+        closestSnappableLineDistance = distance
+      }
+    }
+    return closestSnappableLine
+  }
+
   const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
     const {x, y} = s
     const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
@@ -339,23 +353,8 @@
     const previousShapeState = previousState.shapes
     if(releaseHappened && droppedShape && droppedShape.shape === 'rectangle') {
       const lines = previousShapeState.filter(s => s.shape === 'line')
-      let closestSnappableHorizontalLine = null
-      let closestSnappableHorizontalLineDistance = Infinity
-      let closestSnappableVerticalLine = null
-      let closestSnappableVerticalLineDistance = Infinity
-      for(let i = 0; i < lines.length; i++) {
-        const line = lines[i]
-        const distFromHorizontal = Math.abs(droppedShape.y - line.y0)
-        const distFromVertical = Math.abs(droppedShape.x - line.x0)
-        if(distFromHorizontal < closestSnappableHorizontalLineDistance && distFromHorizontal <= snapDistance && isHorizontal(line)) {
-          closestSnappableHorizontalLine = line
-          closestSnappableHorizontalLineDistance = distFromHorizontal
-        }
-        if(distFromVertical < closestSnappableVerticalLineDistance && distFromVertical <= snapDistance && isVertical(line)) {
-          closestSnappableVerticalLine = line
-          closestSnappableVerticalLineDistance = distFromHorizontal
-        }
-      }
+      const closestSnappableHorizontalLine = closestSnappableLine(lines.filter(isHorizontal), droppedShape, 'y', 'y0')
+      const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), droppedShape, 'x', 'x0')
       if(closestSnappableHorizontalLine) {
         previousShapeState.find(s => s.key === droppedShape.key).yConstraint = closestSnappableHorizontalLine.key
       }
