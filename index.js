@@ -190,7 +190,13 @@
   }
 
   // set of shapes under a specific point
-  const shapesAtPoint = (shapes, x, y) => shapes.filter(s => s.x - pad <= x && x <= s.x + s.width + pad && s.y - pad <= y && y < s.y + s.height + pad)
+  const shapesAtPoint = (shapes, x, y) => shapes.filter(s => {
+    if(s.shape === 'rectangle' || s.shape === 'line' && isHorizontal(s)) {
+      return s.x - pad <= x && x <= s.x + s.width + pad && s.y - pad <= y && y < s.y + s.height + pad
+    } else if(s.shape === 'line' && isVertical(s)) {
+      return s.x - pad <= x && x <= s.x + s.height + pad && s.y - pad <= y && y < s.y + s.width + pad
+    }
+  })
 
   // pick top shape out of possibly several shapes (presumably under the same point)
   const topShape = shapes => shapes.reduce((prev, next) => {
@@ -357,7 +363,7 @@
         previousShapeState.find(s => s.key === droppedShape.key).xConstraint = closestSnappableVerticalLine.key
       }
     }
-    const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y, Infinity)
+    const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y)
     const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
     const constraints = {}
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
