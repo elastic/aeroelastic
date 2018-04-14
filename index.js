@@ -40,7 +40,7 @@
   const hotspotSize = 12
   const devColor = 'magenta'
   const pad = 10
-  const gridPitch = 10
+  const gridPitch = 0.1
   const snapDistance = 40
 
 
@@ -213,12 +213,12 @@
   const isHorizontal = line => line.y0 === line.y1
   const isVertical = line => line.x0 === line.x1
 
-  const closestSnappableLine = (lines, droppedShape, dimension, dimension0) => {
+  const closestSnappableLine = (lines, draggedShape, dimension, dimension0) => {
     let closestSnappableLine = null
     let closestSnappableLineDistance = Infinity
     for(let i = 0; i < lines.length; i++) {
       const line = lines[i]
-      const distance = Math.abs(droppedShape[dimension] - line[dimension0])
+      const distance = Math.abs(draggedShape[dimension] - line[dimension0])
       if(distance < closestSnappableLineDistance && distance <= snapDistance) {
         closestSnappableLine = line
         closestSnappableLineDistance = distance
@@ -355,24 +355,22 @@
     const previousState = previous || {shapes: primedShapes}
     const droppedShape = releaseHappened && previousState.draggedShape
     const previousShapeState = previousState.shapes
-    if(releaseHappened && droppedShape && droppedShape.shape === 'rectangle') {
-      const lines = previousShapeState.filter(s => s.shape === 'line')
-      const closestSnappableHorizontalLine = closestSnappableLine(lines.filter(isHorizontal), droppedShape, 'y', 'y0')
-      const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), droppedShape, 'x', 'x0')
-      if(closestSnappableHorizontalLine) {
-        previousShapeState.find(s => s.key === droppedShape.key).yConstraint = closestSnappableHorizontalLine.key
-      }
-      if(closestSnappableVerticalLine) {
-        previousShapeState.find(s => s.key === droppedShape.key).xConstraint = closestSnappableVerticalLine.key
-      }
-    }
     const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y)
     const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
+    const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape)
+    if(draggedShape && draggedShape.shape === 'rectangle') {
+      const lines = previousShapeState.filter(s => s.shape === 'line')
+      const closestSnappableHorizontalLine = closestSnappableLine(lines.filter(isHorizontal), draggedShape, 'unconstrainedY', 'y0')
+      const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), draggedShape, 'unconstrainedX', 'x0')
+      const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
+      constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
+      constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
+    }
     const constraints = {}
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
     const result = {
       hoveredShape,
-      draggedShape: dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape),
+      draggedShape,
       shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
     return result
