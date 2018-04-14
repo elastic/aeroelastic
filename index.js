@@ -343,7 +343,7 @@
 
   // mouse release is signaled (via `true`) if the mouse was down just previously but is currently NOT down
   const mouseRelease = xl.reduce((previous = {down: false}, {down}) => ({
-    down,
+    down, // we'll need it in the next iteration of this reduction
     releaseHappened: previous.down && !down
   }))(dragGestures)
 
@@ -372,7 +372,7 @@
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
     const result = {
       hoveredShape,
-      draggedShape: dragInProgress && hoveredShape,
+      draggedShape: dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape),
       shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
     return result
