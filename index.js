@@ -379,13 +379,13 @@
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, mouseRelease)
 
 
+  // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
+  const focusedShape = xl.lift(({draggedShape, hoveredShape}) => draggedShape || hoveredShape)(currentShapes)
 
-  const hoveredShape = xl.lift(({hoveredShape}) => hoveredShape)(currentShapes)
-
-  const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}, hoveredShape) => {
+  const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}, focusedShape) => {
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-    return down ? (!previous.down && dragStartCandidate && hoveredShape ? {down, x: x1, y: y1, dragStartShape: hoveredShape} : previous) : {down: false}
-  })(dragStartCandidate, dragGestures, hoveredShape)
+    return down ? (!previous.down && dragStartCandidate && focusedShape ? {down, x: x1, y: y1, dragStartShape: focusedShape} : previous) : {down: false}
+  })(dragStartCandidate, dragGestures, focusedShape)
 
   const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
     shapes.filter(s => dragStartShape && s.key === dragStartShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
@@ -403,7 +403,7 @@
 
   const shapeFrags = xl.lift(({shapes}, hoveredShape, dragStartAt) => {
     return renderShapeFrags(shapes, hoveredShape, dragStartAt)
-  })(currentShapes, hoveredShape, dragStartAt)
+  })(currentShapes, focusedShape, dragStartAt)
 
   const freeShapeFrags = xl.lift(shapes => {
     return renderShapeFrags(shapes, null, null)
