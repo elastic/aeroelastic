@@ -40,8 +40,8 @@
   const hotspotSize = 12
   const devColor = 'magenta'
   const pad = 10
-  const gridPitch = 1
-  const snapDistance = 24
+  const gridPitch = 10
+  const snapDistance = 40
 
 
   /**
@@ -242,8 +242,8 @@
     return Object.assign({}, s, {
       x: snapToGrid(newX),
       y: snapToGrid(newY),
-      unconstrainedX: newX,
-      unconstrainedY: newY,
+      unconstrainedX: unconstrainedX,
+      unconstrainedY: unconstrainedY,
       width: snapToGridUp(s.width),
       height: snapToGridUp(s.height),
       beingDragged,
