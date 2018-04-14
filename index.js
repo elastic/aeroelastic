@@ -342,15 +342,17 @@
   })(dragGestures)
 
   // mouse release is signaled (via `true`) if the mouse was down just previously but is currently NOT down
-  const mouseRelease = xl.reduce((prev = {previouslyDown: false}, {down}) => ({previouslyDown: down, release: prev.previouslyDown && !down}))(dragGestures)
+  const mouseRelease = xl.reduce((previous = {down: false}, {down}) => ({
+    down,
+    releaseHappened: previous.down && !down
+  }))(dragGestures)
 
   /**
    * Positions
    */
 
-  const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, {release}) => {
-    const previousState = previous || {shapes: primedShapes, dropHappened: false}
-    const releaseHappened = release
+  const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, {releaseHappened}) => {
+    const previousState = previous || {shapes: primedShapes}
     const droppedShape = releaseHappened && previousState.draggedShape
     const previousShapeState = previousState.shapes
     if(releaseHappened && droppedShape && droppedShape.shape === 'rectangle') {
@@ -370,8 +372,7 @@
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
     const result = {
       hoveredShape,
-      draggedShape: dragInProgress &&
-      hoveredShape,
+      draggedShape: dragInProgress && hoveredShape,
       shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
     return result
