@@ -366,6 +366,21 @@
    * Positions
    */
 
+  const guid = () => Math.round(100000 + 900000 * Math.random())
+
+  const suppliedLines = shapes => shapes.filter(s => s.shape === 'line')
+
+  const adHocLines = shapes => shapes.filter(s => s.shape === 'line').map(s => ([{
+    key: 'ad-hoc guide ' + guid(),
+    shape: 'line',
+    x0: 0,
+    x1: 1000,
+    y0: s.y,
+    y1: s.y,
+    rotation: 0,
+    color: 'magenta'
+  }]))
+
   const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, {releaseHappened}) => {
     const previousState = previous || {shapes: primedShapes}
     const droppedShape = releaseHappened && previousState.draggedShape // todo we're not using droppedShape ATM - let's see
@@ -375,7 +390,7 @@
     const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape)
     if(draggedShape) {
       const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
-      const lines = previousShapeState.filter(s => s.shape === 'line')
+      const lines = suppliedLines(previousShapeState)
       const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestSnappableLine(lines.filter(isHorizontal), draggedShape, 'vertical', 'y0')
       const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestSnappableLine(lines.filter(isVertical), draggedShape, 'horizontal', 'x0')
       constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
