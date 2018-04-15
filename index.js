@@ -96,24 +96,28 @@
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle top',
+        className: `cornerHotspot rectangle side top ${s.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle right',
+        className: `cornerHotspot rectangle side right ${s.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle bottom',
+        className: `cornerHotspot rectangle side bottom ${s.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle left',
+        className: `cornerHotspot rectangle side left ${s.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
         style: { width: hotspotSize, height: hotspotSize, transform: `translate(${-hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
       }),
       h('div', {
-        className: 'cornerHotspot rectangle center',
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
+        className: `cornerHotspot rectangle center vertical ${s.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
+        style: { width: 0, height: hotspotSize, transform: `translate(${s.width / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
+      }),
+      h('div', {
+        className: `cornerHotspot rectangle center horizontal ${s.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
+        style: { width: hotspotSize, height: 0, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${s.height / 2}px)` }
       }),
     ])
   })
@@ -244,7 +248,6 @@
     const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
     const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
     const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0 - anchorOffset(s, s.xConstraintAnchor)
-    //if(s.xConstraintAnchor) debugger
     const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0 - anchorOffset(s, s.yConstraintAnchor)
     const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
     const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
@@ -370,15 +373,12 @@
     const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
     const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape)
     if(draggedShape) {
+      const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
       const lines = previousShapeState.filter(s => s.shape === 'line')
       const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestSnappableLine(lines.filter(isHorizontal), draggedShape, 'vertical', 'y0')
       const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestSnappableLine(lines.filter(isVertical), draggedShape, 'horizontal', 'x0')
-      console.log(closestSnappableHorizontalLine, closestSnappableVerticalLine)
-      //const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), draggedShape, 'left', 'x0')
-      const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
       constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
       constrainedShape.yConstraintAnchor = verticalAnchor
-     // if(horizontalAnchor) debugger
       constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
       constrainedShape.xConstraintAnchor = horizontalAnchor
     }

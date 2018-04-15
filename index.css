@@ -51,6 +51,12 @@ div {
 .cornerHotspot {
     box-shadow: none;
     border-radius: 0;
+    opacity: 0.3;
+}
+
+.cornerHotspot.snapped {
+    opacity: 1;
+    border-color: magenta;
 }
 
 .topLeft {border-width: 1px 0 0 1px;}
@@ -61,7 +67,7 @@ div {
 .right {border-width: 0 1px 0 0;}
 .bottom {border-width: 0 0 1px 0;}
 .left {border-width: 0 0 0 1px;}
-.center {border-width: 1px;}
+.center {border-width: 1px 0 0 1px;}
 
 .rotateHotspot {
     border: 1px solid rgba(0,0,255,0.05);
@@ -86,6 +92,8 @@ div {
 .line ~ .center {
     border-width: 1px;
 }
+
+
 
 /*
 .draggable {
