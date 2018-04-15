@@ -217,19 +217,24 @@
   const anchorOffset = (shape, anchor) => ({top: 0, middle: shape.height / 2, bottom: shape.height, left: 0, center: shape.width / 2, right: shape.width})[anchor]
   const anchorValue = (shape, anchor) => anchorOrigin(shape, anchor) + anchorOffset(shape, anchor)
 
-  const closestSnappableLine = (lines, draggedShape, anchor, dimension0) => {
-    const anchorPoint = anchorValue(draggedShape, anchor)
+  const closestSnappableLine = (lines, draggedShape, direction, dimension0) => {
+    const possibleSnapPoints = direction === 'horizontal' ? ['left', 'center', 'right'] : ['top', 'middle', 'bottom']
     let closestSnappableLine = null
     let closestSnappableLineDistance = Infinity
-    for(let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-      const distance = Math.abs(anchorPoint - line[dimension0])
-      if(distance < closestSnappableLineDistance && distance <= snapDistance) {
-        closestSnappableLine = line
-        closestSnappableLineDistance = distance
+    let closestSnapAnchor = null
+    for(let anchor of possibleSnapPoints) {
+      const anchorPoint = anchorValue(draggedShape, anchor)
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        const distance = Math.abs(anchorPoint - line[dimension0])
+        if (distance < closestSnappableLineDistance && distance <= snapDistance) {
+          closestSnappableLine = line
+          closestSnappableLineDistance = distance
+          closestSnapAnchor = anchor
+        }
       }
     }
-    return closestSnappableLine
+    return {closestSnappableLine, closestSnapAnchor}
   }
 
   const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
@@ -238,8 +243,9 @@
     const grabStart = !s.beingDragged && beingDragged
     const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
     const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0 + anchorOffset(s, s.xConstraintAnchor)
-    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0 + anchorOffset(s, s.xConstraintAnchor)
+    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0 - anchorOffset(s, s.xConstraintAnchor)
+    //if(s.xConstraintAnchor) debugger
+    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0 - anchorOffset(s, s.yConstraintAnchor)
     const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
     const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
     const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
@@ -365,13 +371,16 @@
     const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape)
     if(draggedShape) {
       const lines = previousShapeState.filter(s => s.shape === 'line')
-      const closestSnappableHorizontalLine = closestSnappableLine(lines.filter(isHorizontal), draggedShape, 'top', 'y0')
-      const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), draggedShape, 'left', 'x0')
+      const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestSnappableLine(lines.filter(isHorizontal), draggedShape, 'vertical', 'y0')
+      const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestSnappableLine(lines.filter(isVertical), draggedShape, 'horizontal', 'x0')
+      console.log(closestSnappableHorizontalLine, closestSnappableVerticalLine)
+      //const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), draggedShape, 'left', 'x0')
       const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
       constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
-      constrainedShape.yConstraintAnchor = 'top'
+      constrainedShape.yConstraintAnchor = verticalAnchor
+     // if(horizontalAnchor) debugger
       constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
-      constrainedShape.xConstraintAnchor = 'left'
+      constrainedShape.xConstraintAnchor = horizontalAnchor
     }
     const constraints = {}
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
