@@ -71,7 +71,7 @@ div {
     box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;
 }
 
-.line ~ .hotspot.corner, .line ~ .hotspot.center, .line ~ .hotspot.top, .line ~ .hotspot.bottom {
+.line ~ .hotspot.corner, /*.line ~ .hotspot.center, */.line ~ .hotspot.vertical.top, .line ~ .hotspot.vertical.bottom {
     outline-width: 0;
 }
 
