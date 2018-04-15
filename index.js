@@ -42,7 +42,7 @@
   const devColor = 'magenta'
   const pad = 10
   const gridPitch = 0.1
-  const snapDistance = 12
+  const snapDistance = 20
 
 
   /**
@@ -238,7 +238,7 @@
     return {closestSnappableLine, closestSnapAnchor}
   }
 
-  const nextRectangle = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
+  const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
     const {x, y} = s
     const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
     const grabStart = !s.beingDragged && beingDragged
@@ -263,39 +263,6 @@
     })
   }
 
-  const nextLine = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
-    const {x, y} = s
-    const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
-    const grabStart = !s.beingDragged && beingDragged
-    const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
-    const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x - anchorOffset(s, s.xConstraintAnchor)
-    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y - anchorOffset(s, s.yConstraintAnchor)
-    const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
-    const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
-    const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
-    const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-    const deltaX = s.width
-    const deltaY = s.height
-    const length = vectorLength(deltaX, deltaY)
-    const result = Object.assign({}, s, {
-      x: snapToGrid(newX),
-      y: snapToGrid(newY),
-      rotation: 0, //Math.atan2(deltaY, deltaX) * 180 / Math.PI,
-      unconstrainedX: unconstrainedX,
-      unconstrainedY: unconstrainedY,
-      width: deltaX ? snapToGridUp(length) : 0,
-      height: deltaY ? snapToGridUp(length) : 0,
-      length,
-      beingDragged,
-      grabOffsetX,
-      grabOffsetY
-    })
-    return result
-  }
-
-  // todo think of alternatives for increasing object type variety
-  const nextShapeFunction = {rectangle: nextRectangle, line: nextLine}
 
   /**
    * Input cells
@@ -396,7 +363,7 @@
     const result = {
       hoveredShape,
       draggedShape,
-      shapes: previousShapeState.map(s => nextShapeFunction[s.shape](down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
+      shapes: previousShapeState.map(s => nextShape(down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
     }
     return result
   })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, mouseRelease)
