@@ -213,12 +213,17 @@
   const isHorizontal = line => line.y0 === line.y1
   const isVertical = line => line.x0 === line.x1
 
-  const closestSnappableLine = (lines, draggedShape, dimension, dimension0) => {
+  const anchorOrigin = (shape, anchor) => shape[({top: 'unconstrainedY', middle: 'unconstrainedY', bottom: 'unconstrainedY', left: 'unconstrainedX', center: 'unconstrainedX', right: 'unconstrainedX'})[anchor]]
+  const anchorOffset = (shape, anchor) => ({top: 0, middle: shape.height / 2, bottom: shape.height, left: 0, center: shape.width / 2, right: shape.width})[anchor]
+  const anchorValue = (shape, anchor) => anchorOrigin(shape, anchor) + anchorOffset(shape, anchor)
+
+  const closestSnappableLine = (lines, draggedShape, anchor, dimension0) => {
+    const anchorPoint = anchorValue(draggedShape, anchor)
     let closestSnappableLine = null
     let closestSnappableLineDistance = Infinity
     for(let i = 0; i < lines.length; i++) {
       const line = lines[i]
-      const distance = Math.abs(draggedShape[dimension] - line[dimension0])
+      const distance = Math.abs(anchorPoint - line[dimension0])
       if(distance < closestSnappableLineDistance && distance <= snapDistance) {
         closestSnappableLine = line
         closestSnappableLineDistance = distance
@@ -233,8 +238,8 @@
     const grabStart = !s.beingDragged && beingDragged
     const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
     const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
-    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0
-    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0
+    const xConstraint = constraints[s.xConstraint] && constraints[s.xConstraint].x0 + anchorOffset(s, s.xConstraintAnchor)
+    const yConstraint = constraints[s.yConstraint] && constraints[s.yConstraint].y0 + anchorOffset(s, s.xConstraintAnchor)
     const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
     const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
     const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
@@ -353,18 +358,20 @@
 
   const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, {releaseHappened}) => {
     const previousState = previous || {shapes: primedShapes}
-    const droppedShape = releaseHappened && previousState.draggedShape
+    const droppedShape = releaseHappened && previousState.draggedShape // todo we're not using droppedShape ATM - let's see
     const previousShapeState = previousState.shapes
     const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y)
     const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
     const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape)
-    if(draggedShape && draggedShape.shape === 'rectangle') {
+    if(draggedShape) {
       const lines = previousShapeState.filter(s => s.shape === 'line')
-      const closestSnappableHorizontalLine = closestSnappableLine(lines.filter(isHorizontal), draggedShape, 'unconstrainedY', 'y0')
-      const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), draggedShape, 'unconstrainedX', 'x0')
+      const closestSnappableHorizontalLine = closestSnappableLine(lines.filter(isHorizontal), draggedShape, 'top', 'y0')
+      const closestSnappableVerticalLine = closestSnappableLine(lines.filter(isVertical), draggedShape, 'left', 'x0')
       const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
       constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
+      constrainedShape.yConstraintAnchor = 'top'
       constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
+      constrainedShape.xConstraintAnchor = 'left'
     }
     const constraints = {}
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
