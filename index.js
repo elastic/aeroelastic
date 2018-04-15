@@ -231,7 +231,15 @@
         const line = lines[i]
         const distance = Math.abs(anchorPoint - (direction === 'horizontal' ? line.x : line.y))
         const distanceThreshold = preexistingConstraint === line.key ? snapReleaseDistance : snapDistance
-        if (distance < closestSnappableLineDistance && distance <= distanceThreshold) {
+        if (distance < closestSnappableLineDistance && distance <= distanceThreshold &&
+
+          // fixme simplify and factor out this check that verifies that the section is extended to the intended anchor point
+          (direction === 'horizontal'
+            ? line.y <= draggedShape.y + draggedShape.height / 2 && draggedShape.y + draggedShape.height / 2 <= line.y + line.height
+            : line.x <= draggedShape.x + draggedShape.width / 2 && draggedShape.x + draggedShape.width / 2 <= line.x + line.width
+          )
+
+        ) {
           closestSnappableLine = line
           closestSnappableLineDistance = distance
           closestSnapAnchor = anchor
