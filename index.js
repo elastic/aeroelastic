@@ -42,7 +42,8 @@
   const devColor = 'magenta'
   const pad = 10
   const gridPitch = 0.1
-  const snapDistance = 20
+  const snapDistance = 12
+  const snapReleaseDistance = 10 * snapDistance // hysteresis: make it harder to break bond
 
 
   /**
@@ -218,8 +219,9 @@
   const anchorOffset = (shape, anchor) => ({top: 0, middle: shape.height / 2, bottom: shape.height, left: 0, center: shape.width / 2, right: shape.width})[anchor]
   const anchorValue = (shape, anchor) => anchorOrigin(shape, anchor) + anchorOffset(shape, anchor)
 
-  const closestGuideLine = (lines, draggedShape, direction, dimension0) => {
+  const closestGuideLine = (lines, draggedShape, direction) => {
     const possibleSnapPoints = direction === 'horizontal' ? ['left', 'center', 'right'] : ['top', 'middle', 'bottom']
+    const preexistingConstraint = direction === 'horizontal' ? draggedShape.xConstraint : draggedShape.yConstraint
     let closestSnappableLine = null
     let closestSnappableLineDistance = Infinity
     let closestSnapAnchor = null
@@ -227,8 +229,9 @@
       const anchorPoint = anchorValue(draggedShape, anchor)
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
-        const distance = Math.abs(anchorPoint - line[dimension0])
-        if (distance < closestSnappableLineDistance && distance <= snapDistance) {
+        const distance = Math.abs(anchorPoint - (direction === 'horizontal' ? line.x : line.y))
+        const distanceThreshold = preexistingConstraint === line.key ? snapReleaseDistance : snapDistance
+        if (distance < closestSnappableLineDistance && distance <= distanceThreshold) {
           closestSnappableLine = line
           closestSnappableLineDistance = distance
           closestSnapAnchor = anchor
@@ -351,8 +354,8 @@
     if(draggedShape) {
       const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
       const lines = suppliedLines(previousShapeState).filter(s => draggedShape.shape !== 'line' || isHorizontal(s) !== isHorizontal(draggedShape))
-      const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical', 'y')
-      const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal', 'x')
+      const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
+      const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
       constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
       constrainedShape.yConstraintAnchor = verticalAnchor
       constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
