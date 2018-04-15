@@ -219,25 +219,43 @@
   const anchorOffset = (shape, anchor) => ({top: 0, middle: shape.height / 2, bottom: shape.height, left: 0, center: shape.width / 2, right: shape.width})[anchor]
   const anchorValue = (shape, anchor) => anchorOrigin(shape, anchor) + anchorOffset(shape, anchor)
 
-  const sectionOvershoot = (direction, free, set) => {
-    const freePoint = direction === 'horizontal' ? free.unconstrainedY + free.height / 2 : free.unconstrainedX + free.width / 2
-    const setLo = direction === 'horizontal' ? set.y : set.x
-    const setHi = direction === 'horizontal' ? set.y + set.height : set.x + set.width
-    const setPoint = freePoint < setLo ? setLo : setHi
+  // lower bound of the (actual, eg. snapped) extent for a specific dimension
+  const low = (shape, direction) => direction === 'horizontal' ? shape.y : shape.x
+
+  // lower bound of the unconstrained extent for a specific dimension
+  const unconstrainedLow = (shape, direction) => direction === 'horizontal' ? shape.unconstrainedY : shape.unconstrainedX
+
+  // size of the shape across a specific dimension
+  const shapeExtent = (shape, direction) => direction === 'horizontal' ? shape.height : shape.width
+
+  // upper bound of the (actual, eg. snapped) extent for a specific dimension
+  const high = (shape, direction) => low(shape, direction) + shapeExtent(shape, direction)
+
+  // half-size of a shape for a specific dimension
+  const shapeExtentMid = (shape, direction) => shapeExtent(shape, direction) / 2
+
+  // midpoint of a shape (in terms of its unconstrained location) for a specific dimension
+  const unconstrainedMidPoint = (shape, direction) => unconstrainedLow(shape, direction) + shapeExtentMid(shape, direction) // currently the center/middle points attach, not yet the corners
+
+  const sectionOvershoot = (direction, free, fixed) => {
+    const freePoint = unconstrainedMidPoint(free, direction)
+    const setLo = low(fixed, direction)
+    const setHi = high(fixed, direction)
+    const nearerSectionVertex = freePoint < setLo ? setLo : setHi
 
     // negative if undershoot; positive if overshoot; zero if within section
-    return setLo <= freePoint && freePoint <= setHi ? 0 : freePoint - setPoint
+    return setLo <= freePoint && freePoint <= setHi ? 0 : freePoint - nearerSectionVertex
   }
 
   // fixme unify these two functions
-  const sectionOvershootAbsolute = (direction, free, set) => {
-    const freePoint = direction === 'horizontal' ? free.unconstrainedY + free.height / 2 : free.unconstrainedX + free.width / 2
-    const setLo = direction === 'horizontal' ? set.y : set.x
-    const setHi = direction === 'horizontal' ? set.y + set.height : set.x + set.width
-    const setPoint = freePoint < setLo ? setLo : setHi
+  const sectionOvershootAbsolute = (direction, free, fixed) => {
+    const freePoint = unconstrainedMidPoint(free, direction)
+    const setLo = low(fixed, direction)
+    const setHi = high(fixed, direction)
+    const nearerSectionVertex = freePoint < setLo ? setLo : setHi
 
     // negative if undershoot; positive if overshoot; zero if within section
-    return setLo <= freePoint && freePoint <= setHi ? NaN : setPoint
+    return setLo <= freePoint && freePoint <= setHi ? NaN : nearerSectionVertex
   }
 
   const closestGuideLine = (lines, draggedShape, direction) => {
