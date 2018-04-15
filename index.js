@@ -229,14 +229,22 @@
     return setLo <= freePoint && freePoint <= setHi ? 0 : freePoint - setPoint
   }
 
+  // fixme unify these two functions
+  const sectionOvershootAbsolute = (direction, free, set) => {
+    const freePoint = direction === 'horizontal' ? free.unconstrainedY + free.height / 2 : free.unconstrainedX + free.width / 2
+    const setLo = direction === 'horizontal' ? set.y : set.x
+    const setHi = direction === 'horizontal' ? set.y + set.height : set.x + set.width
+    const setPoint = freePoint < setLo ? setLo : setHi
+
+    // negative if undershoot; positive if overshoot; zero if within section
+    return setLo <= freePoint && freePoint <= setHi ? NaN : setPoint
+  }
 
   const closestGuideLine = (lines, draggedShape, direction) => {
     const possibleSnapPoints = direction === 'horizontal' ? ['left', 'center', 'right'] : ['top', 'middle', 'bottom']
     const preexistingConstraint = direction === 'horizontal' ? draggedShape.xConstraint : draggedShape.yConstraint
     let closestSnappableLine = null
     let closestSnappableLineDistance = Infinity
-    let closestSnapPerpendicularDistance = Infinity
-    let closestSnapParallelDistance = Infinity
     let closestSnapAnchor = null
     for(let anchor of possibleSnapPoints) {
       const anchorPoint = anchorValue(draggedShape, anchor)
@@ -244,18 +252,16 @@
         const line = lines[i]
         const perpendicularDistance = Math.abs(anchorPoint - (direction === 'horizontal' ? line.x : line.y))
         const parallelDistance = sectionOvershoot(direction, draggedShape, line)
-        const distance = Math.sqrt(Math.pow(parallelDistance, 2) + Math.pow(perpendicularDistance, 2))
+        const distance = Math.sqrt(Math.pow(parallelDistance, 2) + Math.pow(perpendicularDistance, 2)) // we could alternatively take the max of these two
         const distanceThreshold = preexistingConstraint === line.key ? snapReleaseDistance : snapDistance
         if (distance < closestSnappableLineDistance && distance <= distanceThreshold) {
           closestSnappableLine = line
           closestSnappableLineDistance = distance
           closestSnapAnchor = anchor
-          closestSnapPerpendicularDistance = perpendicularDistance
-          closestSnapParallelDistance = parallelDistance
         }
       }
     }
-    return {closestSnappableLine, closestSnapAnchor, closestSnapPerpendicularDistance, closestSnapParallelDistance}
+    return {closestSnappableLine, closestSnapAnchor}
   }
 
   const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
@@ -266,8 +272,8 @@
     const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
     const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
     const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
-    const xConstraint = constraints[s.xConstraint] ? constraints[s.xConstraint].x - anchorOffset(s, s.xConstraintAnchor) : (constraints[s.yConstraint] && s.yConstraintParallelDistance && (s.yConstraintParallelDistance < 0 ? constraints[s.yConstraint].x - s.width / 2: constraints[s.yConstraint].x - s.width / 2 + constraints[s.yConstraint].width) || NaN)
-    const yConstraint = constraints[s.yConstraint] ? constraints[s.yConstraint].y - anchorOffset(s, s.yConstraintAnchor) : (constraints[s.xConstraint] && s.xConstraintParallelDistance && (s.xConstraintParallelDistance < 0 ? constraints[s.xConstraint].y - s.height / 2: constraints[s.xConstraint].y - s.height / 2 + constraints[s.xConstraint].height) || NaN)
+    const xConstraint = constraints[s.xConstraint] ? constraints[s.xConstraint].x - anchorOffset(s, s.xConstraintAnchor) : (constraints[s.yConstraint] && (sectionOvershootAbsolute('vertical', s, constraints[s.yConstraint])  - anchorOffset(s, 'center') ))
+    const yConstraint = constraints[s.yConstraint] ? constraints[s.yConstraint].y - anchorOffset(s, s.yConstraintAnchor) : (constraints[s.xConstraint] && (sectionOvershootAbsolute('horizontal', s, constraints[s.xConstraint])- anchorOffset(s, 'middle')  )  )
     const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
     const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
     return Object.assign({}, s, {
@@ -371,16 +377,12 @@
     if(draggedShape) {
       const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
       const lines = suppliedLines(previousShapeState).filter(s => draggedShape.shape !== 'line' || isHorizontal(s) !== isHorizontal(draggedShape))
-      const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor, closestSnapPerpendicularDistance: verticalPerpendicularDistance, closestSnapParallelDistance: verticalParallelDistance} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
-      const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor, closestSnapPerpendicularDistance: horizontalPerpendicularDistance, closestSnapParallelDistance: horizontalParallelDistance} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
+      const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
+      const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
       constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
       constrainedShape.yConstraintAnchor = verticalAnchor
-      constrainedShape.yConstraintPerpendicularDistance = verticalPerpendicularDistance
-      constrainedShape.yConstraintParallelDistance = verticalParallelDistance
       constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
       constrainedShape.xConstraintAnchor = horizontalAnchor
-      constrainedShape.xConstraintPerpendicularDistance = horizontalPerpendicularDistance
-      constrainedShape.xConstraintParallelDistance = horizontalParallelDistance
     }
     const constraints = {}
     previousShapeState.filter(s => s.shape === 'line').forEach(s => constraints[s.key] = s)
