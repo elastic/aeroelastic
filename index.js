@@ -237,25 +237,29 @@
   // midpoint of a shape (in terms of its unconstrained location) for a specific dimension
   const unconstrainedMidPoint = (shape, direction) => unconstrainedLow(shape, direction) + shapeExtentMid(shape, direction) // currently the center/middle points attach, not yet the corners
 
-  const sectionOvershoot = (direction, free, fixed) => {
+  // is the point within the extent?
+  const withinBounds = (low, high, point) => low <= point && point <= high
+
+  // common values for subsequent calculations
+  const sectionOvershootDescriptor = (direction, free, fixed) => {
     const freePoint = unconstrainedMidPoint(free, direction)
     const setLo = low(fixed, direction)
     const setHi = high(fixed, direction)
-    const nearerSectionVertex = freePoint < setLo ? setLo : setHi
-
-    // negative if undershoot; positive if overshoot; zero if within section
-    return setLo <= freePoint && freePoint <= setHi ? 0 : freePoint - nearerSectionVertex
+    const nearerSectionVertex = freePoint < setLo ? setLo : (freePoint ? setHi : NaN)
+    return {freePoint, setLo, setHi, nearerSectionVertex}
   }
 
-  // fixme unify these two functions
-  const sectionOvershootAbsolute = (direction, free, fixed) => {
-    const freePoint = unconstrainedMidPoint(free, direction)
-    const setLo = low(fixed, direction)
-    const setHi = high(fixed, direction)
-    const nearerSectionVertex = freePoint < setLo ? setLo : setHi
-
+  // returns zero if the free point is within the section (projected to the specified dimension), or otherwise the overshoot relative to the closer section endpoint
+  const sectionOvershoot = (direction, free, fixed) => {
+    const {freePoint, setLo, setHi, nearerSectionVertex} = sectionOvershootDescriptor(direction, free, fixed)
     // negative if undershoot; positive if overshoot; zero if within section
-    return setLo <= freePoint && freePoint <= setHi ? NaN : nearerSectionVertex
+    return withinBounds(setLo, setHi, freePoint) ? 0 : freePoint - nearerSectionVertex
+  }
+
+  // returns the free point if it's within the section (projected to the specified dimension), or otherwise the closer section endpoint
+  const sectionConstrained = (direction, free, fixed) => {
+    const {freePoint, setLo, setHi, nearerSectionVertex} = sectionOvershootDescriptor(direction, free, fixed)
+    return withinBounds(setLo, setHi, freePoint) ? freePoint : nearerSectionVertex
   }
 
   const closestGuideLine = (lines, draggedShape, direction) => {
@@ -290,8 +294,8 @@
     const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
     const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
     const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
-    const xConstraint = constraints[s.xConstraint] ? constraints[s.xConstraint].x - anchorOffset(s, s.xConstraintAnchor) : (constraints[s.yConstraint] && (sectionOvershootAbsolute('vertical', s, constraints[s.yConstraint])  - anchorOffset(s, 'center') ))
-    const yConstraint = constraints[s.yConstraint] ? constraints[s.yConstraint].y - anchorOffset(s, s.yConstraintAnchor) : (constraints[s.xConstraint] && (sectionOvershootAbsolute('horizontal', s, constraints[s.xConstraint])- anchorOffset(s, 'middle')  )  )
+    const xConstraint = constraints[s.xConstraint] ? constraints[s.xConstraint].x - anchorOffset(s, s.xConstraintAnchor) : (constraints[s.yConstraint] && (sectionConstrained('vertical', s, constraints[s.yConstraint])  - anchorOffset(s, 'center') ))
+    const yConstraint = constraints[s.yConstraint] ? constraints[s.yConstraint].y - anchorOffset(s, s.yConstraintAnchor) : (constraints[s.xConstraint] && (sectionConstrained('horizontal', s, constraints[s.xConstraint])- anchorOffset(s, 'middle')  )  )
     const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
     const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
     return Object.assign({}, s, {
