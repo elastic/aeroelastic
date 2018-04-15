@@ -37,11 +37,12 @@
   const dragLineZ = metaCursorZ - 1 // just beneath the metaCursor
   const freeDragZ = dragLineZ - 1 // just beneath the cursor scenegraph
   const dragLineColor = 'rgba(255,0,255,0.5)'
-  const hotspotSize = 12
+  const cornerHotspotSize = 6
+  const edgeHotspotSize = 12
   const devColor = 'magenta'
   const pad = 10
   const gridPitch = 0.1
-  const snapDistance = 40
+  const snapDistance = 10
 
 
   /**
@@ -71,53 +72,53 @@
           height: s.height,
           backgroundColor: s.backgroundColor,
           backgroundImage: s.backgroundImage,
-          border: dragged ? `1px solid ${devColor}` : (s.shape === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
+          outline: dragged ? `1px solid ${devColor}` : (s.shape === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
           opacity: s.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
         }
       }),
       h('div', {
         className: 'rotateHotspot circle',
-        style: { width: hotspotSize * 1.5, height: hotspotSize * 1.5, transform: `translate(${s.width / 2 + hotspotSize}px, ${- 2 * hotspotSize}px)` }
+        style: { width: cornerHotspotSize * 3, height: cornerHotspotSize * 3, transform: `translate(${s.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)` }
       }),
       h('div', {
         className: 'cornerHotspot rectangle topLeft',
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${- hotspotSize / 2}px)` }
+        style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(0, 0)` }
       }),
       h('div', {
         className: 'cornerHotspot rectangle topRight',
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
+        style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${s.width - cornerHotspotSize}px, 0)` }
       }),
       h('div', {
         className: 'cornerHotspot rectangle bottomLeft',
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${- hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+        style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(0, ${s.height - cornerHotspotSize}px)` }
       }),
       h('div', {
         className: 'cornerHotspot rectangle bottomRight',
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+        style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${s.width - cornerHotspotSize}px, ${s.height - cornerHotspotSize}px)` }
       }),
       h('div', {
         className: `cornerHotspot rectangle side top ${s.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${-hotspotSize / 2}px)` }
+        style: { width: edgeHotspotSize, height: 0, transform: `translate(${s.width / 2 - edgeHotspotSize / 2}px, 0)` }
       }),
       h('div', {
         className: `cornerHotspot rectangle side right ${s.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width - hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
+        style: { width: 0, height: edgeHotspotSize, transform: `translate(${s.width}px, ${s.height / 2 - edgeHotspotSize / 2}px)` }
       }),
       h('div', {
         className: `cornerHotspot rectangle side bottom ${s.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${s.height - hotspotSize / 2}px)` }
+        style: { width: edgeHotspotSize, height: 0, transform: `translate(${s.width / 2 - edgeHotspotSize / 2}px, ${s.height}px)` }
       }),
       h('div', {
         className: `cornerHotspot rectangle side left ${s.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
-        style: { width: hotspotSize, height: hotspotSize, transform: `translate(${-hotspotSize / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
+        style: { width: 0, height: edgeHotspotSize, transform: `translate(0, ${s.height / 2 - edgeHotspotSize / 2}px)` }
       }),
       h('div', {
         className: `cornerHotspot rectangle center vertical ${s.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
-        style: { width: 0, height: hotspotSize, transform: `translate(${s.width / 2}px, ${s.height / 2 - hotspotSize / 2}px)` }
+        style: { width: 0, height: edgeHotspotSize, transform: `translate(${s.width / 2}px, ${s.height / 2 - edgeHotspotSize / 2}px)` }
       }),
       h('div', {
         className: `cornerHotspot rectangle center horizontal ${s.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
-        style: { width: hotspotSize, height: 0, transform: `translate(${s.width / 2 - hotspotSize / 2}px, ${s.height / 2}px)` }
+        style: { width: edgeHotspotSize, height: 0, transform: `translate(${s.width / 2 - edgeHotspotSize / 2}px, ${s.height / 2}px)` }
       }),
     ])
   })
