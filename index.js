@@ -35,7 +35,12 @@
   const metaCursorRadius = 15
   const metaCursorZ = 1000
   const dragLineZ = metaCursorZ - 1 // just beneath the metaCursor
-  const freeDragZ = dragLineZ - 1 // just beneath the cursor scenegraph
+  const toolbarZ = dragLineZ - 1 // toolbar just beneath the cursor scenegraph
+  const freeDragZ = toolbarZ - 1 // just beneath the cursor + toolbar scenegraph
+  const toolbarY = -50
+  const toolbarHeight = 32
+  const toolbarPad = 8
+  const paddedToolbarHeight = toolbarHeight + toolbarPad
   const dragLineColor = 'rgba(255,0,255,0.5)'
   const cornerHotspotSize = 6
   const edgeHotspotSize = 12
@@ -44,7 +49,9 @@
   const gridPitch = 0.1
   const snapDistance = 12
   const snapReleaseDistance = 5 * snapDistance // hysteresis: make it harder to break bond
-
+  const horizontalCenterIcon = 'url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIEdlbmVyYXRvcjogSWNvTW9vbi5pbyAtLT4NCg0KPHN2Zw0KICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIg0KICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyINCiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyINCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiDQogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSINCiAgIGlkPSJzdmcyIg0KICAgZGF0YS10YWdzPSJyZW1vdmUtY2lyY2xlLCBjYW5jZWwsIGNsb3NlLCByZW1vdmUsIGRlbGV0ZSINCiAgIGhlaWdodD0iMTIwMCINCiAgIHZpZXdCb3g9IjAgMCAxMjAwIDEyMDAiDQogICB3aWR0aD0iMTIwMCINCiAgIHZlcnNpb249IjEuMSINCiAgIGRhdGEtZHU9Iu+BnCINCiAgIGlua3NjYXBlOnZlcnNpb249IjAuNDguNCByOTkzOSINCiAgIHNvZGlwb2RpOmRvY25hbWU9ImFsaWduLWNlbnRlci5zdmciPg0KICA8ZGVmcw0KICAgICBpZD0iZGVmczMwNzciIC8+DQogIDxzb2RpcG9kaTpuYW1lZHZpZXcNCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIg0KICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiINCiAgICAgYm9yZGVyb3BhY2l0eT0iMSINCiAgICAgb2JqZWN0dG9sZXJhbmNlPSIxMCINCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAiDQogICAgIGd1aWRldG9sZXJhbmNlPSIxMCINCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAiDQogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiDQogICAgIGlua3NjYXBlOndpbmRvdy13aWR0aD0iMTUzNSINCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iODc2Ig0KICAgICBpZD0ibmFtZWR2aWV3MzA3NSINCiAgICAgc2hvd2dyaWQ9ImZhbHNlIg0KICAgICBpbmtzY2FwZTp6b29tPSIwLjI2MzM5Mjg2Ig0KICAgICBpbmtzY2FwZTpjeD0iLTY3Ljc5NjYwNiINCiAgICAgaW5rc2NhcGU6Y3k9IjU5OS44NjQ0MSINCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjY1Ig0KICAgICBpbmtzY2FwZTp3aW5kb3cteT0iMjQiDQogICAgIGlua3NjYXBlOndpbmRvdy1tYXhpbWl6ZWQ9IjEiDQogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9InN2ZzIiIC8+DQogIDxtZXRhZGF0YQ0KICAgICBpZD0ibWV0YWRhdGE2MiI+DQogICAgPHJkZjpSREY+DQogICAgICA8Y2M6V29yaw0KICAgICAgICAgcmRmOmFib3V0PSIiPg0KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4NCiAgICAgICAgPGRjOnR5cGUNCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4NCiAgICAgICAgPGRjOnRpdGxlIC8+DQogICAgICA8L2NjOldvcms+DQogICAgPC9yZGY6UkRGPg0KICA8L21ldGFkYXRhPg0KICA8cGF0aA0KICAgICBzdHlsZT0iZm9udC1zaXplOjEzNTMuOTAxOTc3NTRweDtmb250LXN0eWxlOml0YWxpYztsZXR0ZXItc3BhY2luZzowO3dvcmQtc3BhY2luZzowO2ZvbnQtZmFtaWx5OlNlcmlmIg0KICAgICBpZD0icGF0aDMzNDMiDQogICAgIGQ9Im0gMjkwLjYyNSw5OS4yMDIwMzkgMCwxNzguMDA2MTIxIDYxOC43NSwwIDAsLTE3OC4wMDYxMjEgLTYxOC43NSwwIHogbSAtMTY0LjA2MjUsMjc0LjUyOTk0MSAwLDE3OC4wMDYxIDk0Ni44NzUsMCAwLC0xNzguMDA2MSAtOTQ2Ljg3NSwwIHogbSAxMDcuODEyNSwyNzQuNTI5OTIgMCwxNzguMDA2MTEgNzMxLjI1LDAgMCwtMTc4LjAwNjExIC03MzEuMjUsMCB6IE0gMCw5MjIuNzkxODIgMCwxMTAwLjc5OCBsIDEyMDAsMCAwLC0xNzguMDA2MTggLTEyMDAsMCB6Ig0KICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIiAvPg0KPC9zdmc+DQo=")'
+  const horizontalLeftIcon = 'url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIEdlbmVyYXRvcjogSWNvTW9vbi5pbyAtLT4NCg0KPHN2Zw0KICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIg0KICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyINCiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyINCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiDQogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSINCiAgIGlkPSJzdmcyIg0KICAgZGF0YS10YWdzPSJyZW1vdmUtY2lyY2xlLCBjYW5jZWwsIGNsb3NlLCByZW1vdmUsIGRlbGV0ZSINCiAgIGhlaWdodD0iMTIwMCINCiAgIHZpZXdCb3g9IjAgMCAxMjAwIDEyMDAiDQogICB3aWR0aD0iMTIwMCINCiAgIHZlcnNpb249IjEuMSINCiAgIGRhdGEtZHU9Iu+BnCINCiAgIGlua3NjYXBlOnZlcnNpb249IjAuNDguNCByOTkzOSINCiAgIHNvZGlwb2RpOmRvY25hbWU9ImFsaWduLWxlZnQuc3ZnIj4NCiAgPGRlZnMNCiAgICAgaWQ9ImRlZnMzMTQ1IiAvPg0KICA8c29kaXBvZGk6bmFtZWR2aWV3DQogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiINCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiDQogICAgIGJvcmRlcm9wYWNpdHk9IjEiDQogICAgIG9iamVjdHRvbGVyYW5jZT0iMTAiDQogICAgIGdyaWR0b2xlcmFuY2U9IjEwIg0KICAgICBndWlkZXRvbGVyYW5jZT0iMTAiDQogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwIg0KICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIg0KICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjE1MzUiDQogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijg0OCINCiAgICAgaWQ9Im5hbWVkdmlldzMxNDMiDQogICAgIHNob3dncmlkPSJmYWxzZSINCiAgICAgaW5rc2NhcGU6em9vbT0iMC4yNjMzOTI4NiINCiAgICAgaW5rc2NhcGU6Y3g9Ii02Ny43OTY2MDYiDQogICAgIGlua3NjYXBlOmN5PSI0NDgiDQogICAgIGlua3NjYXBlOndpbmRvdy14PSI2NSINCiAgICAgaW5rc2NhcGU6d2luZG93LXk9IjI0Ig0KICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIxIg0KICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJzdmcyIiAvPg0KICA8bWV0YWRhdGENCiAgICAgaWQ9Im1ldGFkYXRhNjIiPg0KICAgIDxyZGY6UkRGPg0KICAgICAgPGNjOldvcmsNCiAgICAgICAgIHJkZjphYm91dD0iIj4NCiAgICAgICAgPGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+DQogICAgICAgIDxkYzp0eXBlDQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+DQogICAgICAgIDxkYzp0aXRsZSAvPg0KICAgICAgPC9jYzpXb3JrPg0KICAgIDwvcmRmOlJERj4NCiAgPC9tZXRhZGF0YT4NCiAgPHBhdGgNCiAgICAgc3R5bGU9ImZvbnQtc2l6ZToxMzUzLjkwMTk3NzU0cHg7Zm9udC1zdHlsZTppdGFsaWM7bGV0dGVyLXNwYWNpbmc6MDt3b3JkLXNwYWNpbmc6MDtmb250LWZhbWlseTpTZXJpZiINCiAgICAgaWQ9InBhdGgzNDQzIg0KICAgICBkPSJtIDYxOC43NSw5OS4yMDIwMzkgMCwxNzguMDA2MTIxIC02MTguNzUsMCAwLC0xNzguMDA2MTIxIDYxOC43NSwwIHogbSAzMjguMTI1LDI3NC41Mjk5NDEgMCwxNzguMDA2MSAtOTQ2Ljg3NSwwIDAsLTE3OC4wMDYxIDk0Ni44NzUsMCB6IE0gNzMxLjI1LDY0OC4yNjE5IGwgMCwxNzguMDA2MTEgLTczMS4yNSwwIDAsLTE3OC4wMDYxMSA3MzEuMjUsMCB6IG0gNDY4Ljc1LDI3NC41Mjk5MiAwLDE3OC4wMDYxOCAtMTIwMCwwIDAsLTE3OC4wMDYxOCAxMjAwLDAgeiINCiAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz4NCjwvc3ZnPg0K")'
+  const horizontalRightIcon = 'url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIEdlbmVyYXRvcjogSWNvTW9vbi5pbyAtLT4NCg0KPHN2Zw0KICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIg0KICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyINCiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyINCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiDQogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSINCiAgIGlkPSJzdmcyIg0KICAgZGF0YS10YWdzPSJyZW1vdmUtY2lyY2xlLCBjYW5jZWwsIGNsb3NlLCByZW1vdmUsIGRlbGV0ZSINCiAgIGhlaWdodD0iMTIwMCINCiAgIHZpZXdCb3g9IjAgMCAxMjAwIDEyMDAiDQogICB3aWR0aD0iMTIwMCINCiAgIHZlcnNpb249IjEuMSINCiAgIGRhdGEtZHU9Iu+BnCINCiAgIGlua3NjYXBlOnZlcnNpb249IjAuNDguNCByOTkzOSINCiAgIHNvZGlwb2RpOmRvY25hbWU9ImFsaWduLXJpZ2h0LnN2ZyI+DQogIDxkZWZzDQogICAgIGlkPSJkZWZzMzE3OSIgLz4NCiAgPHNvZGlwb2RpOm5hbWVkdmlldw0KICAgICBwYWdlY29sb3I9IiNmZmZmZmYiDQogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2Ig0KICAgICBib3JkZXJvcGFjaXR5PSIxIg0KICAgICBvYmplY3R0b2xlcmFuY2U9IjEwIg0KICAgICBncmlkdG9sZXJhbmNlPSIxMCINCiAgICAgZ3VpZGV0b2xlcmFuY2U9IjEwIg0KICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCINCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiINCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxNTM1Ig0KICAgICBpbmtzY2FwZTp3aW5kb3ctaGVpZ2h0PSI4NDgiDQogICAgIGlkPSJuYW1lZHZpZXczMTc3Ig0KICAgICBzaG93Z3JpZD0iZmFsc2UiDQogICAgIGlua3NjYXBlOnpvb209IjAuMjYzMzkyODYiDQogICAgIGlua3NjYXBlOmN4PSItNjcuNzk2NjA2Ig0KICAgICBpbmtzY2FwZTpjeT0iNDQ4Ig0KICAgICBpbmtzY2FwZTp3aW5kb3cteD0iNjUiDQogICAgIGlua3NjYXBlOndpbmRvdy15PSIyNCINCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSINCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ic3ZnMiIgLz4NCiAgPG1ldGFkYXRhDQogICAgIGlkPSJtZXRhZGF0YTYyIj4NCiAgICA8cmRmOlJERj4NCiAgICAgIDxjYzpXb3JrDQogICAgICAgICByZGY6YWJvdXQ9IiI+DQogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0Pg0KICAgICAgICA8ZGM6dHlwZQ0KICAgICAgICAgICByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIiAvPg0KICAgICAgICA8ZGM6dGl0bGUgLz4NCiAgICAgIDwvY2M6V29yaz4NCiAgICA8L3JkZjpSREY+DQogIDwvbWV0YWRhdGE+DQogIDxwYXRoDQogICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiDQogICAgIGQ9Im0gNTgxLjI1LDk5LjIwMjAzOSAwLDE3OC4wMDYxMjEgNjE4Ljc1LDAgMCwtMTc4LjAwNjEyMSAtNjE4Ljc1LDAgeiBtIC0zMjguMTI1LDI3NC41Mjk5NDEgMCwxNzguMDA2MSA5NDYuODc1LDAgMCwtMTc4LjAwNjEgLTk0Ni44NzUsMCB6IG0gMjE1LjYyNSwyNzQuNTI5OTIgMCwxNzguMDA2MTEgNzMxLjI1LDAgMCwtMTc4LjAwNjExIC03MzEuMjUsMCB6IE0gMCw5MjIuNzkxODIgMCwxMTAwLjc5OCBsIDEyMDAsMCAwLC0xNzguMDA2MTggLTEyMDAsMCB6Ig0KICAgICBpZD0icGF0aDM0OTEiIC8+DQo8L3N2Zz4NCg==")'
 
   /**
    * Mock action dispatch
@@ -58,8 +65,9 @@
    * Fragment makers (pure functional components)
    */
 
-  const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(s => {
+  const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(s => {
     const dragged = s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+    const selected = s.key === selectedShapeKey
     return h('div', {
       className: dragged ? 'draggable' : null,
       style: {
@@ -121,6 +129,20 @@
         className: `hotspot rectangle center horizontal ${s.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
         style: { width: edgeHotspotSize, height: 0, transform: `translate3d(${s.width / 2 - edgeHotspotSize / 2}px, ${s.height / 2}px, ${s.xConstraintAnchor === 'center' ? 0 : 0.02}px)` }
       }),
+      ...(selected ? [
+        h('div', {
+          className: 'hotspot rectangle center',
+          style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${s.width + 2 * cornerHotspotSize + 0 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        }),
+        h('div', {
+          className: 'hotspot rectangle center',
+          style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${s.width + 2 * cornerHotspotSize + 1 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        }),
+        h('div', {
+          className: 'hotspot rectangle center',
+          style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${s.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalLeftIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        }),
+      ] : [])
     ])
   })
 
@@ -166,12 +188,14 @@
     const updateMetaCursor = event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY})
     const mouseUp = event => dispatch('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY})
     const mouseDown = event => dispatch('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY})
+    const mouseClick = event => dispatch('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY})
 
     return h('div', {
         id: 'root',
         onMouseMove: updateMetaCursor,
         onMouseUp: mouseUp,
         onMouseDown: mouseDown,
+        onClick: mouseClick,
       },
       shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
     )
@@ -329,6 +353,7 @@
     return result
   })(primaryActions)
   const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(primaryActions)
+  const shapeEvents = xl.lift(transactions => transactions.filter(t => t.action === 'shapeEvent').map(t => t.payload))(primaryActions)
 
   initialShapes.forEach(s => xl.put(primaryActions, [{action: 'shape', payload: s}]))
 
@@ -337,12 +362,20 @@
   })(cursorPositions)
 
   const mouseDown = xl.reduce((previous = false, eventList) => {
-    for(let i = eventList.length - 1; i >= 0; i < eventList) {
+    for(let i = eventList.length - 1; i >= 0; i--) {
       const type = eventList[i].event
       if(type === 'mouseUp') return false
       if(type === 'mouseDown') return true
     }
     return previous
+  })(mouseEvents)
+
+  const mouseClickEvent = xl.reduce((previous = false, eventList) => {
+    for(let i = eventList.length - 1; i >= 0; i--) {
+      const type = eventList[i].event
+      if(type === 'mouseClick') return true
+    }
+    return false
   })(mouseEvents)
 
   const dragGestureStartAt = xl.reduce((previous = {down: false}, down, {x, y}) => {
@@ -389,6 +422,15 @@
     color: 'magenta'
   }]))
 
+  const selectedShape = xl.reduce((previous = null, eventList) => {
+    for(let i = eventList.length - 1; i >= 0; i--) {
+      const event = eventList[i]
+      const type = event.event
+      if(type === 'showToolbar' && event.shapeType === 'line') return event.shapeKey
+    }
+    return previous
+  })(shapeEvents)
+
   const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, {releaseHappened}) => {
     const previousState = previous || {shapes: primedShapes}
     const droppedShape = releaseHappened && previousState.draggedShape // todo we're not using droppedShape ATM - let's see
@@ -429,6 +471,14 @@
     shapes.filter(s => dragStartShape && s.key === dragStartShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
   )(currentShapes, dragStartAt)
 
+  // affordance for permanent selection of a shape
+  xl.lift((click, shape, {x, y}) => {
+    if(click) {
+      window.setTimeout(() => {
+        xl.put(primaryActions, [{action: 'shapeEvent', payload: {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.shape}}])
+      })
+    }
+  })(mouseClickEvent, focusedShape, cursorPosition)
 
   /**
    * Update fragments
@@ -439,9 +489,9 @@
     return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
   })(cursorPosition, mouseDown, dragStartAt)
 
-  const shapeFrags = xl.lift(({shapes}, hoveredShape, dragStartAt) => {
-    return renderShapeFrags(shapes, hoveredShape, dragStartAt)
-  })(currentShapes, focusedShape, dragStartAt)
+  const shapeFrags = xl.lift(({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => {
+    return renderShapeFrags(shapes, hoveredShape, dragStartAt, selectedShapeKey)
+  })(currentShapes, focusedShape, dragStartAt, selectedShape)
 
   const freeShapeFrags = xl.lift(shapes => {
     return renderShapeFrags(shapes, null, null)
