@@ -501,7 +501,13 @@ const focusedShape = xl.lift(({draggedShape, hoveredShape}) => draggedShape || h
 
 const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}, focusedShape) => {
   // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-  return down ? (!previous.down && dragStartCandidate && focusedShape ? {down, x: x1, y: y1, dragStartShape: focusedShape} : previous) : {down: false}
+  if(down) {
+    return dragStartCandidate && focusedShape && !previous.down
+      ? {down, x: x1, y: y1, dragStartShape: focusedShape}
+      : previous
+  } else {
+    return {down: false}
+  }
 })(dragStartCandidate, dragGestures, focusedShape)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
