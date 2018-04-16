@@ -59,6 +59,7 @@ const horizontalRightIcon = 'url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0i
 
 const primaryActions = xl.cell('Primary actions')
 const dispatch = (actionType, payload) => xl.put(primaryActions, [{actionType, payload}])
+const dispatchAsync = (actionType, payload) => setTimeout(() => dispatch(actionType, payload))
 
 
 /**
@@ -497,9 +498,7 @@ const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
 // affordance for permanent selection of a shape
 xl.lift((click, shape, {x, y}) => {
   if(click) {
-    window.setTimeout(() => {
-      xl.put(primaryActions, [{actionType: 'shapeEvent', payload: {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}}])
-    })
+    dispatchAsync('shapeEvent', {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type})
   }
 })(mouseClickEvent, focusedShape, cursorPosition)
 
