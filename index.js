@@ -1,8 +1,7 @@
 /**
- * `require()` bindings (some are just <script>s, to reduce build time while prototyping)
+ * `require()` bindings (now just <script>s, to reduce build time while prototyping)
  */
 
-// scripts
 const reactRenderDOM = ReactDOM.render
 const h = React.createElement
 const xl = crosslink
@@ -44,7 +43,7 @@ const pattern3 = 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAY
 
 
 /**
- * Mock scenegraph values
+ * Mock scenegraph
  */
 
 const root = document.body
