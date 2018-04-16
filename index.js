@@ -237,8 +237,8 @@ const shapesAtPoint = (shapes, x, y) => shapes.filter(shape => {
 
 // pick top shape out of possibly several shapes (presumably under the same point)
 const topShape = shapes => shapes.reduce((prev, next) => {
-  return prev ? (next.z >= prev.z ? next : prev) : next
-}, null)
+  return prev.z > next.z ? prev : next
+}, {z: -Infinity})
 
 // returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
 const hoveringAt = (shapes, x, y) => {
@@ -279,12 +279,17 @@ const unconstrainedMidPoint = (shape, direction) => unconstrainedLow(shape, dire
 // is the point within the extent?
 const withinBounds = (low, high, point) => low <= point && point <= high
 
+// clamp the value to the range determined by the interval bounds [low ... high]
+const clamp = (low, high, value) => Math.max(low, Math.min(high, value))
+
 // common values for subsequent calculations
 const sectionOvershootDescriptor = (direction, free, fixed) => {
   const freePoint = unconstrainedMidPoint(free, direction)
   const setLo = low(fixed, direction)
   const setHi = high(fixed, direction)
-  const nearerSectionVertex = freePoint < setLo ? setLo : (freePoint > setHi ? setHi : NaN)
+  const loHiConstrained = clamp(setLo, setHi, freePoint)
+  // calculate which vertex (section end) is breached by freePoint; NaN if not breached
+  const nearerSectionVertex = loHiConstrained === freePoint ? NaN : loHiConstrained
   return {freePoint, setLo, setHi, nearerSectionVertex}
 }
 
@@ -371,16 +376,20 @@ const updateShapes = (preexistingShapes, shapeUpdates) => {
   return preexistingShapes || shapeUpdates
 }
 
+// The horizontal dimension (x) is mainly constrained by, naturally, the xConstraint (vertical snap line), but if there's no xConstraint is present,
+// then it still needs to observe whether a yConstraint (horizontal snap section) end vertex is breached - you can horizontally pull a rectangle off
+// a horizontal line, and the snap needs to break/establish in this direction too. In other words, since the constraints are sections, not infinite lines,
+// a constraining section applies to both dimensions.
 const nextConstraintX = (xConstraint, yConstraint, previousShape) => {
   return xConstraint
     ? xConstraint.x - anchorOffset(previousShape, previousShape.xConstraintAnchor)
-    : (yConstraint && (sectionConstrained('vertical', previousShape, yConstraint) - anchorOffset(previousShape, 'center') ))
+    : (yConstraint && (sectionConstrained('vertical', previousShape, yConstraint) - anchorOffset(previousShape, 'center')))
 }
 
 const nextConstraintY = (xConstraint, yConstraint, previousShape) => {
   return yConstraint
     ? yConstraint.y - anchorOffset(previousShape, previousShape.yConstraintAnchor)
-    : (xConstraint && (sectionConstrained('horizontal', previousShape, xConstraint) - anchorOffset(previousShape, 'middle')  )  )
+    : (xConstraint && (sectionConstrained('horizontal', previousShape, xConstraint) - anchorOffset(previousShape, 'middle')))
 }
 
 // this is the per-shape model update at the current PoC level
