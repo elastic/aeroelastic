@@ -57,7 +57,7 @@ const horizontalRightIcon = 'url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0i
  * Mock action dispatch
  */
 
-const primaryActions = xl.cell('Transactions')
+const primaryActions = xl.cell('Primary actions')
 const dispatch = (actionType, payload) => xl.put(primaryActions, [{actionType, payload}])
 
 
@@ -346,9 +346,9 @@ const shapeAdditions = xl.cell('Shape additions')
  * Reducer cells
  */
 
-const cursorPositions = xl.lift(transactions => transactions.filter(t => t.actionType === 'cursorPosition').map(t => t.payload))(primaryActions)
-const mouseEvents = xl.lift(transactions => transactions.filter(t => t.actionType === 'mouseEvent').map(t => t.payload))(primaryActions)
-const shapeEvents = xl.lift(transactions => transactions.filter(t => t.actionType === 'shapeEvent').map(t => t.payload))(primaryActions)
+const cursorPositions = xl.lift(actions => actions.filter(action => action.actionType === 'cursorPosition').map(action => action.payload))(primaryActions)
+const mouseEvents = xl.lift(actions => actions.filter(action => action.actionType === 'mouseEvent').map(action => action.payload))(primaryActions)
+const shapeEvents = xl.lift(actions => actions.filter(action => action.actionType === 'shapeEvent').map(action => action.payload))(primaryActions)
 
 initialShapes.forEach(shape => xl.put(primaryActions, [{actionType: 'shape', payload: shape}]))
 
