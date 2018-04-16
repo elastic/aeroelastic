@@ -346,6 +346,65 @@ const cursorPositionActions = actions => actions.filter(action => action.actionT
 const mouseEventActions = actions => actions.filter(action => action.actionType === 'mouseEvent').map(getPayload)
 const shapeEventActions = actions => actions.filter(action => action.actionType === 'shapeEvent').map(getPayload)
 
+const isLine = shape => shape.type === 'line'
+const allLines = shapes => shapes.filter(isLine)
+
+const constraintLookup = shapes => {
+  const constraints = {}
+  shapes.filter(isLine).forEach(shape => constraints[shape.key] = shape)
+  return constraints
+}
+
+// shape updates may include newly added shapes, deleted or modified shapes
+const updateShapes = (preexistingShapes, shapeUpdates) => {
+  // Shell function - this is now a simple OR ie. in the PoC it initializes with the given mock states and no more update happens.
+  // A real function must handle additions, removals and updates, merging the new info into the current shape state.
+  return preexistingShapes || shapeUpdates
+}
+
+// returns the currently dragged shape, or a falsey value otherwise
+const draggingShape = (previousDraggedShape, shapes, hoveredShape, down) => {
+  const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
+  return dragInProgress && (previousDraggedShape && shapes.find(shape => shape.key === previousDraggedShape.key) || hoveredShape)
+}
+
+// true if the two lines are parallel
+const parallel = (line1, line2) => isHorizontal(line1) === isHorizontal(line2)
+
+// returns those snap guidelines that may affect the draggedShape
+const snapGuideLines = (shapes, draggedShape) => {
+  // The guidelines may come from explicit guidelines (as in the mock of this PoC) or generated automatically in the future, so that dragging a
+  // shape dynamically traces other shapes, flashing temporary alignment lines, example snap guides here: https://i.imgur.com/QKrK6.png
+  const allGuideLines = allLines(shapes)
+  return isLine(draggedShape)
+    ? allGuideLines.filter(line => parallel(line, draggedShape))
+    : allGuideLines
+}
+
+// this is _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
+const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
+  const shapes = updateShapes(previous.shapes, externalShapeUpdates)
+  const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
+  const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
+  if(draggedShape) {
+    const constrainedShape = shapes.find(shape => shape.key === draggedShape.key)
+    const lines = snapGuideLines(shapes, draggedShape)
+    const {snapLine: closestSnappableVerticalLine, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
+    const {snapLine: closestSnappableHorizontLine, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
+    constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
+    constrainedShape.yConstraint = closestSnappableHorizontLine && closestSnappableHorizontLine.key
+    constrainedShape.xConstraintAnchor = horizontAnchor
+    constrainedShape.yConstraintAnchor = verticalAnchor
+  }
+  const constraints = constraintLookup(shapes)
+  const newState = {
+    hoveredShape,
+    draggedShape,
+    shapes: shapes.map(shape => nextShape(down, draggedShape, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape))
+  }
+  return newState
+}
+
 
 /**
  * Input cells
@@ -406,9 +465,6 @@ const dragStartCandidate = xl.lift(({down, x0, y0, x1, y1}) => {
  * Positions
  */
 
-const isLine = shape => shape.type === 'line'
-const allLines = shapes => shapes.filter(isLine)
-
 const selectedShape = xl.reduce((previous = null, eventList) => {
   for(let i = eventList.length - 1; i >= 0; i--) {
     const event = eventList[i]
@@ -418,60 +474,7 @@ const selectedShape = xl.reduce((previous = null, eventList) => {
   return previous
 })(shapeEvents)
 
-const constraintLookup = shapes => {
-  const constraints = {}
-  shapes.filter(isLine).forEach(shape => constraints[shape.key] = shape)
-  return constraints
-}
-
-// shape updates may include newly added shapes, deleted or modified shapes
-const updateShapes = (preexistingShapes, shapeUpdates) => {
-  // Shell function - this is now a simple OR ie. in the PoC it initializes with the given mock states and no more update happens.
-  // A real function must handle additions, removals and updates, merging the new info into the current shape state.
-  return preexistingShapes || shapeUpdates
-}
-
-// returns the currently dragged shape, or a falsey value otherwise
-const draggingShape = (previousDraggedShape, shapes, hoveredShape, down) => {
-  const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
-  return dragInProgress && (previousDraggedShape && shapes.find(shape => shape.key === previousDraggedShape.key) || hoveredShape)
-}
-
-// true if the two lines are parallel
-const parallel = (line1, line2) => isHorizontal(line1) === isHorizontal(line2)
-
-// returns those snap guidelines that may affect the draggedShape
-const snapGuideLines = (shapes, draggedShape) => {
-  // The guidelines may come from explicit guidelines (as in the mock of this PoC) or generated automatically in the future, so that dragging a
-  // shape dynamically traces other shapes, flashing temporary alignment lines, example snap guides here: https://i.imgur.com/QKrK6.png
-  const allGuideLines = allLines(shapes)
-  return isLine(draggedShape)
-    ? allGuideLines.filter(line => parallel(line, draggedShape))
-    : allGuideLines
-}
-
-const currentShapes = xl.reduce((previous = {shapes: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
-  const shapes = updateShapes(previous.shapes, externalShapeUpdates)
-  const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
-  const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
-  if(draggedShape) {
-    const constrainedShape = shapes.find(shape => shape.key === draggedShape.key)
-    const lines = snapGuideLines(shapes, draggedShape)
-    const {snapLine: closestSnappableVerticalLine, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
-    const {snapLine: closestSnappableHorizontLine, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
-    constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
-    constrainedShape.yConstraint = closestSnappableHorizontLine && closestSnappableHorizontLine.key
-    constrainedShape.xConstraintAnchor = horizontAnchor
-    constrainedShape.yConstraintAnchor = verticalAnchor
-  }
-  const constraints = constraintLookup(shapes)
-  const newState = {
-    hoveredShape,
-    draggedShape,
-    shapes: shapes.map(shape => nextShape(down, draggedShape, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape))
-  }
-  return newState
-})(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
+const currentShapes = xl.reduce(nextScenegraph)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = xl.lift(({draggedShape, hoveredShape}) => draggedShape || hoveredShape)(currentShapes)
