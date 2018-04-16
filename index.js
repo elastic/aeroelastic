@@ -327,31 +327,6 @@ const snappingGuideLine = (lines, shape, direction) => {
   return {snapLine, snapAnchor}
 }
 
-const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape) => {
-  const {x, y} = shape
-  const beingDragged = down && shape.beingDragged || !dragInProgress && hoveredShape && shape.key === hoveredShape.key && down && dragStartCandidate
-  const grabStart = !shape.beingDragged && beingDragged
-  const grabOffsetX = grabStart ? x - x0 : (shape.grabOffsetX || 0)
-  const grabOffsetY = grabStart ? y - y0 : (shape.grabOffsetY || 0)
-  const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
-  const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
-  const xConstraint = constraints[shape.xConstraint] ? constraints[shape.xConstraint].x - anchorOffset(shape, shape.xConstraintAnchor) : (constraints[shape.yConstraint] && (sectionConstrained('vertical', shape, constraints[shape.yConstraint])  - anchorOffset(shape, 'center') ))
-  const yConstraint = constraints[shape.yConstraint] ? constraints[shape.yConstraint].y - anchorOffset(shape, shape.yConstraintAnchor) : (constraints[shape.xConstraint] && (sectionConstrained('horizontal', shape, constraints[shape.xConstraint])- anchorOffset(shape, 'middle')  )  )
-  const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
-  const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-  return Object.assign({}, shape, {
-    x: snapToGrid(newX),
-    y: snapToGrid(newY),
-    unconstrainedX: unconstrainedX,
-    unconstrainedY: unconstrainedY,
-    width: snapToGridUp(shape.width),
-    height: snapToGridUp(shape.height),
-    beingDragged,
-    grabOffsetX,
-    grabOffsetY
-  })
-}
-
 const getPayload = action => action.payload
 const cursorPositionActions = actions => actions.filter(action => action.actionType === 'cursorPosition').map(getPayload)
 const mouseEventActions = actions => actions.filter(action => action.actionType === 'mouseEvent').map(getPayload)
@@ -394,6 +369,32 @@ const snapGuideLines = (shapes, draggedShape) => {
 
 // quick (to write) function for finding a shape by key, may be okay for up to ~100 shapes
 const findShapeByKey = (shapes, key) => shapes.find(shape => shape.key === key)
+
+// this is the per-shape model update at the current PoC level
+const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape) => {
+  const {x, y} = shape
+  const beingDragged = down && shape.beingDragged || !dragInProgress && hoveredShape && shape.key === hoveredShape.key && down && dragStartCandidate
+  const grabStart = !shape.beingDragged && beingDragged
+  const grabOffsetX = grabStart ? x - x0 : (shape.grabOffsetX || 0)
+  const grabOffsetY = grabStart ? y - y0 : (shape.grabOffsetY || 0)
+  const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
+  const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
+  const xConstraint = constraints[shape.xConstraint] ? constraints[shape.xConstraint].x - anchorOffset(shape, shape.xConstraintAnchor) : (constraints[shape.yConstraint] && (sectionConstrained('vertical', shape, constraints[shape.yConstraint])  - anchorOffset(shape, 'center') ))
+  const yConstraint = constraints[shape.yConstraint] ? constraints[shape.yConstraint].y - anchorOffset(shape, shape.yConstraintAnchor) : (constraints[shape.xConstraint] && (sectionConstrained('horizontal', shape, constraints[shape.xConstraint])- anchorOffset(shape, 'middle')  )  )
+  const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
+  const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
+  return Object.assign({}, shape, {
+    x: snapToGrid(newX),
+    y: snapToGrid(newY),
+    unconstrainedX: unconstrainedX,
+    unconstrainedY: unconstrainedY,
+    width: snapToGridUp(shape.width),
+    height: snapToGridUp(shape.height),
+    beingDragged,
+    grabOffsetX,
+    grabOffsetY
+  })
+}
 
 // this is _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
 const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
