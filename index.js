@@ -417,7 +417,7 @@ const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandid
   const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(shape => shape.key === previousState.draggedShape.key) || hoveredShape)
   if(draggedShape) {
     const constrainedShape = previousShapeState.find(shape => shape.key === draggedShape.key)
-    const lines = suppliedLines(previousShapeState).filter(shape => draggedShape.type !== 'line' || isHorizontal(shape) !== isHorizontal(draggedShape))
+    const lines = suppliedLines(previousShapeState).filter(shape => !isLine(draggedShape) || isHorizontal(shape) !== isHorizontal(draggedShape))
     const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
     const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
     constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
