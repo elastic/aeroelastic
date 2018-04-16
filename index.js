@@ -511,17 +511,17 @@ const currentShapes = xl.reduce(nextScenegraph)(shapeAdditions, cursorPosition, 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = xl.lift(({draggedShape, hoveredShape}) => draggedShape || hoveredShape)(currentShapes)
 
-const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}) => {
+const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}, focusedShape) => {
   // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
   if(down) {
     const newDragStart = dragStartCandidate && !previous.down
     return newDragStart
-      ? {down, x: x1, y: y1, dragStartShape: dragStartCandidate}
+      ? {down, x: x1, y: y1, dragStartShape: focusedShape}
       : previous
   } else {
     return {down: false}
   }
-})(dragStartCandidate, dragGestures)
+})(dragStartCandidate, dragGestures, focusedShape)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
