@@ -343,7 +343,7 @@ const shapeAdditions = xl.cell('Shape additions')
 
 
 /**
- * Reducer cells
+ * Gestures
  */
 
 const cursorPositions = xl.lift(actions => actions.filter(action => action.actionType === 'cursorPosition').map(action => action.payload))(primaryActions)
@@ -376,12 +376,6 @@ const mouseClickEvent = xl.reduce((previous = false, eventList) => {
 const dragGestureStartAt = xl.reduce((previous = {down: false}, down, {x, y}) => {
   return down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false}
 })(mouseDown, cursorPosition)
-
-
-
-/**
- * Gestures
- */
 
 const dragGestures = xl.lift(({down, x0, y0}, cursor) => {
   return {down, x0, y0, x1: cursor.x, y1: cursor.y}
