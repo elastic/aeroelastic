@@ -386,13 +386,6 @@ const dragStartCandidate = xl.lift(({down, x0, y0, x1, y1}) => {
   return down && x0 === x1 && y0 === y1
 })(dragGestures)
 
-// mouse release is signaled (via `true`) if the mouse was down just previously but is currently NOT down
-const mouseRelease = xl.reduce((previous = {down: false}, {down}) => ({
-  down, // we'll need it in the next iteration of this reduction
-  releaseHappened: previous.down && !down
-}))(dragGestures)
-
-
 
 /**
  * Positions
@@ -410,9 +403,8 @@ const selectedShape = xl.reduce((previous = null, eventList) => {
   return previous
 })(shapeEvents)
 
-const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, {releaseHappened}) => {
+const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
   const previousState = previous || {shapes: primedShapes}
-  const droppedShape = releaseHappened && previousState.draggedShape // todo we're not using droppedShape ATM - let's see
   const previousShapeState = previousState.shapes
   const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y)
   const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
@@ -435,8 +427,7 @@ const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandid
     shapes: previousShapeState.map(shape => nextShape(down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape))
   }
   return result
-})(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, mouseRelease)
-
+})(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = xl.lift(({draggedShape, hoveredShape}) => draggedShape || hoveredShape)(currentShapes)
@@ -458,6 +449,7 @@ xl.lift((click, shape, {x, y}) => {
     })
   }
 })(mouseClickEvent, focusedShape, cursorPosition)
+
 
 /**
  * Update fragments
