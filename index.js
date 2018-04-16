@@ -58,7 +58,7 @@ const horizontalRightIcon = 'url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0i
  */
 
 const primaryActions = xl.cell('Transactions')
-const dispatch = (action, payload) => xl.put(primaryActions, [{action, payload}])
+const dispatch = (actionType, payload) => xl.put(primaryActions, [{actionType, payload}])
 
 
 /**
@@ -346,11 +346,11 @@ const shapeAdditions = xl.cell('Shape additions')
  * Reducer cells
  */
 
-const cursorPositions = xl.lift(transactions => transactions.filter(t => t.action === 'cursorPosition').map(t => t.payload))(primaryActions)
-const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(primaryActions)
-const shapeEvents = xl.lift(transactions => transactions.filter(t => t.action === 'shapeEvent').map(t => t.payload))(primaryActions)
+const cursorPositions = xl.lift(transactions => transactions.filter(t => t.actionType === 'cursorPosition').map(t => t.payload))(primaryActions)
+const mouseEvents = xl.lift(transactions => transactions.filter(t => t.actionType === 'mouseEvent').map(t => t.payload))(primaryActions)
+const shapeEvents = xl.lift(transactions => transactions.filter(t => t.actionType === 'shapeEvent').map(t => t.payload))(primaryActions)
 
-initialShapes.forEach(shape => xl.put(primaryActions, [{action: 'shape', payload: shape}]))
+initialShapes.forEach(shape => xl.put(primaryActions, [{actionType: 'shape', payload: shape}]))
 
 const cursorPosition = xl.reduce((previous = {x: 0, y: 0}, positionList) => {
   return positionList.length ? positionList[positionList.length - 1] : previous
@@ -460,7 +460,7 @@ const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
 xl.lift((click, shape, {x, y}) => {
   if(click) {
     window.setTimeout(() => {
-      xl.put(primaryActions, [{action: 'shapeEvent', payload: {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}}])
+      xl.put(primaryActions, [{actionType: 'shapeEvent', payload: {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}}])
     })
   }
 })(mouseClickEvent, focusedShape, cursorPosition)
