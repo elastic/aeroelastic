@@ -341,6 +341,11 @@ const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y
   })
 }
 
+const getPayload = action => action.payload
+const cursorPositionActions = actions => actions.filter(action => action.actionType === 'cursorPosition').map(getPayload)
+const mouseEventActions = actions => actions.filter(action => action.actionType === 'mouseEvent').map(getPayload)
+const shapeEventActions = actions => actions.filter(action => action.actionType === 'shapeEvent').map(getPayload)
+
 
 /**
  * Input cells
@@ -354,10 +359,12 @@ const shapeAdditions = xl.cell('Shape additions')
  * Gestures
  */
 
-const cursorPositions = xl.lift(actions => actions.filter(action => action.actionType === 'cursorPosition').map(action => action.payload))(primaryActions)
-const mouseEvents = xl.lift(actions => actions.filter(action => action.actionType === 'mouseEvent').map(action => action.payload))(primaryActions)
-const shapeEvents = xl.lift(actions => actions.filter(action => action.actionType === 'shapeEvent').map(action => action.payload))(primaryActions)
+// dispatch the various types of actions
+const cursorPositions = xl.lift(cursorPositionActions)(primaryActions)
+const mouseEvents = xl.lift(mouseEventActions)(primaryActions)
+const shapeEvents = xl.lift(shapeEventActions)(primaryActions)
 
+// load the initial shapes (currently, mock shapes; in the future, client library supplied shapes)
 initialShapes.forEach(shape => xl.put(primaryActions, [{actionType: 'shape', payload: shape}]))
 
 const cursorPosition = xl.reduce((previous = {x: 0, y: 0}, positionList) => {
