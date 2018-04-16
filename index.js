@@ -487,8 +487,11 @@ const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, 
   return down ? (!previous.down && dragStartCandidate && focusedShape ? {down, x: x1, y: y1, dragStartShape: focusedShape} : previous) : {down: false}
 })(dragStartCandidate, dragGestures, focusedShape)
 
+// free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
-  shapes.filter(shape => dragStartShape && shape.key === dragStartShape.key).map(shape => Object.assign({}, shape, {x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
+  shapes
+    .filter(shape => dragStartShape && shape.key === dragStartShape.key)
+    .map(shape => Object.assign({}, shape, {x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
 )(currentShapes, dragStartAt)
 
 // affordance for permanent selection of a shape
@@ -515,7 +518,7 @@ const shapeFrags = xl.lift(({shapes}, hoveredShape, dragStartAt, selectedShapeKe
 })(currentShapes, focusedShape, dragStartAt, selectedShape)
 
 const freeShapeFrags = xl.lift(shapes => {
-  return renderShapeFrags(shapes, null, null)
+  return renderShapeFrags(shapes, null, null, false)
 })(currentFreeShapes)
 
 const dragLineFrag = xl.lift((cursor, dragStartAt) => {
