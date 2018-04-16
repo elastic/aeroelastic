@@ -388,7 +388,7 @@ const snapGuideLines = (shapes, draggedShape) => {
   // shape dynamically traces other shapes, flashing temporary alignment lines, example snap guides here: https://i.imgur.com/QKrK6.png
   const allGuideLines = allLines(shapes)
   return isLine(draggedShape)
-    ? allGuideLines.filter(line => parallel(line, draggedShape))
+    ? allGuideLines.filter(line => !parallel(line, draggedShape))
     : allGuideLines
 }
 
