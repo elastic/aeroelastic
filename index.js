@@ -284,7 +284,7 @@ const sectionOvershootDescriptor = (direction, free, fixed) => {
   const freePoint = unconstrainedMidPoint(free, direction)
   const setLo = low(fixed, direction)
   const setHi = high(fixed, direction)
-  const nearerSectionVertex = freePoint < setLo ? setLo : (freePoint ? setHi : NaN)
+  const nearerSectionVertex = freePoint < setLo ? setLo : (freePoint > setHi ? setHi : NaN)
   return {freePoint, setLo, setHi, nearerSectionVertex}
 }
 
