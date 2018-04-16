@@ -392,16 +392,20 @@ const snapGuideLines = (shapes, draggedShape) => {
     : allGuideLines
 }
 
+// quick (to write) function for finding a shape by key, may be okay for up to ~100 shapes
+const findShapeByKey = (shapes, key) => shapes.find(shape => shape.key === key)
+
 // this is _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
 const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
   const shapes = updateShapes(previous.shapes, externalShapeUpdates)
   const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
   const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
   if(draggedShape) {
-    const constrainedShape = shapes.find(shape => shape.key === draggedShape.key)
+    const constrainedShape = findShapeByKey(shapes, draggedShape.key)
     const lines = snapGuideLines(shapes, draggedShape)
     const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
     const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
+    // establish the constraint (or its lack thereof) on the constrained shape:
     constrainedShape.xConstraint = verticalSnap && verticalSnap.key
     constrainedShape.yConstraint = horizontSnap && horizontSnap.key
     constrainedShape.xConstraintAnchor = horizontAnchor
