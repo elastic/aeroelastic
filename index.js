@@ -65,29 +65,29 @@ const dispatch = (action, payload) => xl.put(primaryActions, [{action, payload}]
  * Fragment makers (pure functional components)
  */
 
-const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(s => {
-  const dragged = s.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
-  const selected = s.key === selectedShapeKey
+const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
+  const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+  const selected = shape.key === selectedShapeKey
   return h('div', {
     className: dragged ? 'draggable' : null,
     style: {
-      transform: `translate3d(${s.x}px, ${s.y}px, ${s.z}px) rotateZ(${s.rotation}deg)`,
+      transform: `translate3d(${shape.x}px, ${shape.y}px, ${shape.z}px) rotateZ(${shape.rotation}deg)`,
     }
   }, [
     h('div', {
-      className: s.type,
+      className: shape.type,
       style: {
-        width: s.width,
-        height: s.height,
-        backgroundColor: s.backgroundColor,
-        backgroundImage: s.backgroundImage,
-        outline: dragged ? `1px solid ${devColor}` : (s.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
-        opacity: s.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
+        width: shape.width,
+        height: shape.height,
+        backgroundColor: shape.backgroundColor,
+        backgroundImage: shape.backgroundImage,
+        outline: dragged ? `1px solid ${devColor}` : (shape.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
+        opacity: shape.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
       }
     }),
     h('div', {
       className: 'rotateHotspot circle',
-      style: { width: cornerHotspotSize * 3, height: cornerHotspotSize * 3, transform: `translate(${s.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)` }
+      style: { width: cornerHotspotSize * 3, height: cornerHotspotSize * 3, transform: `translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)` }
     }),
     h('div', {
       className: 'hotspot corner rectangle topLeft',
@@ -95,52 +95,52 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
     }),
     h('div', {
       className: 'hotspot corner rectangle topRight',
-      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${s.width - cornerHotspotSize}px, 0)` }
+      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${shape.width - cornerHotspotSize}px, 0)` }
     }),
     h('div', {
       className: 'hotspot corner rectangle bottomLeft',
-      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(0, ${s.height - cornerHotspotSize}px)` }
+      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(0, ${shape.height - cornerHotspotSize}px)` }
     }),
     h('div', {
       className: 'hotspot corner rectangle bottomRight',
-      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${s.width - cornerHotspotSize}px, ${s.height - cornerHotspotSize}px)` }
+      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle side top ${s.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize, height: 0, transform: `translate(${s.width / 2 - edgeHotspotSize / 2}px, 0)` }
+      className: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
+      style: { width: edgeHotspotSize, height: 0, transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)` }
     }),
     h('div', {
-      className: `hotspot rectangle side right ${s.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
-      style: { width: 0, height: edgeHotspotSize, transform: `translate(${s.width}px, ${s.height / 2 - edgeHotspotSize / 2}px)` }
+      className: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
+      style: { width: 0, height: edgeHotspotSize, transform: `translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle side bottom ${s.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize, height: 0, transform: `translate(${s.width / 2 - edgeHotspotSize / 2}px, ${s.height}px)` }
+      className: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
+      style: { width: edgeHotspotSize, height: 0, transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle side left ${s.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
-      style: { width: 0, height: edgeHotspotSize, transform: `translate(0, ${s.height / 2 - edgeHotspotSize / 2}px)` }
+      className: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
+      style: { width: 0, height: edgeHotspotSize, transform: `translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle center vertical ${s.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
-      style: { width: 0, height: edgeHotspotSize, transform: `translate3d(${s.width / 2}px, ${s.height / 2 - edgeHotspotSize / 2}px, 0.01px)` }
+      className: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
+      style: { width: 0, height: edgeHotspotSize, transform: `translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)` }
     }),
     h('div', {
-      className: `hotspot rectangle center horizontal ${s.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize, height: 0, transform: `translate3d(${s.width / 2 - edgeHotspotSize / 2}px, ${s.height / 2}px, ${s.xConstraintAnchor === 'center' ? 0 : 0.02}px)` }
+      className: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
+      style: { width: edgeHotspotSize, height: 0, transform: `translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px, ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)` }
     }),
     ...(selected ? [
       h('div', {
         className: 'hotspot rectangle center',
-        style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${s.width + 2 * cornerHotspotSize + 0 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 0 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         className: 'hotspot rectangle center',
-        style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${s.width + 2 * cornerHotspotSize + 1 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 1 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         className: 'hotspot rectangle center',
-        style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${s.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalLeftIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: { opacity: 0.5, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalLeftIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
     ] : [])
   ])
@@ -218,8 +218,8 @@ const positionsToLineAttribsViewer = (x0, y0, x1, y1) => {
 }
 
 // set of shapes under a specific point
-const shapesAtPoint = (shapes, x, y) => shapes.filter(s => {
-  return s.x - pad <= x && x <= s.x + s.width + pad && s.y - pad <= y && y < s.y + s.height + pad
+const shapesAtPoint = (shapes, x, y) => shapes.filter(shape => {
+  return shape.x - pad <= x && x <= shape.x + shape.width + pad && shape.y - pad <= y && y < shape.y + shape.height + pad
 })
 
 // pick top shape out of possibly several shapes (presumably under the same point)
@@ -308,25 +308,25 @@ const closestGuideLine = (lines, draggedShape, direction) => {
   return {closestSnappableLine, closestSnapAnchor}
 }
 
-const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s) => {
-  const {x, y} = s
-  const beingDragged = down && s.beingDragged || !dragInProgress && hoveredShape && s.key === hoveredShape.key && down && dragStartCandidate
-  const grabStart = !s.beingDragged && beingDragged
-  const grabOffsetX = grabStart ? x - x0 : (s.grabOffsetX || 0)
-  const grabOffsetY = grabStart ? y - y0 : (s.grabOffsetY || 0)
+const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape) => {
+  const {x, y} = shape
+  const beingDragged = down && shape.beingDragged || !dragInProgress && hoveredShape && shape.key === hoveredShape.key && down && dragStartCandidate
+  const grabStart = !shape.beingDragged && beingDragged
+  const grabOffsetX = grabStart ? x - x0 : (shape.grabOffsetX || 0)
+  const grabOffsetY = grabStart ? y - y0 : (shape.grabOffsetY || 0)
   const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
   const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
-  const xConstraint = constraints[s.xConstraint] ? constraints[s.xConstraint].x - anchorOffset(s, s.xConstraintAnchor) : (constraints[s.yConstraint] && (sectionConstrained('vertical', s, constraints[s.yConstraint])  - anchorOffset(s, 'center') ))
-  const yConstraint = constraints[s.yConstraint] ? constraints[s.yConstraint].y - anchorOffset(s, s.yConstraintAnchor) : (constraints[s.xConstraint] && (sectionConstrained('horizontal', s, constraints[s.xConstraint])- anchorOffset(s, 'middle')  )  )
+  const xConstraint = constraints[shape.xConstraint] ? constraints[shape.xConstraint].x - anchorOffset(shape, shape.xConstraintAnchor) : (constraints[shape.yConstraint] && (sectionConstrained('vertical', shape, constraints[shape.yConstraint])  - anchorOffset(shape, 'center') ))
+  const yConstraint = constraints[shape.yConstraint] ? constraints[shape.yConstraint].y - anchorOffset(shape, shape.yConstraintAnchor) : (constraints[shape.xConstraint] && (sectionConstrained('horizontal', shape, constraints[shape.xConstraint])- anchorOffset(shape, 'middle')  )  )
   const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
   const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-  return Object.assign({}, s, {
+  return Object.assign({}, shape, {
     x: snapToGrid(newX),
     y: snapToGrid(newY),
     unconstrainedX: unconstrainedX,
     unconstrainedY: unconstrainedY,
-    width: snapToGridUp(s.width),
-    height: snapToGridUp(s.height),
+    width: snapToGridUp(shape.width),
+    height: snapToGridUp(shape.height),
     beingDragged,
     grabOffsetX,
     grabOffsetY
@@ -350,7 +350,7 @@ const cursorPositions = xl.lift(transactions => transactions.filter(t => t.actio
 const mouseEvents = xl.lift(transactions => transactions.filter(t => t.action === 'mouseEvent').map(t => t.payload))(primaryActions)
 const shapeEvents = xl.lift(transactions => transactions.filter(t => t.action === 'shapeEvent').map(t => t.payload))(primaryActions)
 
-initialShapes.forEach(s => xl.put(primaryActions, [{action: 'shape', payload: s}]))
+initialShapes.forEach(shape => xl.put(primaryActions, [{action: 'shape', payload: shape}]))
 
 const cursorPosition = xl.reduce((previous = {x: 0, y: 0}, positionList) => {
   return positionList.length ? positionList[positionList.length - 1] : previous
@@ -422,10 +422,10 @@ const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandid
   const previousShapeState = previousState.shapes
   const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y)
   const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
-  const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(s => s.key === previousState.draggedShape.key) || hoveredShape)
+  const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(shape => shape.key === previousState.draggedShape.key) || hoveredShape)
   if(draggedShape) {
-    const constrainedShape = previousShapeState.find(s => s.key === draggedShape.key)
-    const lines = suppliedLines(previousShapeState).filter(s => draggedShape.type !== 'line' || isHorizontal(s) !== isHorizontal(draggedShape))
+    const constrainedShape = previousShapeState.find(shape => shape.key === draggedShape.key)
+    const lines = suppliedLines(previousShapeState).filter(shape => draggedShape.type !== 'line' || isHorizontal(shape) !== isHorizontal(draggedShape))
     const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
     const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
     constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
@@ -434,11 +434,11 @@ const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandid
     constrainedShape.xConstraintAnchor = horizontalAnchor
   }
   const constraints = {}
-  previousShapeState.filter(s => s.type === 'line').forEach(s => constraints[s.key] = s)
+  previousShapeState.filter(shape => shape.type === 'line').forEach(shape => constraints[shape.key] = shape)
   const result = {
     hoveredShape,
     draggedShape,
-    shapes: previousShapeState.map(s => nextShape(down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, s))
+    shapes: previousShapeState.map(shape => nextShape(down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape))
   }
   return result
 })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, mouseRelease)
@@ -453,7 +453,7 @@ const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, 
 })(dragStartCandidate, dragGestures, focusedShape)
 
 const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
-  shapes.filter(s => dragStartShape && s.key === dragStartShape.key).map(s => Object.assign({}, s, {x: s.unconstrainedX, y: s.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
+  shapes.filter(shape => dragStartShape && shape.key === dragStartShape.key).map(shape => Object.assign({}, shape, {x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
 )(currentShapes, dragStartAt)
 
 // affordance for permanent selection of a shape
