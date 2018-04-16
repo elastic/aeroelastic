@@ -25,7 +25,7 @@ const cornerHotspotSize = 6
 const edgeHotspotSize = 12
 const devColor = 'magenta'
 const pad = 10
-const gridPitch = 0.01
+const gridPitch = 1
 const snapEngageDistance = 18
 const snapReleaseDistance = 2 * snapEngageDistance // hysteresis: make it harder to break the bond
 
@@ -499,16 +499,17 @@ const currentShapes = xl.reduce(nextScenegraph)(shapeAdditions, cursorPosition, 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = xl.lift(({draggedShape, hoveredShape}) => draggedShape || hoveredShape)(currentShapes)
 
-const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}, focusedShape) => {
+const dragStartAt = xl.reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}) => {
   // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
   if(down) {
-    return dragStartCandidate && focusedShape && !previous.down
-      ? {down, x: x1, y: y1, dragStartShape: focusedShape}
+    const newDragStart = dragStartCandidate && !previous.down
+    return newDragStart
+      ? {down, x: x1, y: y1, dragStartShape: dragStartCandidate}
       : previous
   } else {
     return {down: false}
   }
-})(dragStartCandidate, dragGestures, focusedShape)
+})(dragStartCandidate, dragGestures)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = xl.lift(({shapes}, {dragStartShape}) =>
