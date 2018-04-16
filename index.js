@@ -285,7 +285,7 @@ const sectionConstrained = (direction, free, fixed) => {
   return withinBounds(setLo, setHi, freePoint) ? freePoint : nearerSectionVertex
 }
 
-const closestGuideLine = (lines, draggedShape, direction) => {
+const snappingGuideLine = (lines, draggedShape, direction) => {
   const possibleSnapPoints = direction === 'horizontal' ? ['left', 'center', 'right'] : ['top', 'middle', 'bottom']
   const preexistingConstraint = direction === 'horizontal' ? draggedShape.xConstraint : draggedShape.yConstraint
   let closestSnappableLine = null
@@ -443,12 +443,12 @@ const currentShapes = xl.reduce((previous = {shapes: null, draggedShape: null}, 
   if(draggedShape) {
     const constrainedShape = shapes.find(shape => shape.key === draggedShape.key)
     const lines = snapGuideLines(shapes, draggedShape)
-    const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
-    const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
-    constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
+    const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
+    const {closestSnappableLine: closestSnappableHorizontLine, closestSnapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
     constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
+    constrainedShape.yConstraint = closestSnappableHorizontLine && closestSnappableHorizontLine.key
+    constrainedShape.xConstraintAnchor = horizontAnchor
     constrainedShape.yConstraintAnchor = verticalAnchor
-    constrainedShape.xConstraintAnchor = horizontalAnchor
   }
   const constraints = constraintLookup(shapes)
   const newState = {
