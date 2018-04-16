@@ -72,7 +72,7 @@ const dispatchAsync = (actionType, payload) => setTimeout(() => dispatch(actionT
 
 
 /**
- * Fragment makers (pure functional components)
+ * Pure functions: fragment makers (PoC: React DOM fragments)
  */
 
 const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
@@ -193,6 +193,7 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   })
 ])
 
+// this is responsible for the PoC event capture
 const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => {
 
   const updateMetaCursor = event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY})
