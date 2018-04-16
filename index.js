@@ -371,25 +371,24 @@ const snapGuideLines = (shapes, draggedShape) => {
 const findShapeByKey = (shapes, key) => shapes.find(shape => shape.key === key)
 
 // this is the per-shape model update at the current PoC level
-const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape) => {
-  const {x, y} = shape
-  const beingDragged = down && shape.beingDragged || !dragInProgress && hoveredShape && shape.key === hoveredShape.key && down && dragStartCandidate
-  const grabStart = !shape.beingDragged && beingDragged
-  const grabOffsetX = grabStart ? x - x0 : (shape.grabOffsetX || 0)
-  const grabOffsetY = grabStart ? y - y0 : (shape.grabOffsetY || 0)
-  const unconstrainedX = beingDragged ? x1 + grabOffsetX : x
-  const unconstrainedY = beingDragged ? y1 + grabOffsetY : y
-  const xConstraint = constraints[shape.xConstraint] ? constraints[shape.xConstraint].x - anchorOffset(shape, shape.xConstraintAnchor) : (constraints[shape.yConstraint] && (sectionConstrained('vertical', shape, constraints[shape.yConstraint])  - anchorOffset(shape, 'center') ))
-  const yConstraint = constraints[shape.yConstraint] ? constraints[shape.yConstraint].y - anchorOffset(shape, shape.yConstraintAnchor) : (constraints[shape.xConstraint] && (sectionConstrained('horizontal', shape, constraints[shape.xConstraint])- anchorOffset(shape, 'middle')  )  )
+const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints) => {
+  const beingDragged = down && previousShape.beingDragged || !dragInProgress && hoveredShape && previousShape.key === hoveredShape.key && down && dragStartCandidate
+  const grabStart = !previousShape.beingDragged && beingDragged
+  const grabOffsetX = grabStart ? previousShape.x - x0 : (previousShape.grabOffsetX || 0)
+  const grabOffsetY = grabStart ? previousShape.y - y0 : (previousShape.grabOffsetY || 0)
+  const unconstrainedX = beingDragged ? x1 + grabOffsetX : previousShape.x
+  const unconstrainedY = beingDragged ? y1 + grabOffsetY : previousShape.y
+  const xConstraint = constraints[previousShape.xConstraint] ? constraints[previousShape.xConstraint].x - anchorOffset(previousShape, previousShape.xConstraintAnchor) : (constraints[previousShape.yConstraint] && (sectionConstrained('vertical', previousShape, constraints[previousShape.yConstraint])  - anchorOffset(previousShape, 'center') ))
+  const yConstraint = constraints[previousShape.yConstraint] ? constraints[previousShape.yConstraint].y - anchorOffset(previousShape, previousShape.yConstraintAnchor) : (constraints[previousShape.xConstraint] && (sectionConstrained('horizontal', previousShape, constraints[previousShape.xConstraint])- anchorOffset(previousShape, 'middle')  )  )
   const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
   const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-  return Object.assign({}, shape, {
+  return Object.assign({}, previousShape, {
     x: snapToGrid(newX),
     y: snapToGrid(newY),
     unconstrainedX: unconstrainedX,
     unconstrainedY: unconstrainedY,
-    width: snapToGridUp(shape.width),
-    height: snapToGridUp(shape.height),
+    width: snapToGridUp(previousShape.width),
+    height: snapToGridUp(previousShape.height),
     beingDragged,
     grabOffsetX,
     grabOffsetY
@@ -406,7 +405,7 @@ const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalS
     const lines = snapGuideLines(shapes, draggedShape)
     const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
     const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
-    // establish the constraint (or its lack thereof) on the constrained shape:
+    // todo: establish these constraints (or their lack thereof) via nextShape rather than with these direct assignments here:
     constrainedShape.xConstraint = verticalSnap && verticalSnap.key
     constrainedShape.yConstraint = horizontSnap && horizontSnap.key
     constrainedShape.xConstraintAnchor = horizontAnchor
@@ -416,7 +415,7 @@ const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalS
   const newState = {
     hoveredShape,
     draggedShape,
-    shapes: shapes.map(shape => nextShape(down, draggedShape, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape))
+    shapes: shapes.map(shape => nextShape(shape, down, draggedShape, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints))
   }
   return newState
 }
