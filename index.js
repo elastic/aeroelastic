@@ -403,6 +403,12 @@ const selectedShape = xl.reduce((previous = null, eventList) => {
   return previous
 })(shapeEvents)
 
+const constraintLookup = shapes => {
+  const constraints = {}
+  shapes.filter(isLine).forEach(shape => constraints[shape.key] = shape)
+  return constraints
+}
+
 const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
   const previousState = previous || {shapes: primedShapes}
   const previousShapeState = previousState.shapes
@@ -419,8 +425,7 @@ const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandid
     constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
     constrainedShape.xConstraintAnchor = horizontalAnchor
   }
-  const constraints = {}
-  previousShapeState.filter(shape => shape.type === 'line').forEach(shape => constraints[shape.key] = shape)
+  const constraints = constraintLookup(previousShapeState)
   const result = {
     hoveredShape,
     draggedShape,
