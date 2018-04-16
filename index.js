@@ -409,15 +409,15 @@ const constraintLookup = shapes => {
   return constraints
 }
 
-const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
-  const previousState = previous || {shapes: primedShapes}
-  const previousShapeState = previousState.shapes
-  const hoveredShape = hoveredAt(previousShapeState, cursor.x, cursor.y)
-  const dragInProgress = down && previousShapeState.reduce((prev, next) => prev || next.beingDragged, false)
-  const draggedShape = dragInProgress && (previousState.draggedShape && previousShapeState.find(shape => shape.key === previousState.draggedShape.key) || hoveredShape)
+const currentShapes = xl.reduce((previous, addedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
+  const previousState = previous || {shapes: addedShapes}
+  const shapes = previousState.shapes
+  const hoveredShape = hoveredAt(shapes, cursor.x, cursor.y)
+  const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
+  const draggedShape = dragInProgress && (previousState.draggedShape && shapes.find(shape => shape.key === previousState.draggedShape.key) || hoveredShape)
   if(draggedShape) {
-    const constrainedShape = previousShapeState.find(shape => shape.key === draggedShape.key)
-    const lines = suppliedLines(previousShapeState).filter(shape => !isLine(draggedShape) || isHorizontal(shape) !== isHorizontal(draggedShape))
+    const constrainedShape = shapes.find(shape => shape.key === draggedShape.key)
+    const lines = suppliedLines(shapes).filter(shape => !isLine(draggedShape) || isHorizontal(shape) !== isHorizontal(draggedShape))
     const {closestSnappableLine: closestSnappableHorizontalLine, closestSnapAnchor: verticalAnchor} = closestGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
     const {closestSnappableLine: closestSnappableVerticalLine, closestSnapAnchor: horizontalAnchor} = closestGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
     constrainedShape.yConstraint = closestSnappableHorizontalLine && closestSnappableHorizontalLine.key
@@ -425,11 +425,11 @@ const currentShapes = xl.reduce((previous, primedShapes, cursor, dragStartCandid
     constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
     constrainedShape.xConstraintAnchor = horizontalAnchor
   }
-  const constraints = constraintLookup(previousShapeState)
+  const constraints = constraintLookup(shapes)
   const result = {
     hoveredShape,
     draggedShape,
-    shapes: previousShapeState.map(shape => nextShape(down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape))
+    shapes: shapes.map(shape => nextShape(down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape))
   }
   return result
 })(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
