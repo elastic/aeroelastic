@@ -9,6 +9,8 @@ npm install -g budo
 budo --live --open --host localhost index.js
 ```
 
+![aeroelastic](https://user-images.githubusercontent.com/1548516/38812286-3116ca22-418c-11e8-818b-afd4bc0e8f27.gif)
+
 Building support for
 
 - [x] drag and drop
