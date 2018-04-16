@@ -227,6 +227,7 @@ const topShape = shapes => shapes.reduce((prev, next) => {
   return prev ? (next.z >= prev.z ? next : prev) : next
 }, null)
 
+// returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
 const hoveredAt = (shapes, x, y) => {
   const hoveredShapes = shapesAtPoint(shapes, x, y)
   return topShape(hoveredShapes)
@@ -409,12 +410,18 @@ const constraintLookup = shapes => {
   return constraints
 }
 
-const currentShapes = xl.reduce((previous, addedShapes, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
-  const previousState = previous || {shapes: addedShapes}
-  const shapes = previousState.shapes
+// shape updates may include newly added shapes, deleted or modified shapes
+const updateShapes = (preexistingShapes, shapeUpdates) => {
+  // Shell function - this is now a simple OR ie. in the PoC it initializes with the given mock states and no more update.
+  // A real function must handle additions, removals and updates, merging the new info into the current shape state.
+  return preexistingShapes || shapeUpdates
+}
+
+const currentShapes = xl.reduce((previous = {shapes: null, hoveredShape: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
+  const shapes = updateShapes(previous.shapes, externalShapeUpdates)
   const hoveredShape = hoveredAt(shapes, cursor.x, cursor.y)
   const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
-  const draggedShape = dragInProgress && (previousState.draggedShape && shapes.find(shape => shape.key === previousState.draggedShape.key) || hoveredShape)
+  const draggedShape = dragInProgress && (previous.draggedShape && shapes.find(shape => shape.key === previous.draggedShape.key) || hoveredShape)
   if(draggedShape) {
     const constrainedShape = shapes.find(shape => shape.key === draggedShape.key)
     const lines = suppliedLines(shapes).filter(shape => !isLine(draggedShape) || isHorizontal(shape) !== isHorizontal(draggedShape))
