@@ -290,7 +290,7 @@ const snappingGuideLine = (lines, draggedShape, direction) => {
   const preexistingConstraint = direction === 'horizontal' ? draggedShape.xConstraint : draggedShape.yConstraint
   let snapLine = null
   let snapDistance = Infinity
-  let closestSnapAnchor = null
+  let snapAnchor = null
   for(let anchor of possibleSnapPoints) {
     const anchorPoint = anchorValue(draggedShape, anchor)
     for (let i = 0; i < lines.length; i++) {
@@ -302,11 +302,11 @@ const snappingGuideLine = (lines, draggedShape, direction) => {
       if (distance < snapDistance && distance <= distanceThreshold) {
         snapLine = line
         snapDistance = distance
-        closestSnapAnchor = anchor
+        snapAnchor = anchor
       }
     }
   }
-  return {snapLine, closestSnapAnchor}
+  return {snapLine, snapAnchor}
 }
 
 const nextShape = (down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints, shape) => {
@@ -443,8 +443,8 @@ const currentShapes = xl.reduce((previous = {shapes: null, draggedShape: null}, 
   if(draggedShape) {
     const constrainedShape = shapes.find(shape => shape.key === draggedShape.key)
     const lines = snapGuideLines(shapes, draggedShape)
-    const {snapLine: closestSnappableVerticalLine, closestSnapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
-    const {snapLine: closestSnappableHorizontLine, closestSnapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
+    const {snapLine: closestSnappableVerticalLine, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
+    const {snapLine: closestSnappableHorizontLine, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
     constrainedShape.xConstraint = closestSnappableVerticalLine && closestSnappableVerticalLine.key
     constrainedShape.yConstraint = closestSnappableHorizontLine && closestSnappableHorizontLine.key
     constrainedShape.xConstraintAnchor = horizontAnchor
