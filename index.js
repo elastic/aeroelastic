@@ -25,7 +25,7 @@ const cornerHotspotSize = 6
 const edgeHotspotSize = 12
 const devColor = 'magenta'
 const pad = 10
-const gridPitch = 0.1
+const gridPitch = 0.01
 const snapEngageDistance = 18
 const snapReleaseDistance = 2 * snapEngageDistance // hysteresis: make it harder to break the bond
 
@@ -74,6 +74,7 @@ const dispatchAsync = (actionType, payload) => setTimeout(() => dispatch(actionT
  * Pure functions: fragment makers (PoC: React DOM fragments)
  */
 
+// renders a shape including its (not yet factored out) control points, so it's not quite DRY compliant atm :-)
 const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
   const selected = shape.key === selectedShapeKey
@@ -155,6 +156,7 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
   ])
 })
 
+// magenta debug cursor
 const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
   className: 'circle metaCursor',
   style: {
@@ -166,6 +168,7 @@ const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, met
   }
 })
 
+// magenta debug drag disks and drag line
 const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   style: {
     transform: `translate3d(${x}px, ${y}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
@@ -192,7 +195,7 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   })
 ])
 
-// this is responsible for the PoC event capture
+// the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
 const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => {
 
   const updateMetaCursor = event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY})
@@ -247,6 +250,9 @@ const snapToGrid = x => gridPitch * Math.round(x / gridPitch)
 const snapToGridUp = x => gridPitch * Math.ceil(x / gridPitch)
 const isHorizontal = line => line.height === 0
 const isVertical = line => line.width === 0
+const isHorizontalDirection = direction => direction === 'horizontal'
+const isLine = shape => shape.type === 'line'
+const allLines = shapes => shapes.filter(isLine)
 
 const anchorOrigin = (shape, anchor) => shape[({top: 'unconstrainedY', middle: 'unconstrainedY', bottom: 'unconstrainedY', left: 'unconstrainedX', center: 'unconstrainedX', right: 'unconstrainedX'})[anchor]]
 const anchorOffset = (shape, anchor) => ({top: 0, middle: shape.height / 2, bottom: shape.height, left: 0, center: shape.width / 2, right: shape.width})[anchor]
@@ -295,8 +301,6 @@ const sectionConstrained = (direction, free, fixed) => {
   return withinBounds(setLo, setHi, freePoint) ? freePoint : nearerSectionVertex
 }
 
-const isHorizontalDirection = direction => direction === 'horizontal'
-
 // returns the snap line and the attracted anchor of draggedShape for the closest snap line, provided it's close enough for snapping
 const snappingGuideLine = (lines, shape, direction) => {
   const horizontalDirection = isHorizontalDirection(direction)
@@ -331,20 +335,11 @@ const cursorPositionActions = actions => actions.filter(action => action.actionT
 const mouseEventActions = actions => actions.filter(action => action.actionType === 'mouseEvent').map(getPayload)
 const shapeEventActions = actions => actions.filter(action => action.actionType === 'shapeEvent').map(getPayload)
 
-const isLine = shape => shape.type === 'line'
-const allLines = shapes => shapes.filter(isLine)
-
+// a key based lookup of snap guide lines
 const constraintLookup = shapes => {
   const constraints = {}
   shapes.filter(isLine).forEach(shape => constraints[shape.key] = shape)
   return constraints
-}
-
-// shape updates may include newly added shapes, deleted or modified shapes
-const updateShapes = (preexistingShapes, shapeUpdates) => {
-  // Shell function - this is now a simple OR ie. in the PoC it initializes with the given mock states and no more update happens.
-  // A real function must handle additions, removals and updates, merging the new info into the current shape state.
-  return preexistingShapes || shapeUpdates
 }
 
 // returns the currently dragged shape, or a falsey value otherwise
@@ -368,6 +363,13 @@ const snapGuideLines = (shapes, draggedShape) => {
 
 // quick (to write) function for finding a shape by key, may be okay for up to ~100 shapes
 const findShapeByKey = (shapes, key) => shapes.find(shape => shape.key === key)
+
+// shape updates may include newly added shapes, deleted or modified shapes
+const updateShapes = (preexistingShapes, shapeUpdates) => {
+  // Shell function - this is now a simple OR ie. in the PoC it initializes with the given mock states and no more update happens.
+  // A real function must handle additions, removals and updates, merging the new info into the current shape state.
+  return preexistingShapes || shapeUpdates
+}
 
 // this is the per-shape model update at the current PoC level
 const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints) => {
@@ -432,7 +434,7 @@ const shapeAdditions = xl.cell('Shape additions')
 
 
 /**
- * Gestures
+ * Gestures - filters and finite state machine reducers, mostly
  */
 
 // dispatch the various types of actions
@@ -479,7 +481,7 @@ const dragStartCandidate = xl.lift(({down, x0, y0, x1, y1}) => {
 
 
 /**
- * Positions
+ * Scenegraph update based on events, gestures...
  */
 
 const selectedShape = xl.reduce((previous = null, eventList) => {
@@ -491,6 +493,7 @@ const selectedShape = xl.reduce((previous = null, eventList) => {
   return previous
 })(shapeEvents)
 
+// this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 const currentShapes = xl.reduce(nextScenegraph)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
