@@ -371,16 +371,16 @@ const updateShapes = (preexistingShapes, shapeUpdates) => {
   return preexistingShapes || shapeUpdates
 }
 
-const weirdFunctionX = (constraints, previousShape) => {
-  return constraints[previousShape.xConstraint]
-    ? constraints[previousShape.xConstraint].x - anchorOffset(previousShape, previousShape.xConstraintAnchor)
-    : (constraints[previousShape.yConstraint] && (sectionConstrained('vertical', previousShape, constraints[previousShape.yConstraint])  - anchorOffset(previousShape, 'center') ))
+const nextConstraintX = (xConstraint, yConstraint, previousShape) => {
+  return xConstraint
+    ? xConstraint.x - anchorOffset(previousShape, previousShape.xConstraintAnchor)
+    : (yConstraint && (sectionConstrained('vertical', previousShape, yConstraint) - anchorOffset(previousShape, 'center') ))
 }
 
-const weirdFunctionY = (constraints, previousShape) => {
-  return constraints[previousShape.yConstraint]
-    ? constraints[previousShape.yConstraint].y - anchorOffset(previousShape, previousShape.yConstraintAnchor)
-    : (constraints[previousShape.xConstraint] && (sectionConstrained('horizontal', previousShape, constraints[previousShape.xConstraint])- anchorOffset(previousShape, 'middle')  )  )
+const nextConstraintY = (xConstraint, yConstraint, previousShape) => {
+  return yConstraint
+    ? yConstraint.y - anchorOffset(previousShape, previousShape.yConstraintAnchor)
+    : (xConstraint && (sectionConstrained('horizontal', previousShape, xConstraint) - anchorOffset(previousShape, 'middle')  )  )
 }
 
 // this is the per-shape model update at the current PoC level
@@ -391,8 +391,10 @@ const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartC
   const grabOffsetY = grabStart ? previousShape.y - y0 : (previousShape.grabOffsetY || 0)
   const unconstrainedX = beingDragged ? x1 + grabOffsetX : previousShape.x
   const unconstrainedY = beingDragged ? y1 + grabOffsetY : previousShape.y
-  const xConstraint = weirdFunctionX(constraints, previousShape)
-  const yConstraint = weirdFunctionY(constraints, previousShape)
+  const xConstraintPrevious = constraints[previousShape.xConstraint]
+  const yConstraintPrevious = constraints[previousShape.yConstraint]
+  const xConstraint = nextConstraintX(xConstraintPrevious, yConstraintPrevious, previousShape)
+  const yConstraint = nextConstraintY(xConstraintPrevious, yConstraintPrevious, previousShape)
   const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
   const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
   return Object.assign({}, previousShape, {
