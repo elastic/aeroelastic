@@ -28,6 +28,7 @@ const pad = 10
 const gridPitch = 1
 const snapEngageDistance = 18
 const snapReleaseDistance = 2 * snapEngageDistance // hysteresis: make it harder to break the bond
+const enforceAlignment = true // whether snap lines enforce all elements to anchor left/center/right etc. or only preexisting ones
 
 
 /**
@@ -79,6 +80,12 @@ const dispatchAsync = (actionType, payload) => setTimeout(() => dispatch(actionT
 const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
   const selected = shape.key === selectedShapeKey
+
+  const alignLeft = event => dispatch('align', {event: 'alignLeft', shapeKey: shape.key})
+  const alignCenter = event => dispatch('align', {event: 'alignCenter', shapeKey: shape.key})
+  const alignRight = event => dispatch('align', {event: 'alignRight', shapeKey: shape.key})
+  const alignRemove = event => dispatch('align', {event: 'alignRemove', shapeKey: shape.key})
+
   return h('div', {
     className: dragged ? 'draggable' : null,
     style: {
@@ -143,18 +150,22 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
     ...(selected ? [
       h('div', {
         className: 'hotspot rectangle center',
+        onClick: alignRight,
         style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 0 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         className: 'hotspot rectangle center',
+        onClick: alignCenter,
         style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 1 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         className: 'hotspot rectangle center',
+        onClick: alignLeft,
         style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalLeftIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         className: 'hotspot rectangle center',
+        onClick: alignRemove,
         style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: cancelIcon, backgroundSize: `${toolbarHeight}px ${toolbarHeight}px`, backgroundRepeat: 'no-repeat' }
       })
     ] : [])
@@ -324,6 +335,12 @@ const snappingGuideLine = (lines, shape, direction) => {
     const anchorPoint = anchorValue(shape, anchor)
     for (let i = 0; i < lines.length; i++) { // consider bisection search, quadtree etc. if it becomes too slow
       const line = lines[i]
+      const alignment = line.alignment
+      if(alignment) {
+        console.log(alignment)
+        if(horizontalDirection && alignmentToHorizontalConstraint(line) !== anchor) continue
+        if(!horizontalDirection && alignmentToVerticalConstraint(line) !== anchor) continue
+      }
       const perpendicularDistance = Math.abs(anchorPoint - (horizontalDirection ? line.x : line.y))
       const parallelDistance = sectionOvershoot(direction, shape, line)
       // ^ parallel distance from section edge is also important: pulling a shape off a guideline tangentially must remove the snapping
@@ -344,6 +361,7 @@ const getPayload = action => action.payload
 const cursorPositionActions = actions => actions.filter(action => action.actionType === 'cursorPosition').map(getPayload)
 const mouseEventActions = actions => actions.filter(action => action.actionType === 'mouseEvent').map(getPayload)
 const shapeEventActions = actions => actions.filter(action => action.actionType === 'shapeEvent').map(getPayload)
+const alignEventActions = actions => actions.filter(action => action.actionType === 'align').map(getPayload)
 
 // a key based lookup of snap guide lines
 const constraintLookup = shapes => {
@@ -381,19 +399,22 @@ const updateShapes = (preexistingShapes, shapeUpdates) => {
   return preexistingShapes || shapeUpdates
 }
 
+const alignmentToHorizontalConstraint = constraint => enforceAlignment && constraint.alignment && ({alignRight: 'right', alignLeft: 'left', alignCenter: 'center', alignRemove: null})[constraint.alignment]
+const alignmentToVerticalConstraint = constraint => enforceAlignment && constraint.alignment && ({alignRight: 'top', alignLeft: 'bottom', alignCenter: 'middle', alignRemove: null})[constraint.alignment]
+
 // The horizontal dimension (x) is mainly constrained by, naturally, the xConstraint (vertical snap line), but if there's no xConstraint is present,
 // then it still needs to observe whether a yConstraint (horizontal snap section) end vertex is breached - you can horizontally pull a rectangle off
 // a horizontal line, and the snap needs to break/establish in this direction too. In other words, since the constraints are sections, not infinite lines,
 // a constraining section applies to both dimensions.
 const nextConstraintX = (xConstraint, yConstraint, previousShape) => {
   return xConstraint
-    ? xConstraint.x - anchorOffset(previousShape, previousShape.xConstraintAnchor)
+    ? xConstraint.x - anchorOffset(previousShape, alignmentToHorizontalConstraint(xConstraint) || previousShape.xConstraintAnchor)
     : (yConstraint && (sectionConstrained('vertical', previousShape, yConstraint) - anchorOffset(previousShape, 'center')))
 }
 
 const nextConstraintY = (xConstraint, yConstraint, previousShape) => {
   return yConstraint
-    ? yConstraint.y - anchorOffset(previousShape, previousShape.yConstraintAnchor)
+    ? yConstraint.y - anchorOffset(previousShape, alignmentToVerticalConstraint(yConstraint) || previousShape.yConstraintAnchor)
     : (xConstraint && (sectionConstrained('horizontal', previousShape, xConstraint) - anchorOffset(previousShape, 'middle')))
 }
 
@@ -425,8 +446,12 @@ const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartC
 }
 
 // this is _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
-const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}) => {
+const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvents) => {
   const shapes = updateShapes(previous.shapes, externalShapeUpdates)
+  alignEvents.forEach(({event, shapeKey}) => {
+    const alignmentLine = findShapeByKey(shapes, shapeKey)
+    alignmentLine.alignment = event !== 'alignRemove' && event
+  })
   const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
   const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
   if(draggedShape) {
@@ -469,6 +494,7 @@ const shapeAdditions = xl.cell('Shape additions')
 const cursorPositions = xl.lift(cursorPositionActions)(primaryActions)
 const mouseEvents = xl.lift(mouseEventActions)(primaryActions)
 const shapeEvents = xl.lift(shapeEventActions)(primaryActions)
+const alignEvents = xl.lift(alignEventActions)(primaryActions)
 
 // load the initial shapes (currently, mock shapes; in the future, client library supplied shapes)
 initialShapes.forEach(shape => xl.put(primaryActions, [{actionType: 'shape', payload: shape}]))
@@ -522,7 +548,7 @@ const selectedShape = xl.reduce((previous = null, eventList) => {
 })(shapeEvents)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
-const currentShapes = xl.reduce(nextScenegraph)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures)
+const currentShapes = xl.reduce(nextScenegraph)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvents)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = xl.lift(({draggedShape, hoveredShape}) => draggedShape || hoveredShape)(currentShapes)
