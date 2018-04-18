@@ -327,34 +327,24 @@ const snappingGuideLine = (lines, shape, direction) => {
   const horizontalDirection = isHorizontalDirection(direction)
   const possibleSnapPoints = horizontalDirection ? ['left', 'center', 'right'] : ['top', 'middle', 'bottom']
   const preexistingConstraint = horizontalDirection ? shape.xConstraint : shape.yConstraint
-  let snapLine = null
-  let snapDistance = Infinity
-  let snapAnchor = null
   // let's find the snap line / anchor combo with the shortest snapDistance
-  for(let anchor of possibleSnapPoints) { // must check for all suitable anchors for proximity
+  return possibleSnapPoints.reduce((prev, anchor) => {
     const anchorPoint = anchorValue(shape, anchor)
-    for (let i = 0; i < lines.length; i++) { // consider bisection search, quadtree etc. if it becomes too slow
-      const line = lines[i]
-      const alignment = line.alignment
-      if(alignment) {
-        console.log(alignment)
-        if(horizontalDirection && alignmentToHorizontalConstraint(line) !== anchor) continue
-        if(!horizontalDirection && alignmentToVerticalConstraint(line) !== anchor) continue
-      }
-      const perpendicularDistance = Math.abs(anchorPoint - (horizontalDirection ? line.x : line.y))
-      const parallelDistance = sectionOvershoot(direction, shape, line)
-      // ^ parallel distance from section edge is also important: pulling a shape off a guideline tangentially must remove the snapping
-      const distance = Math.sqrt(Math.pow(parallelDistance, 2) + Math.pow(perpendicularDistance, 2)) // we could alternatively take the max of these two
-      // distanceThreshold depends on whether we're engaging the snap or prying it apart - mainstream tools often have such a snap hysteresis
-      const distanceThreshold = preexistingConstraint === line.key ? snapReleaseDistance : snapEngageDistance
-      if (distance < snapDistance && distance <= distanceThreshold) {
-        snapLine = line
-        snapDistance = distance
-        snapAnchor = anchor
-      }
-    }
-  }
-  return {snapLine, snapAnchor}
+    return lines
+      .filter(line => {
+        return !line.alignment || (!horizontalDirection || alignmentToHorizontalConstraint(line) === anchor) && (horizontalDirection || alignmentToVerticalConstraint(line) === anchor)
+      })
+      .reduce((prev, line) => {
+        const perpendicularDistance = Math.abs(anchorPoint - (horizontalDirection ? line.x : line.y))
+        const parallelDistance = sectionOvershoot(direction, shape, line)
+        // ^ parallel distance from section edge is also important: pulling a shape off a guideline tangentially must remove the snapping
+        const distance = Math.sqrt(Math.pow(parallelDistance, 2) + Math.pow(perpendicularDistance, 2)) // we could alternatively take the max of these two
+        // distanceThreshold depends on whether we're engaging the snap or prying it apart - mainstream tools often have such a snap hysteresis
+        const distanceThreshold = preexistingConstraint === line.key ? snapReleaseDistance : snapEngageDistance
+        const closerLineFound = distance < prev.snapDistance && distance <= distanceThreshold
+        return closerLineFound ? {snapLine: line, snapAnchor: anchor, snapDistance: distance} : prev
+      }, prev)
+  }, {snapLine: null, snapAnchor: null, snapDistance: Infinity})
 }
 
 const getPayload = action => action.payload
