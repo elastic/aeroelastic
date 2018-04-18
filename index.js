@@ -486,9 +486,6 @@ const mouseEvents = xl.lift(mouseEventActions)(primaryActions)
 const shapeEvents = xl.lift(shapeEventActions)(primaryActions)
 const alignEvents = xl.lift(alignEventActions)(primaryActions)
 
-// load the initial shapes (currently, mock shapes; in the future, client library supplied shapes)
-initialShapes.forEach(shape => xl.put(primaryActions, [{actionType: 'shape', payload: shape}]))
-
 const cursorPosition = xl.reduce((previous = {x: 0, y: 0}, positionList) => {
   return positionList.length ? positionList[positionList.length - 1] : previous
 })(cursorPositions)
@@ -607,5 +604,5 @@ xl.lift(frag => reactRenderDOM(frag, root))(scenegraph)
  *  Providing initial state
  */
 
-xl.put(substrate, null) // doesn't currently need any actual input
 xl.put(shapeAdditions, initialShapes)
+xl.put(primaryActions, [])
