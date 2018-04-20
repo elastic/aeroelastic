@@ -500,14 +500,13 @@ const cursorPosition = reduce((previous = {x: 0, y: 0}, positionList) => {
   return positionList.length ? positionList[positionList.length - 1] : previous
 })(cursorPositions)
 
-const mouseDown = reduce((previous = false, eventList) => {
-  for(let i = eventList.length - 1; i >= 0; i--) {
-    const type = eventList[i].event
-    if(type === 'mouseUp') return false
-    if(type === 'mouseDown') return true
-  }
-  return previous // preserve state if no mouse action happened
-})(mouseEvents)
+const mouseDown = reduce((previous = false, eventList) => eventList.reduce(
+  (prev, {event}) => ['mouseUp', 'mouseDown'].indexOf(event) >= 0
+    ? event === 'mouseDown'
+    : previous,
+  previous
+  )
+)(mouseEvents)
 
 const mouseClickEvent = reduce((previous = false, eventList) => {
   for(let i = eventList.length - 1; i >= 0; i--) {
