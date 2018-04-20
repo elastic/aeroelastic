@@ -2,7 +2,7 @@
  * `require()` bindings (now just <script>s, to reduce build time while prototyping)
  */
 
-const reactRenderDOM = ReactDOM.render
+const render = ReactDOM.render
 const h = React.createElement
 
 const each = eachFun => (...inputs) => state => {eachFun(...inputs.map(input => input(state)))}
@@ -81,7 +81,7 @@ const dispatch = (actionType, payload) => {
     shapeAdditions: initialShapes,
     primaryActions: [{actionType, payload}]
   }
-  render(s)
+  renderScene(s)
   tempCycle(s)
 
 }
@@ -90,7 +90,7 @@ const dispatchAsync = (actionType, payload) => setTimeout(() => {
     shapeAdditions: initialShapes,
     primaryActions: [{actionType, payload}]
   }
-  render(s)
+  renderScene(s)
   tempCycle(s)
 })
 
@@ -613,8 +613,8 @@ const dragLineFrag = map((cursor, dragStartAt) => {
 
 const scenegraph = map(renderSubstrateFrag)(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
-const render = each(
-  function(frag) {reactRenderDOM(frag, root)}
+const renderScene = each(
+  function(frag) {render(frag, root)}
 )(scenegraph)
 
-render(state)
+renderScene(state)
