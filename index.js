@@ -508,13 +508,7 @@ const mouseDown = reduce((previous = false, eventList) => eventList.reduce(
   )
 )(mouseEvents)
 
-const mouseClickEvent = reduce((previous = false, eventList) => {
-  for(let i = eventList.length - 1; i >= 0; i--) {
-    const type = eventList[i].event
-    if(type === 'mouseClick') return true
-  }
-  return false
-})(mouseEvents)
+const mouseClickEvent = map(eventList => eventList.some(({event}) => event === 'mouseClick'))(mouseEvents)
 
 const dragGestureStartAt = reduce((previous = {down: false}, down, {x, y}) => {
   return down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false}
