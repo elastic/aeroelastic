@@ -2,8 +2,7 @@
  * `require()` bindings (now just <script>s, to reduce build time while prototyping)
  */
 
-const render = ReactDOM.render
-const h = React.createElement
+const {render, h} = ultradom
 
 const each = eachFun => (...inputs) => state => {eachFun(...inputs.map(input => input(state)))}
 const map = mapFun => (...inputs) => state => mapFun(...inputs.map(input => input(state)))
@@ -118,16 +117,16 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
   const alignRemove = event => dispatch('align', {event: 'alignRemove', shapeKey: shape.key})
 
   return h('div', {
-    className: dragged ? 'draggable' : null,
+    class: dragged ? 'draggable' : null,
     style: {
       transform: `translate3d(${shape.x}px, ${shape.y}px, ${shape.z}px) rotateZ(${shape.rotation}deg)`,
     }
   }, [
     h('div', {
-      className: shape.type,
+      class: shape.type,
       style: {
-        width: shape.width,
-        height: shape.height,
+        width: shape.width + 'px',
+        height: shape.height + 'px',
         backgroundColor: shape.backgroundColor,
         backgroundImage: shape.backgroundImage,
         outline: dragged ? `1px solid ${devColor}` : (shape.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
@@ -135,69 +134,69 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
       }
     }),
     h('div', {
-      className: 'rotateHotspot circle',
-      style: { width: cornerHotspotSize * 3, height: cornerHotspotSize * 3, transform: `translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)` }
+      class: 'rotateHotspot circle',
+      style: { width: (cornerHotspotSize * 3) + 'px', height: (cornerHotspotSize * 3) + 'px', transform: `translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)` }
     }),
     h('div', {
-      className: 'hotspot corner rectangle topLeft',
-      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(0, 0)` }
+      class: 'hotspot corner rectangle topLeft',
+      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(0, 0)` }
     }),
     h('div', {
-      className: 'hotspot corner rectangle topRight',
-      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${shape.width - cornerHotspotSize}px, 0)` }
+      class: 'hotspot corner rectangle topRight',
+      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(${shape.width - cornerHotspotSize}px, 0)` }
     }),
     h('div', {
-      className: 'hotspot corner rectangle bottomLeft',
-      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(0, ${shape.height - cornerHotspotSize}px)` }
+      class: 'hotspot corner rectangle bottomLeft',
+      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(0, ${shape.height - cornerHotspotSize}px)` }
     }),
     h('div', {
-      className: 'hotspot corner rectangle bottomRight',
-      style: { width: cornerHotspotSize, height: cornerHotspotSize, transform: `translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)` }
+      class: 'hotspot corner rectangle bottomRight',
+      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize, height: 0, transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)` }
+      class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
+      style: { width: edgeHotspotSize + 'px', height: '0', transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)` }
     }),
     h('div', {
-      className: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
-      style: { width: 0, height: edgeHotspotSize, transform: `translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
+      class: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
+      style: { width: '0', height: edgeHotspotSize + 'px', transform: `translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize, height: 0, transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)` }
+      class: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
+      style: { width: edgeHotspotSize + 'px', height: '0', transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
-      style: { width: 0, height: edgeHotspotSize, transform: `translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
+      class: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
+      style: { width: '0', height: edgeHotspotSize + 'px', transform: `translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
     }),
     h('div', {
-      className: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
-      style: { width: 0, height: edgeHotspotSize, transform: `translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)` }
+      class: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
+      style: { width: '0', height: edgeHotspotSize + 'px', transform: `translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)` }
     }),
     h('div', {
-      className: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize, height: 0, transform: `translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px, ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)` }
+      class: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
+      style: { width: edgeHotspotSize + 'px', height: '0', transform: `translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px, ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)` }
     }),
     ...(selected ? [
       h('div', {
-        className: 'hotspot rectangle center',
-        onClick: alignRight,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 0 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        class: 'hotspot rectangle center',
+        onclick: alignRight,
+        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 0 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
-        className: 'hotspot rectangle center',
-        onClick: alignCenter,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 1 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        class: 'hotspot rectangle center',
+        onclick: alignCenter,
+        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 1 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
-        className: 'hotspot rectangle center',
-        onClick: alignLeft,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalLeftIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        class: 'hotspot rectangle center',
+        onclick: alignLeft,
+        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalLeftIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
-        className: 'hotspot rectangle center',
-        onClick: alignRemove,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight, height: toolbarHeight, transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: cancelIcon, backgroundSize: `${toolbarHeight}px ${toolbarHeight}px`, backgroundRepeat: 'no-repeat' }
+        class: 'hotspot rectangle center',
+        onclick: alignRemove,
+        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: cancelIcon, backgroundSize: `${toolbarHeight}px ${toolbarHeight}px`, backgroundRepeat: 'no-repeat' }
       })
     ] : [])
   ])
@@ -205,10 +204,10 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
 
 // magenta debug cursor
 const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
-  className: 'circle metaCursor',
+  class: 'circle metaCursor',
   style: {
-    width: metaCursorRadius * 2,
-    height: metaCursorRadius * 2,
+    width: (metaCursorRadius * 2) + 'px',
+    height: (metaCursorRadius * 2) + 'px',
     transform: `translate3d(${x - metaCursorRadius}px, ${y - metaCursorRadius}px, ${metaCursorZ}px)`,
     border: `${metaCursorThickness}px solid ${metaCursorColor}`,
     boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
@@ -222,19 +221,19 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   }
 }, [
   h('div', {
-    className: 'line',
+    class: 'line',
     style: {
-      width: Math.max(0, dragLineLength - metaCursorRadius),
-      height: 0,
+      width: Math.max(0, dragLineLength - metaCursorRadius) + 'px',
+      height: '0',
       border: `1px solid ${dragLineColor}`,
       boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
     }
   }),
   h('div', {
-    className: 'circle metaCursor',
+    class: 'circle metaCursor',
     style: {
-      width: dragLineLength ? metaCursorRadius : 0,
-      height: dragLineLength ? metaCursorRadius : 0,
+      width: (dragLineLength ? metaCursorRadius : 0) + 'px',
+      height: (dragLineLength ? metaCursorRadius : 0) + 'px',
       transform: `translate3d(${-metaCursorRadius / 2}px, ${-metaCursorRadius / 2}px, ${metaCursorZ}px)`,
       backgroundColor: devColor,
       boxShadow: `0 0 0.5px 0 ${devColor} inset, 0 0 2px 0 white`,
@@ -243,24 +242,15 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => {
-
-  const updateMetaCursor = event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY})
-  const mouseUp = event => dispatch('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY})
-  const mouseDown = event => dispatch('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY})
-  const mouseClick = event => dispatch('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY})
-
-  return h('div', {
-      id: 'root',
-      onMouseMove: updateMetaCursor,
-      onMouseUp: mouseUp,
-      onMouseDown: mouseDown,
-      onClick: mouseClick,
-    },
-    shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
-  )
-}
-
+const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => h('div', {
+    id: 'root',
+    onmousemove: event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY}),
+    onmouseup: event => dispatch('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
+    onmousedown: event => dispatch('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
+    onclick: event => dispatch('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY}),
+  },
+  shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
+)
 
 /**
  * Pure calculations
