@@ -457,7 +457,7 @@ const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartC
 }
 
 // this is _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
-const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvents) => {
+const nextScenegraph = (previous, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvents) => {
   const shapes = updateShapes(previous.shapes, externalShapeUpdates)
   alignEvents.forEach(({event, shapeKey}) => {
     const alignmentLine = findShapeByKey(shapes, shapeKey)
@@ -491,37 +491,54 @@ const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalS
  */
 
 // dispatch the various types of actions
-const cursorPositions = map(cursorPositionActions)(primaryActions)
-const mouseEvents = map(mouseEventActions)(primaryActions)
-const shapeEvents = map(shapeEventActions)(primaryActions)
-const alignEvents = map(alignEventActions)(primaryActions)
+const cursorPositions = map(
+  cursorPositionActions
+)(primaryActions)
 
-const cursorPosition = reduce((previous = {x: 0, y: 0}, positionList) => {
-  return positionList.length ? positionList[positionList.length - 1] : previous
-})(cursorPositions)
+const mouseEvents = map(
+  mouseEventActions
+)(primaryActions)
 
-const mouseDown = reduce((previous = false, eventList) => eventList.reduce(
-  (prev, {event}) => ['mouseUp', 'mouseDown'].indexOf(event) >= 0
-    ? event === 'mouseDown'
-    : previous,
-  previous
-  )
+const shapeEvents = map(
+  shapeEventActions
+)(primaryActions)
+
+const alignEvents = map(
+  alignEventActions
+)(primaryActions)
+
+const cursorPosition = reduce(
+  (previous, positionList) => positionList.length ? positionList[positionList.length - 1] : previous,
+  {x: 0, y: 0}
+)(cursorPositions)
+
+const mouseDown = reduce(
+  (previous, eventList) => eventList.reduce(
+    (prev, {event}) => ['mouseUp', 'mouseDown'].indexOf(event) >= 0
+      ? event === 'mouseDown'
+      : previous,
+    previous
+  ),
+  false
 )(mouseEvents)
 
-const mouseClickEvent = map(eventList => eventList.some(({event}) => event === 'mouseClick'))(mouseEvents)
+const mouseClickEvent = map(
+  eventList => eventList.some(({event}) => event === 'mouseClick')
+)(mouseEvents)
 
-const dragGestureStartAt = reduce((previous = {down: false}, down, {x, y}) => {
-  return down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false}
-})(mouseDown, cursorPosition)
+const dragGestureStartAt = reduce(
+  (previous, down, {x, y}) => down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
+  {down: false}
+)(mouseDown, cursorPosition)
 
-const dragGestures = map(({down, x0, y0}, cursor) => {
-  return {down, x0, y0, x1: cursor.x, y1: cursor.y}
-})(dragGestureStartAt, cursorPosition)
+const dragGestures = map(
+  ({down, x0, y0}, cursor) => ({down, x0, y0, x1: cursor.x, y1: cursor.y})
+)(dragGestureStartAt, cursorPosition)
 
-const dragStartCandidate = map(({down, x0, y0, x1, y1}) => {
-  // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-  return down && x0 === x1 && y0 === y1
-})(dragGestures)
+// the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
+const dragStartCandidate = map(
+  ({down, x0, y0, x1, y1}) => down && x0 === x1 && y0 === y1
+)(dragGestures)
 
 
 /**
@@ -534,66 +551,82 @@ const selectedShape = reduce(
 )(shapeEvents)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
-const currentShapes = reduce(nextScenegraph)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvents)
+const currentShapes = reduce(
+  nextScenegraph,
+  {shapes: null, draggedShape: null}
+)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvents)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
-const focusedShape = map(({draggedShape, hoveredShape}) => draggedShape || hoveredShape)(currentShapes)
+const focusedShape = map(
+  ({draggedShape, hoveredShape}) => draggedShape || hoveredShape
+)(currentShapes)
 
-const dragStartAt = reduce((previous, dragStartCandidate, {down, x0, y0, x1, y1}, focusedShape) => {
-  // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-  if(down) {
-    const newDragStart = dragStartCandidate && !previous.down
-    return newDragStart
-      ? {down, x: x1, y: y1, dragStartShape: focusedShape}
-      : previous
-  } else {
-    return {down: false}
-  }
-})(dragStartCandidate, dragGestures, focusedShape)
+const dragStartAt = reduce(
+  (previous, dragStartCandidate, {down, x0, y0, x1, y1}, focusedShape) => {
+    // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
+    if(down) {
+      const newDragStart = dragStartCandidate && !previous.down
+      return newDragStart
+        ? {down, x: x1, y: y1, dragStartShape: focusedShape}
+        : previous
+    } else {
+      return {down: false}
+    }
+  },
+  {down: false} // fixme check this init value
+)(dragStartCandidate, dragGestures, focusedShape)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
-const currentFreeShapes = map(({shapes}, {dragStartShape}) =>
-  shapes
-    .filter(shape => dragStartShape && shape.key === dragStartShape.key)
-    .map(shape => Object.assign({}, shape, {x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
+const currentFreeShapes = map(
+  ({shapes}, {dragStartShape}) =>
+    shapes
+      .filter(shape => dragStartShape && shape.key === dragStartShape.key)
+      .map(shape => Object.assign({}, shape, {x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
 )(currentShapes, dragStartAt)
 
 // affordance for permanent selection of a shape
-const tempCycle = each((click, shape, {x, y}) => {
-  if(click) {
-    dispatchAsync('shapeEvent', {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type})
+const tempCycle = each(
+  (click, shape, {x, y}) => {
+    if(click) {
+      dispatchAsync('shapeEvent', {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type})
+    }
   }
-})(mouseClickEvent, focusedShape, cursorPosition)
-
+)(mouseClickEvent, focusedShape, cursorPosition)
 
 
 /**
  * Update fragments
  */
 
-const metaCursorFrag = map(function(cursor, mouseDown, dragStartAt) {
-  const thickness = mouseDown ? 8 : 1
-  return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
-})(cursorPosition, mouseDown, dragStartAt)
+const metaCursorFrag = map(
+  (cursor, mouseDown, dragStartAt) => {
+    const thickness = mouseDown ? 8 : 1
+    return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
+  }
+)(cursorPosition, mouseDown, dragStartAt)
 
-const shapeFrags = map(({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => {
-  return renderShapeFrags(shapes, hoveredShape, dragStartAt, selectedShapeKey)
-})(currentShapes, focusedShape, dragStartAt, selectedShape)
+const shapeFrags = map(
+  ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => renderShapeFrags(shapes, hoveredShape, dragStartAt, selectedShapeKey)
+)(currentShapes, focusedShape, dragStartAt, selectedShape)
 
-const freeShapeFrags = map(shapes => {
-  return renderShapeFrags(shapes, null, null, false)
-})(currentFreeShapes)
+const freeShapeFrags = map(
+  shapes => renderShapeFrags(shapes, null, null, false)
+)(currentFreeShapes)
 
-const dragLineFrag = map((cursor, dragStartAt) => {
-  const origin = dragStartAt.down ? dragStartAt : cursor
-  const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
-  return renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
-})(cursorPosition, dragStartAt)
+const dragLineFrag = map(
+  (cursor, dragStartAt) => {
+    const origin = dragStartAt.down ? dragStartAt : cursor
+    const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
+    return renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
+  }
+)(cursorPosition, dragStartAt)
 
-const scenegraph = map(renderSubstrateFrag)(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+const scenegraph = map(
+  renderSubstrateFrag
+)(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const renderScene = each(
-  function(frag) {render(frag, root)}
+  frag => {render(frag, root)}
 )(scenegraph)
 
 renderScene(state)
