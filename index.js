@@ -66,13 +66,25 @@ const initialShapes = [
   {key: 'rect5', type: 'rectangle', x: 900, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9', backgroundImage: pattern3},
 ]
 
+const state = {
+  shapeAdditions: initialShapes,
+  primaryActions: []
+}
+
+
 
 /**
  * PoC action dispatch
  */
 
-const dispatch = (actionType, payload) => render([{actionType, payload}])
-const dispatchAsync = (actionType, payload) => setTimeout(render([{actionType, payload}]))
+const dispatch = (actionType, payload) => render({
+  shapeAdditions: initialShapes,
+  primaryActions: [{actionType, payload}]
+})
+const dispatchAsync = (actionType, payload) => setTimeout(render({
+  shapeAdditions: initialShapes,
+  primaryActions: [{actionType, payload}]
+}))
 
 
 /**
@@ -596,7 +608,4 @@ const render = each(
   function(frag) {reactRenderDOM(frag, root)}
 )(scenegraph)
 
-render({
-  shapeAdditions: initialShapes,
-  primaryActions: []
-})
+render(state)
