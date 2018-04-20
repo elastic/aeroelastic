@@ -546,7 +546,10 @@ const dragStartCandidate = map(
  */
 
 const selectedShape = reduce(
-  (previous, eventList) => eventList.reduce((prev, next) => next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev, null),
+  (previous, eventList) => eventList.reduce(
+    (prev, next) => prev || (next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev),
+    previous
+  ),
   null
 )(shapeEvents)
 
