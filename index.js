@@ -528,14 +528,10 @@ const dragStartCandidate = map(({down, x0, y0, x1, y1}) => {
  * Scenegraph update based on events, gestures...
  */
 
-const selectedShape = reduce((previous = null, eventList) => {
-  for(let i = eventList.length - 1; i >= 0; i--) {
-    const event = eventList[i]
-    const type = event.event
-    if(type === 'showToolbar' && event.shapeType === 'line') return event.shapeKey
-  }
-  return previous
-})(shapeEvents)
+const selectedShape = reduce(
+  (previous, eventList) => eventList.reduce((prev, next) => next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev, null),
+  null
+)(shapeEvents)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 const currentShapes = reduce(nextScenegraph)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvents)
