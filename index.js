@@ -77,14 +77,23 @@ const state = {
  * PoC action dispatch
  */
 
-const dispatch = (actionType, payload) => render({
-  shapeAdditions: initialShapes,
-  primaryActions: [{actionType, payload}]
+const dispatch = (actionType, payload) => {
+  const s = {
+    shapeAdditions: initialShapes,
+    primaryActions: [{actionType, payload}]
+  }
+  render(s)
+  tempCycle(s)
+
+}
+const dispatchAsync = (actionType, payload) => setTimeout(() => {
+  const s = {
+    shapeAdditions: initialShapes,
+    primaryActions: [{actionType, payload}]
+  }
+  render(s)
+  tempCycle(s)
 })
-const dispatchAsync = (actionType, payload) => setTimeout(render({
-  shapeAdditions: initialShapes,
-  primaryActions: [{actionType, payload}]
-}))
 
 
 /**
@@ -572,11 +581,12 @@ const currentFreeShapes = map(({shapes}, {dragStartShape}) =>
 )(currentShapes, dragStartAt)
 
 // affordance for permanent selection of a shape
-map((click, shape, {x, y}) => {
+const tempCycle = each((click, shape, {x, y}) => {
   if(click) {
     dispatchAsync('shapeEvent', {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type})
   }
 })(mouseClickEvent, focusedShape, cursorPosition)
+
 
 
 /**
