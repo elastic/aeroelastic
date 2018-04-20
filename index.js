@@ -4,7 +4,6 @@
 
 const reactRenderDOM = ReactDOM.render
 const h = React.createElement
-const xl = crosslink
 
 const each = eachFun => (...inputs) => state => {eachFun(...inputs.map(input => input(state)))}
 const map = mapFun => (...inputs) => state => mapFun(...inputs.map(input => input(state)))
