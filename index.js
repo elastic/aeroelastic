@@ -6,6 +6,10 @@ const reactRenderDOM = ReactDOM.render
 const h = React.createElement
 const xl = crosslink
 
+const each = eachFun => (...inputs) => state => {eachFun(...inputs.map(input => input(state)))}
+const map = mapFun => (...inputs) => state => mapFun(...inputs.map(input => input(state)))
+const reduce = (reducerFun, previousValue) => (...inputs) => state => previousValue = reducerFun(previousValue, ...inputs.map(input => input(state)))
+
 
 /**
  * Mock config
@@ -67,9 +71,16 @@ const initialShapes = [
  * PoC action dispatch
  */
 
-const primaryActions = xl.cell('Primary actions')
-const dispatch = (actionType, payload) => xl.put(primaryActions, [{actionType, payload}])
-const dispatchAsync = (actionType, payload) => setTimeout(() => dispatch(actionType, payload))
+const dispatch = (actionType, payload) => render([{actionType, payload}])
+const dispatchAsync = (actionType, payload) => setTimeout(render([{actionType, payload}]))
+
+
+/**
+ * Input cells
+ */
+
+const shapeAdditions = state => state.shapeAdditions
+const primaryActions = state => state.primaryActions
 
 
 /**
@@ -466,17 +477,6 @@ const nextScenegraph = (previous = {shapes: null, draggedShape: null}, externalS
 
 
 /**
- * Input cells
- */
-
-// the substrate is the DOM fragment for the containing DIV which (currently) serves as the mouse capture layer too.
-const substrate = xl.cell('Frag Substrate')
-
-// this PoC currently only adds the shapes in the mock
-const shapeAdditions = xl.cell('Shape additions')
-
-
-/**
  * Gestures - filters and finite state machine reducers, mostly
  */
 
@@ -592,17 +592,11 @@ const dragLineFrag = xl.lift((cursor, dragStartAt) => {
 
 const scenegraph = xl.lift(renderSubstrateFrag)(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
+const render = each(
+  function(frag) {reactRenderDOM(frag, root)}
+)(scenegraph)
 
-/**
- *  Render into supplied root
- */
-
-xl.lift(frag => reactRenderDOM(frag, root))(scenegraph)
-
-
-/**
- *  Providing initial state
- */
-
-xl.put(shapeAdditions, initialShapes)
-xl.put(primaryActions, [])
+render({
+  shapeAdditions: initialShapes,
+  primaryActions: []
+})
