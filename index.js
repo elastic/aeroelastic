@@ -581,44 +581,46 @@ const currentShapes = reduce(
     }
     const hoveredShape = hoveringAt(shapes, cursor)
     const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
-    if(draggedShape) {
-      const constrainedShape = findShapeByKey(shapes, draggedShape.key)
-      const lines = snapGuideLines(shapes, draggedShape)
-      const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
-      const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
-      // todo: establish these constraints (or their lack thereof) via nextShape rather than with these direct assignments here:
-      constrainedShape.xConstraint = verticalSnap && verticalSnap.key
-      constrainedShape.yConstraint = horizontSnap && horizontSnap.key
-      constrainedShape.xConstraintAnchor = horizontAnchor
-      constrainedShape.yConstraintAnchor = verticalAnchor
-    }
     const constraints = constraintLookup(shapes)
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
-        const beingDragged = down && shape.beingDragged || !draggedShape && hoveredShape && shape.key === hoveredShape.key && down && mouseDowned
-        const grabStart = !shape.beingDragged && beingDragged
-        const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
-        const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
-        const unconstrainedX = beingDragged ? x1 + grabOffsetX : shape.x
-        const unconstrainedY = beingDragged ? y1 + grabOffsetY : shape.y
-        const xConstraintPrevious = constraints[shape.xConstraint]
-        const yConstraintPrevious = constraints[shape.yConstraint]
-        const xConstraint = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
-        const yConstraint = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
-        const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
-        const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-        return Object.assign({}, shape, {
-          x: snapToGrid(newX),
-          y: snapToGrid(newY),
-          unconstrainedX,
-          unconstrainedY,
-          width: snapToGridUp(shape.width),
-          height: snapToGridUp(shape.height),
-          beingDragged,
-          grabOffsetX,
-          grabOffsetY
-        })
-      }
+      const beingDragged = down && shape.beingDragged || !draggedShape && hoveredShape && shape.key === hoveredShape.key && down && mouseDowned
+      //const beingDragged = draggedShape && draggedShape.key === shape.key
+      const constrainedShape = beingDragged ? findShapeByKey(shapes, shape.key) : null
+      const grabStart = !shape.beingDragged && beingDragged
+      const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
+      const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
+      const unconstrainedX = beingDragged ? x1 + grabOffsetX : shape.x
+      const unconstrainedY = beingDragged ? y1 + grabOffsetY : shape.y
+      const xConstraintPrevious = constraints[shape.xConstraint]
+      const yConstraintPrevious = constraints[shape.yConstraint]
+      const xConstraint = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
+      const yConstraint = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
+      const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
+      const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
+      return Object.assign({}, shape, {
+        x: snapToGrid(newX),
+        y: snapToGrid(newY),
+        unconstrainedX,
+        unconstrainedY,
+        width: snapToGridUp(shape.width),
+        height: snapToGridUp(shape.height),
+        beingDragged,
+        grabOffsetX,
+        grabOffsetY
+      },
+        constrainedShape ? (() => {
+          const lines = snapGuideLines(shapes, draggedShape)
+          const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
+          const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), shape, 'vertical')
+          return {
+            xConstraint: shape.key === constrainedShape.key ? verticalSnap && verticalSnap.key : shape.xConstraint,
+            yConstraint: shape.key === constrainedShape.key ? horizontSnap && horizontSnap.key : shape.yConstraint,
+            xConstraintAnchor: shape.key === constrainedShape.key ? horizontAnchor : shape.xConstraintAnchor,
+            yConstraintAnchor: shape.key === constrainedShape.key ? verticalAnchor : shape.yConstraintAnchor,
+          }
+        })() : {}
+      )}
     )
     const newState = {
       hoveredShape,
