@@ -563,7 +563,7 @@ const mouseIsDown = reduce(
 const mouseButtonStateMachine = reduce(
   (previous, mouseIsDown) =>
     mouseIsDown
-      ? (previous === 'up' ? 'downed' : 'dragging')
+      ? ({'up': 'downed', 'downed': 'dragging', 'dragging': 'dragging'})[previous]
       : 'up',
   'up'
 )(mouseIsDown)
