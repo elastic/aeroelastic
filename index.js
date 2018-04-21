@@ -500,37 +500,6 @@ const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartC
   })
 }
 
-// this is _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
-const nextScenegraph = (previous, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvent) => {
-  const shapes = updateShapes(previous.shapes, externalShapeUpdates)
-  if(alignEvent) {
-    const {event, shapeKey} = alignEvent
-    const alignmentLine = findShapeByKey(shapes, shapeKey)
-    alignmentLine.alignment = event !== 'alignRemove' && event
-  }
-  const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
-  const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
-  if(draggedShape) {
-    const constrainedShape = findShapeByKey(shapes, draggedShape.key)
-    const lines = snapGuideLines(shapes, draggedShape)
-    const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
-    const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
-    // todo: establish these constraints (or their lack thereof) via nextShape rather than with these direct assignments here:
-    constrainedShape.xConstraint = verticalSnap && verticalSnap.key
-    constrainedShape.yConstraint = horizontSnap && horizontSnap.key
-    constrainedShape.xConstraintAnchor = horizontAnchor
-    constrainedShape.yConstraintAnchor = verticalAnchor
-  }
-  const constraints = constraintLookup(shapes)
-  const newState = {
-    hoveredShape,
-    draggedShape,
-    shapes: shapes.map(shape => nextShape(shape, down, draggedShape, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints))
-  }
-  return newState
-}
-
-
 /**
  * Gestures - filters and finite state machine reducers, mostly
  */
@@ -698,7 +667,9 @@ const scenegraph = map(
 const renderScene = each(
   (frag, newShapeEvent) => {
     render(frag, root)
-    dispatchAsync('shapeEvent', newShapeEvent)
+    if(newShapeEvent) {
+      dispatchAsync('shapeEvent', newShapeEvent)
+    }
   }
 )(scenegraph, newShapeEvent)
 
