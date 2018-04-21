@@ -66,7 +66,7 @@ const initialShapes = [
 
 const state = {
   shapeAdditions: initialShapes,
-  primaryActions: []
+  primaryActions: null
 }
 
 
@@ -78,19 +78,17 @@ const state = {
 const dispatch = (actionType, payload) => {
   const s = {
     shapeAdditions: initialShapes,
-    primaryActions: [{actionType, payload}]
+    primaryActions: {actionType, payload}
   }
-  renderScene(s)
-  tempCycle(s)
-
+  terminal(s)
 }
+
 const dispatchAsync = (actionType, payload) => setTimeout(() => {
   const s = {
     shapeAdditions: initialShapes,
-    primaryActions: [{actionType, payload}]
+    primaryActions: {actionType, payload}
   }
-  renderScene(s)
-  tempCycle(s)
+  terminal(s)
 })
 
 
@@ -368,11 +366,10 @@ const snappingGuideLine = (lines, shape, direction) => {
   }, {snapLine: null, snapAnchor: null, snapDistance: Infinity})
 }
 
-const getPayload = action => action.payload
-const cursorPositionActions = actions => actions.filter(action => action.actionType === 'cursorPosition').map(getPayload)
-const mouseEventActions = actions => actions.filter(action => action.actionType === 'mouseEvent').map(getPayload)
-const shapeEventActions = actions => actions.filter(action => action.actionType === 'shapeEvent').map(getPayload)
-const alignEventActions = actions => actions.filter(action => action.actionType === 'align').map(getPayload)
+const cursorPositionAction = action => action && action.actionType === 'cursorPosition' ? action.payload : null
+const mouseEventAction = action => action && action.actionType === 'mouseEvent' ? action.payload : null
+const shapeEventAction = action => action && action.actionType === 'shapeEvent' ? action.payload : null
+const alignEventAction = action => action && action.actionType === 'align' ? action.payload : null
 
 // a key based lookup of snap guide lines
 const constraintLookup = shapes => {
@@ -457,12 +454,13 @@ const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartC
 }
 
 // this is _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
-const nextScenegraph = (previous, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvents) => {
+const nextScenegraph = (previous, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvent) => {
   const shapes = updateShapes(previous.shapes, externalShapeUpdates)
-  alignEvents.forEach(({event, shapeKey}) => {
+  if(alignEvent) {
+    const {event, shapeKey} = alignEvent
     const alignmentLine = findShapeByKey(shapes, shapeKey)
     alignmentLine.alignment = event !== 'alignRemove' && event
-  })
+  }
   const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
   const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
   if(draggedShape) {
@@ -491,40 +489,37 @@ const nextScenegraph = (previous, externalShapeUpdates, cursor, dragStartCandida
  */
 
 // dispatch the various types of actions
-const cursorPositions = map(
-  cursorPositionActions
+const rawCursorPosition = map(
+  cursorPositionAction
 )(primaryActions)
 
-const mouseEvents = map(
-  mouseEventActions
+const mouseEvent = map(
+  mouseEventAction
 )(primaryActions)
 
-const shapeEvents = map(
-  shapeEventActions
+const shapeEvent = map(
+  shapeEventAction
 )(primaryActions)
 
-const alignEvents = map(
-  alignEventActions
+const alignEvent = map(
+  d => {return alignEventAction(d)}
 )(primaryActions)
 
 const cursorPosition = reduce(
-  (previous, positionList) => positionList.length ? positionList[positionList.length - 1] : previous,
+  (previous, position) => position || previous,
   {x: 0, y: 0}
-)(cursorPositions)
+)(rawCursorPosition)
 
 const mouseDown = reduce(
-  (previous, eventList) => eventList.reduce(
-    (prev, {event}) => ['mouseUp', 'mouseDown'].indexOf(event) >= 0
-      ? event === 'mouseDown'
-      : previous,
-    previous
-  ),
+  (previous, next) => next && ['mouseUp', 'mouseDown'].indexOf(next.event) >= 0
+    ? next.event === 'mouseDown'
+    : previous,
   false
-)(mouseEvents)
+)(mouseEvent)
 
 const mouseClickEvent = map(
-  eventList => eventList.some(({event}) => event === 'mouseClick')
-)(mouseEvents)
+  event => event && event.event === 'mouseClick'
+)(mouseEvent)
 
 const dragGestureStartAt = reduce(
   (previous, down, {x, y}) => down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
@@ -546,18 +541,15 @@ const dragStartCandidate = map(
  */
 
 const selectedShape = reduce(
-  (previous, eventList) => eventList.reduce(
-    (prev, next) => prev || (next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev),
-    previous
-  ),
+  (prev, next) => prev || next && (next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev),
   null
-)(shapeEvents)
+)(shapeEvent)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 const currentShapes = reduce(
   nextScenegraph,
   {shapes: null, draggedShape: null}
-)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvents)
+)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvent)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = map(
@@ -632,4 +624,8 @@ const renderScene = each(
   frag => {render(frag, root)}
 )(scenegraph)
 
-renderScene(state)
+const terminal = each(
+  () => {}
+)(renderScene, tempCycle)
+
+terminal(state)
