@@ -4,10 +4,54 @@
 
 const {render, h} = ultradom
 
-const each = eachFun => (...inputs) => state => {eachFun(...inputs.map(input => input(state)))}
-const map = mapFun => (...inputs) => state => mapFun(...inputs.map(input => input(state)))
-const reduce = (reducerFun, previousValue) => (...inputs) => state => previousValue = reducerFun(previousValue, ...inputs.map(input => input(state)))
 const log = value => console.log(value)
+
+const shallowEqual = (a, b) => {
+  if(a === b) return true
+  if(a.length !== b.length) return false
+  for(let i = 0; i < a.length; i++) {
+    if(a[i] !== b[i]) return false
+  }
+  return true
+}
+
+const reduce = (fun, previousValue) => (...inputs) => {
+  // last-value memoizing version of this single line function:
+  // const reduce = (fun, previousValue) => (...inputs) => state => previousValue = fun(previousValue, ...inputs.map(input => input(state)))
+  let argumentValues = []
+  let value = previousValue
+  return state => {
+    if(shallowEqual(argumentValues, argumentValues = inputs.map(input => input(state)))) {
+      return value
+    }
+    return value = fun(value, ...argumentValues)
+  }
+}
+
+const map = fun => (...inputs) => {
+  // last-value memoizing version of this single line function:
+  // const map = fun => (...inputs) => state => fun(...inputs.map(input => input(state)))
+  let argumentValues = []
+  let value
+  return state => {
+    if(shallowEqual(argumentValues, argumentValues = inputs.map(input => input(state)))) {
+      return value
+    }
+    return value = fun(...argumentValues)
+  }
+}
+
+const each = fun => (...inputs) => {
+  // last-value memoizing version of this single line function:
+  //const each = fun => (...inputs) => state => {fun(...inputs.map(input => input(state)))}
+  let argumentValues = []
+  return state => {
+    if(shallowEqual(argumentValues, argumentValues = inputs.map(input => input(state)))) {
+      return
+    }
+    fun(...argumentValues)
+  }
+}
 
 
 /**
