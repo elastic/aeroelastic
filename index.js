@@ -589,7 +589,7 @@ const mouseClickEvent = map(
   event => event && event.event === 'mouseClick'
 )(mouseButtonEvent)
 
-const dragGestures = map(
+const dragVector = map(
   ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
 )(mouseButtonStateMachine, cursorPosition)
 
@@ -635,7 +635,7 @@ const currentShapes = reduce(
     return newState
   },
   {shapes: null, draggedShape: null}
-)(shapeAdditions, cursorPosition, mouseDowned, dragGestures, alignEvent)
+)(shapeAdditions, cursorPosition, mouseDowned, dragVector, alignEvent)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = map(
@@ -655,7 +655,7 @@ const dragStartAt = reduce(
     }
   },
   {down: false}
-)(mouseDowned, dragGestures, focusedShape)
+)(mouseDowned, dragVector, focusedShape)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = map(
