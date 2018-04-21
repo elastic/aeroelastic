@@ -421,7 +421,7 @@ const snappingGuideLine = (lines, shape, direction) => {
 }
 
 const cursorPositionAction = action => action && action.actionType === 'cursorPosition' ? action.payload : null
-const mouseEventAction = action => action && action.actionType === 'mouseEvent' ? action.payload : null
+const mouseButtonEventAction = action => action && action.actionType === 'mouseEvent' ? action.payload : null
 const shapeEventAction = action => action && action.actionType === 'shapeEvent' ? action.payload : null
 const alignEventAction = action => action && action.actionType === 'align' ? action.payload : null
 
@@ -516,8 +516,8 @@ const rawCursorPosition = map(
   cursorPositionAction
 )(primaryActions)
 
-const mouseEvent = map(
-  mouseEventAction
+const mouseButtonEvent = map(
+  mouseButtonEventAction
 )(primaryActions)
 
 const shapeEvent = map(
@@ -534,15 +534,15 @@ const cursorPosition = reduce(
 )(rawCursorPosition)
 
 const mouseIsDown = reduce(
-  (previous, next) => next && ['mouseUp', 'mouseDown'].indexOf(next.event) >= 0
+  (previous, next) => next
     ? next.event === 'mouseDown'
     : previous,
   false
-)(mouseEvent)
-
+)(mouseButtonEvent)
 
 /**
- * Finite state machine
+ * mouseButtonStateMachine
+ *
  *    View: http://stable.ascii-flow.appspot.com/#567671116534197027
  *    Edit: http://stable.ascii-flow.appspot.com/#567671116534197027/776257435
  *
@@ -557,21 +557,24 @@ const mouseIsDown = reduce(
  *                                +      ^
  *                                |      |
  *                                +------+
- *                                mouseIsDown
+ *                               mouseIsDown
  *
  */
-const mouseDownStateMachine = reduce(
-  (previous, mouseIsDown) => mouseIsDown ? (previous === 'up' ? 'downed' : 'dragging') : 'up',
+const mouseButtonStateMachine = reduce(
+  (previous, mouseIsDown) =>
+    mouseIsDown
+      ? (previous === 'up' ? 'downed' : 'dragging')
+      : 'up',
   'up'
 )(mouseIsDown)
 
 const mouseDowned = map(
   state => state === 'downed'
-)(mouseDownStateMachine)
+)(mouseButtonStateMachine)
 
 const mouseClickEvent = map(
   event => event && event.event === 'mouseClick'
-)(mouseEvent)
+)(mouseButtonEvent)
 
 const dragGestureStartAt = reduce(
   (previous, down, {x, y}) => down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
