@@ -551,7 +551,7 @@ const mouseIsDown = reduce(
  *        initial state: 'up' +-----------> 'downed'
  *                        ^ ^                 +  +
  *                        | |  !mouseIsDown   |  |
- *           !mouseIsDown | +-----------------+  | mouseIsDown
+ *           !mouseIsDown | +-----------------+  | mouseIsDown && movedAlready
  *                        |                      |
  *                        +----+ 'dragging' <----+
  *                                +      ^
