@@ -610,8 +610,8 @@ const currentShapes = reduce(
         return Object.assign({}, shape, {
           x: snapToGrid(newX),
           y: snapToGrid(newY),
-          unconstrainedX: unconstrainedX,
-          unconstrainedY: unconstrainedY,
+          unconstrainedX,
+          unconstrainedY,
           width: snapToGridUp(shape.width),
           height: snapToGridUp(shape.height),
           beingDragged,
