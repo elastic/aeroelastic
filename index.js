@@ -53,15 +53,6 @@ const each = fun => (...inputs) => {
   }
 }
 
-const consoleLog = map(value => {
-  console.log(value)
-  return value
-})
-
-const log = value => {
-  console.log(value)
-  return value
-}
 
 /**
  * Mock config
@@ -163,10 +154,10 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
   const selected = shape.key === selectedShapeKey
 
-  const alignLeft = event => dispatch('align', {event: 'alignLeft', shapeKey: shape.key})
-  const alignCenter = event => dispatch('align', {event: 'alignCenter', shapeKey: shape.key})
-  const alignRight = event => dispatch('align', {event: 'alignRight', shapeKey: shape.key})
-  const alignRemove = event => dispatch('align', {event: 'alignRemove', shapeKey: shape.key})
+  const alignLeft = () => dispatch('align', {event: 'alignLeft', shapeKey: shape.key})
+  const alignCenter = () => dispatch('align', {event: 'alignCenter', shapeKey: shape.key})
+  const alignRight = () => dispatch('align', {event: 'alignRight', shapeKey: shape.key})
+  const alignRemove = () => dispatch('align', {event: 'alignRemove', shapeKey: shape.key})
 
   return h('div', {
     class: dragged ? 'draggable' : null,
@@ -233,12 +224,12 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
       h('div', {
         class: 'hotspot rectangle center',
         onclick: alignRight,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 0 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         class: 'hotspot rectangle center',
         onclick: alignCenter,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 1 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px)`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         class: 'hotspot rectangle center',
@@ -303,6 +294,7 @@ const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLin
   },
   shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
 )
+
 
 /**
  * Pure calculations
