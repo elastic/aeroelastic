@@ -4,8 +4,6 @@
 
 const {render, h} = ultradom
 
-const log = value => console.log(value)
-
 const shallowEqual = (a, b) => {
   if(a === b) return true
   if(a.length !== b.length) return false
@@ -53,6 +51,10 @@ const each = fun => (...inputs) => {
   }
 }
 
+const consoleLog = map(value => {
+  console.log(value)
+  return value
+})
 
 /**
  * Mock config
@@ -562,12 +564,17 @@ const mouseIsDown = reduce(
   false
 )(mouseEvent)
 
+const mouseDowned = reduce(
+  (previous, next) => !previous && next,
+  false
+)
+
 const mouseClickEvent = map(
   event => event && event.event === 'mouseClick'
 )(mouseEvent)
 
 const dragGestureStartAt = reduce(
-  (previous, down, {x, y}) => log(down) || down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
+  (previous, down, {x, y}) => down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
   {down: false}
 )(mouseIsDown, cursorPosition)
 
@@ -592,7 +599,34 @@ const selectedShape = reduce(
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 const currentShapes = reduce(
-  nextScenegraph,
+  (previous, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvent) => {
+    const shapes = updateShapes(previous.shapes, externalShapeUpdates)
+    if(alignEvent) {
+      const {event, shapeKey} = alignEvent
+      const alignmentLine = findShapeByKey(shapes, shapeKey)
+      alignmentLine.alignment = event !== 'alignRemove' && event
+    }
+    const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
+    const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
+    if(draggedShape) {
+      const constrainedShape = findShapeByKey(shapes, draggedShape.key)
+      const lines = snapGuideLines(shapes, draggedShape)
+      const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), draggedShape, 'horizontal')
+      const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), draggedShape, 'vertical')
+      // todo: establish these constraints (or their lack thereof) via nextShape rather than with these direct assignments here:
+      constrainedShape.xConstraint = verticalSnap && verticalSnap.key
+      constrainedShape.yConstraint = horizontSnap && horizontSnap.key
+      constrainedShape.xConstraintAnchor = horizontAnchor
+      constrainedShape.yConstraintAnchor = verticalAnchor
+    }
+    const constraints = constraintLookup(shapes)
+    const newState = {
+      hoveredShape,
+      draggedShape,
+      shapes: shapes.map(shape => nextShape(shape, down, draggedShape, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints))
+    }
+    return newState
+  },
   {shapes: null, draggedShape: null}
 )(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvent)
 
