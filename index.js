@@ -330,7 +330,7 @@ const topShape = shapes => shapes.reduce((prev, next) => {
 }, {z: -Infinity})
 
 // returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
-const hoveringAt = (shapes, x, y) => {
+const hoveringAt = (shapes, {x, y}) => {
   const hoveredShapes = shapesAtPoint(shapes, x, y)
   return topShape(hoveredShapes)
 }
@@ -605,7 +605,7 @@ const currentShapes = reduce(
       const alignmentLine = findShapeByKey(shapes, shapeKey)
       alignmentLine.alignment = event !== 'alignRemove' && event
     }
-    const hoveredShape = hoveringAt(shapes, cursor.x, cursor.y)
+    const hoveredShape = hoveringAt(shapes, cursor)
     const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
     if(draggedShape) {
       const constrainedShape = findShapeByKey(shapes, draggedShape.key)
