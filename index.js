@@ -561,15 +561,21 @@ const mouseIsDown = reduce(
  *
  */
 const mouseButtonStateMachine = reduce(
-  (previous, mouseIsDown) =>
-    mouseIsDown
-      ? ({'up': 'downed', 'downed': 'dragging', 'dragging': 'dragging'})[previous]
-      : 'up',
-  'up'
-)(mouseIsDown)
+  ({buttonState, downX, downY}, mouseIsDown, {x, y}) => {
+    const newButtonState = mouseIsDown
+      ? (buttonState === 'dragging' ? 'dragging' : (buttonState === 'up' ? 'downed' : (x === downX && y === downY ? 'downed' : 'dragging')))
+      : 'up'
+    return {
+      buttonState: newButtonState,
+      downX: newButtonState === 'downed' ? x :  downX,
+      downY: newButtonState === 'downed' ? y :  downY
+    }
+  },
+  {buttonState: 'up', downX: null, downY: null}
+)(mouseIsDown, cursorPosition)
 
 const mouseDowned = map(
-  state => state === 'downed'
+  state => state.buttonState === 'downed'
 )(mouseButtonStateMachine)
 
 const mouseClickEvent = map(
