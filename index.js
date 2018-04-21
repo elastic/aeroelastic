@@ -18,11 +18,13 @@ const reduce = (fun, previousValue) => (...inputs) => {
   // const reduce = (fun, previousValue) => (...inputs) => state => previousValue = fun(previousValue, ...inputs.map(input => input(state)))
   let argumentValues = []
   let value = previousValue
+  let prevValue = previousValue
   return state => {
-    if(shallowEqual(argumentValues, argumentValues = inputs.map(input => input(state)))) {
+    if(shallowEqual(argumentValues, argumentValues = inputs.map(input => input(state))) && value === prevValue) {
       return value
     }
-    return value = fun(value, ...argumentValues)
+    prevValue = value
+    return value = fun(prevValue, ...argumentValues)
   }
 }
 
@@ -55,6 +57,11 @@ const consoleLog = map(value => {
   console.log(value)
   return value
 })
+
+const log = value => {
+  console.log(value)
+  return value
+}
 
 /**
  * Mock config
@@ -474,8 +481,8 @@ const nextConstraintY = (xConstraint, yConstraint, previousShape) => {
 }
 
 // this is the per-shape model update at the current PoC level
-const nextShape = (previousShape, down, dragInProgress, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints) => {
-  const beingDragged = down && previousShape.beingDragged || !dragInProgress && hoveredShape && previousShape.key === hoveredShape.key && down && dragStartCandidate
+const nextShape = (previousShape, down, dragInProgress, hoveredShape, mouseDowned, x0, y0, x1, y1, constraints) => {
+  const beingDragged = down && previousShape.beingDragged || !dragInProgress && hoveredShape && previousShape.key === hoveredShape.key && down && mouseDowned
   const grabStart = !previousShape.beingDragged && beingDragged
   const grabOffsetX = grabStart ? previousShape.x - x0 : (previousShape.grabOffsetX || 0)
   const grabOffsetY = grabStart ? previousShape.y - y0 : (previousShape.grabOffsetY || 0)
@@ -533,10 +540,34 @@ const mouseIsDown = reduce(
   false
 )(mouseEvent)
 
-const mouseDowned = reduce(
-  (previous, next) => !previous && next,
-  false
-)
+
+/**
+ * Finite state machine
+ *    View: http://stable.ascii-flow.appspot.com/#567671116534197027
+ *    Edit: http://stable.ascii-flow.appspot.com/#567671116534197027/776257435
+ *
+ *
+ *                             mouseIsDown
+ *        initial state: 'up' +-----------> 'downed'
+ *                        ^ ^                 +  +
+ *                        | |  !mouseIsDown   |  |
+ *           !mouseIsDown | +-----------------+  | mouseIsDown
+ *                        |                      |
+ *                        +----+ 'dragging' <----+
+ *                                +      ^
+ *                                |      |
+ *                                +------+
+ *                                mouseIsDown
+ *
+ */
+const mouseDownStateMachine = reduce(
+  (previous, mouseIsDown) => mouseIsDown ? (previous === 'up' ? 'downed' : 'dragging') : 'up',
+  'up'
+)(mouseIsDown)
+
+const mouseDowned = map(
+  state => state === 'downed'
+)(mouseDownStateMachine)
 
 const mouseClickEvent = map(
   event => event && event.event === 'mouseClick'
@@ -551,11 +582,6 @@ const dragGestures = map(
   ({down, x0, y0}, cursor) => ({down, x0, y0, x1: cursor.x, y1: cursor.y})
 )(dragGestureStartAt, cursorPosition)
 
-// the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-const dragStartCandidate = map(
-  ({down, x0, y0, x1, y1}) => down && x0 === x1 && y0 === y1
-)(dragGestures)
-
 
 /**
  * Scenegraph update based on events, gestures...
@@ -567,8 +593,9 @@ const selectedShape = reduce(
 )(shapeEvent)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
+// it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
 const currentShapes = reduce(
-  (previous, externalShapeUpdates, cursor, dragStartCandidate, {x0, y0, x1, y1, down}, alignEvent) => {
+  (previous, externalShapeUpdates, cursor, mouseDowned, {x0, y0, x1, y1, down}, alignEvent) => {
     const shapes = updateShapes(previous.shapes, externalShapeUpdates)
     if(alignEvent) {
       const {event, shapeKey} = alignEvent
@@ -592,12 +619,12 @@ const currentShapes = reduce(
     const newState = {
       hoveredShape,
       draggedShape,
-      shapes: shapes.map(shape => nextShape(shape, down, draggedShape, hoveredShape, dragStartCandidate, x0, y0, x1, y1, constraints))
+      shapes: shapes.map(shape => nextShape(shape, down, draggedShape, hoveredShape, mouseDowned, x0, y0, x1, y1, constraints))
     }
     return newState
   },
   {shapes: null, draggedShape: null}
-)(shapeAdditions, cursorPosition, dragStartCandidate, dragGestures, alignEvent)
+)(shapeAdditions, cursorPosition, mouseDowned, dragGestures, alignEvent)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = map(
@@ -605,10 +632,10 @@ const focusedShape = map(
 )(currentShapes)
 
 const dragStartAt = reduce(
-  (previous, dragStartCandidate, {down, x0, y0, x1, y1}, focusedShape) => {
+  (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
     // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
     if(down) {
-      const newDragStart = dragStartCandidate && !previous.down
+      const newDragStart = mouseDowned && !previous.down
       return newDragStart
         ? {down, x: x1, y: y1, dragStartShape: focusedShape}
         : previous
@@ -616,8 +643,8 @@ const dragStartAt = reduce(
       return {down: false}
     }
   },
-  {down: false} // fixme check this init value
-)(dragStartCandidate, dragGestures, focusedShape)
+  {down: false}
+)(mouseDowned, dragGestures, focusedShape)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = map(
