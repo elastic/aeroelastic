@@ -7,6 +7,7 @@ const {render, h} = ultradom
 const each = eachFun => (...inputs) => state => {eachFun(...inputs.map(input => input(state)))}
 const map = mapFun => (...inputs) => state => mapFun(...inputs.map(input => input(state)))
 const reduce = (reducerFun, previousValue) => (...inputs) => state => previousValue = reducerFun(previousValue, ...inputs.map(input => input(state)))
+const log = value => console.log(value)
 
 
 /**
@@ -510,7 +511,7 @@ const cursorPosition = reduce(
   {x: 0, y: 0}
 )(rawCursorPosition)
 
-const mouseDown = reduce(
+const mouseIsDown = reduce(
   (previous, next) => next && ['mouseUp', 'mouseDown'].indexOf(next.event) >= 0
     ? next.event === 'mouseDown'
     : previous,
@@ -522,9 +523,9 @@ const mouseClickEvent = map(
 )(mouseEvent)
 
 const dragGestureStartAt = reduce(
-  (previous, down, {x, y}) => down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
+  (previous, down, {x, y}) => log(down) || down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
   {down: false}
-)(mouseDown, cursorPosition)
+)(mouseIsDown, cursorPosition)
 
 const dragGestures = map(
   ({down, x0, y0}, cursor) => ({down, x0, y0, x1: cursor.x, y1: cursor.y})
@@ -594,7 +595,7 @@ const metaCursorFrag = map(
     const thickness = mouseDown ? 8 : 1
     return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
   }
-)(cursorPosition, mouseDown, dragStartAt)
+)(cursorPosition, mouseIsDown, dragStartAt)
 
 const shapeFrags = map(
   ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => renderShapeFrags(shapes, hoveredShape, dragStartAt, selectedShapeKey)
