@@ -480,32 +480,6 @@ const nextConstraintY = (xConstraint, yConstraint, previousShape) => {
     : (xConstraint && (sectionConstrained('horizontal', previousShape, xConstraint) - anchorOffset(previousShape, 'middle')))
 }
 
-// this is the per-shape model update at the current PoC level
-const nextShape = (previousShape, down, dragInProgress, hoveredShape, mouseDowned, x0, y0, x1, y1, constraints) => {
-  const beingDragged = down && previousShape.beingDragged || !dragInProgress && hoveredShape && previousShape.key === hoveredShape.key && down && mouseDowned
-  const grabStart = !previousShape.beingDragged && beingDragged
-  const grabOffsetX = grabStart ? previousShape.x - x0 : (previousShape.grabOffsetX || 0)
-  const grabOffsetY = grabStart ? previousShape.y - y0 : (previousShape.grabOffsetY || 0)
-  const unconstrainedX = beingDragged ? x1 + grabOffsetX : previousShape.x
-  const unconstrainedY = beingDragged ? y1 + grabOffsetY : previousShape.y
-  const xConstraintPrevious = constraints[previousShape.xConstraint]
-  const yConstraintPrevious = constraints[previousShape.yConstraint]
-  const xConstraint = nextConstraintX(xConstraintPrevious, yConstraintPrevious, previousShape)
-  const yConstraint = nextConstraintY(xConstraintPrevious, yConstraintPrevious, previousShape)
-  const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
-  const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-  return Object.assign({}, previousShape, {
-    x: snapToGrid(newX),
-    y: snapToGrid(newY),
-    unconstrainedX: unconstrainedX,
-    unconstrainedY: unconstrainedY,
-    width: snapToGridUp(previousShape.width),
-    height: snapToGridUp(previousShape.height),
-    beingDragged,
-    grabOffsetX,
-    grabOffsetY
-  })
-}
 
 /**
  * Gestures - filters and finite state machine reducers, mostly
@@ -627,10 +601,37 @@ const currentShapes = reduce(
       constrainedShape.yConstraintAnchor = verticalAnchor
     }
     const constraints = constraintLookup(shapes)
+    // this is the per-shape model update at the current PoC level
+    const newShapes = shapes.map(shape => {
+        const beingDragged = down && shape.beingDragged || !draggedShape && hoveredShape && shape.key === hoveredShape.key && down && mouseDowned
+        const grabStart = !shape.beingDragged && beingDragged
+        const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
+        const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
+        const unconstrainedX = beingDragged ? x1 + grabOffsetX : shape.x
+        const unconstrainedY = beingDragged ? y1 + grabOffsetY : shape.y
+        const xConstraintPrevious = constraints[shape.xConstraint]
+        const yConstraintPrevious = constraints[shape.yConstraint]
+        const xConstraint = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
+        const yConstraint = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
+        const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
+        const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
+        return Object.assign({}, shape, {
+          x: snapToGrid(newX),
+          y: snapToGrid(newY),
+          unconstrainedX: unconstrainedX,
+          unconstrainedY: unconstrainedY,
+          width: snapToGridUp(shape.width),
+          height: snapToGridUp(shape.height),
+          beingDragged,
+          grabOffsetX,
+          grabOffsetY
+        })
+      }
+    )
     const newState = {
       hoveredShape,
       draggedShape,
-      shapes: shapes.map(shape => nextShape(shape, down, draggedShape, hoveredShape, mouseDowned, x0, y0, x1, y1, constraints))
+      shapes: newShapes
     }
     return newState
   },
