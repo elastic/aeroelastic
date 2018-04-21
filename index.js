@@ -589,14 +589,9 @@ const mouseClickEvent = map(
   event => event && event.event === 'mouseClick'
 )(mouseButtonEvent)
 
-const dragGestureStartAt = reduce(
-  (previous, down, {x, y}) => down ? (!previous.down ? {down, x0: x, y0: y} : previous) : {down: false},
-  {down: false}
-)(mouseIsDown, cursorPosition)
-
 const dragGestures = map(
-  ({down, x0, y0}, cursor) => ({down, x0, y0, x1: cursor.x, y1: cursor.y})
-)(dragGestureStartAt, cursorPosition)
+  ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
+)(mouseButtonStateMachine, cursorPosition)
 
 
 /**
