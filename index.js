@@ -560,23 +560,29 @@ const mouseIsDown = reduce(
  *                               mouseIsDown
  *
  */
+const mouseButtonStateTransitions = (state, mouseIsDown, unmovedYet) => {
+  const newState = mouseIsDown
+    ? (
+      state === 'dragging'
+        ? 'dragging'
+        : (
+          state === 'up'
+            ? 'downed'
+            : (
+              unmovedYet
+                ? 'downed'
+                : 'dragging'
+            )
+        )
+    )
+    : 'up'
+  return newState
+}
+
 const mouseButtonStateMachine = reduce(
   ({buttonState, downX, downY}, mouseIsDown, {x, y}) => {
-    const newButtonState = mouseIsDown
-      ? (
-        buttonState === 'dragging'
-          ? 'dragging'
-          : (
-            buttonState === 'up'
-              ? 'downed'
-              : (
-                x === downX && y === downY
-                  ? 'downed'
-                  : 'dragging'
-              )
-          )
-      )
-      : 'up'
+    const unmovedYet = x === downX && y === downY
+    const newButtonState = mouseButtonStateTransitions(buttonState, mouseIsDown, unmovedYet)
     return {
       buttonState: newButtonState,
       downX: newButtonState === 'downed' ? x :  downX,
