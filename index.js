@@ -80,7 +80,7 @@ const dispatch = (actionType, payload) => {
     shapeAdditions: initialShapes,
     primaryActions: {actionType, payload}
   }
-  terminal(s)
+  renderScene(s)
 }
 
 const dispatchAsync = (actionType, payload) => setTimeout(() => {
@@ -88,7 +88,7 @@ const dispatchAsync = (actionType, payload) => setTimeout(() => {
     shapeAdditions: initialShapes,
     primaryActions: {actionType, payload}
   }
-  terminal(s)
+  renderScene(s)
 })
 
 
@@ -580,12 +580,8 @@ const currentFreeShapes = map(
 )(currentShapes, dragStartAt)
 
 // affordance for permanent selection of a shape
-const tempCycle = each(
-  (click, shape, {x, y}) => {
-    if(click) {
-      dispatchAsync('shapeEvent', {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type})
-    }
-  }
+const newShapeEvent = map(
+  (click, shape, {x, y}) => click && {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}
 )(mouseClickEvent, focusedShape, cursorPosition)
 
 
@@ -621,11 +617,10 @@ const scenegraph = map(
 )(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const renderScene = each(
-  frag => {render(frag, root)}
-)(scenegraph)
+  (frag, newShapeEvent) => {
+    render(frag, root)
+    dispatchAsync('shapeEvent', newShapeEvent)
+  }
+)(scenegraph, newShapeEvent)
 
-const terminal = each(
-  () => {}
-)(renderScene, tempCycle)
-
-terminal(state)
+renderScene(state)
