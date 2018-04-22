@@ -283,11 +283,13 @@ const selectedShape = reduce(
 const shapes = map((scene, externalShapeUpdates) => updateShapes(scene.shapes, externalShapeUpdates))(scene, shapeAdditions)
 
 const hoveredShape = map(hoveringAt)(shapes, cursorPosition)
+const draggedShape = map((scene, hoveredShape, down, mouseDowned) => draggingShape(scene.draggedShape, scene.shapes, hoveredShape, down, mouseDowned))(scene, hoveredShape, mouseIsDown, mouseDowned)
+const constraints = map(constraintLookup)(shapes)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
 const nextScene = reduce(
-  (previous, shapes, hoveredShape, mouseDowned, {x0, y0, x1, y1, down}, alignEvent) => {
+  (previous, shapes, hoveredShape, draggedShape, {x0, y0, x1, y1, down}, alignEvent, constraints) => {
 
     // set alignment type on sticky line, if needed
     if(alignEvent) {
@@ -295,10 +297,6 @@ const nextScene = reduce(
       const alignmentLine = findShapeByKey(shapes, shapeKey)
       alignmentLine.alignment = event !== 'alignRemove' && event
     }
-
-    // generally useful data
-    const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down, mouseDowned)
-    const constraints = constraintLookup(shapes)
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
@@ -348,7 +346,7 @@ const nextScene = reduce(
     return newState
   },
   {shapes: null, draggedShape: null}
-)(shapes, hoveredShape, mouseDowned, dragVector, alignEvent)
+)(shapes, hoveredShape, draggedShape, dragVector, alignEvent, constraints)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = map(
