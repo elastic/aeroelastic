@@ -112,7 +112,7 @@ const initialShapes = [
 const initialState = {
   shapeAdditions: initialShapes,
   primaryActions: null,
-  test: 0
+  currentShapes: undefined
 }
 
 let currentState = initialState
@@ -123,18 +123,8 @@ let currentState = initialState
  */
 
 const commit = (actionType, payload) => {
-  console.log(currentState.test)
-  const nextState = Object.assign(
-    {},
-    currentState,
-    {
-      shapeAdditions: initialShapes,
-      primaryActions: {actionType, payload}
-    },
-    {test: currentState.test + 1}
-  )
-  renderScene(nextState)
-  currentState = nextState
+  currentState = renderScene({...currentState, primaryActions: {actionType, payload}})
+  //console.log(currentState.currentShapes.shapes[4])
 }
 
 const dispatch = (actionType, payload) => setTimeout(() => commit(actionType, payload))
@@ -707,13 +697,18 @@ const scenegraph = map(
   renderSubstrateFrag
 )(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
-const renderScene = each(
-  (frag, newShapeEvent) => {
+const renderScene = map(
+  (currentShapes, shapeAdditions, primaryActions, frag, newShapeEvent) => {
     render(frag, root)
     if(newShapeEvent) {
-      dispatch('shapeEvent', newShapeEvent)
+      dispatch('shapeEvent', newShapeEvent) // async!
+    }
+    return {
+      shapeAdditions,
+      primaryActions,
+      currentShapes
     }
   }
-)(scenegraph, newShapeEvent)
+)(currentShapes, shapeAdditions, primaryActions, scenegraph, newShapeEvent)
 
-renderScene(currentState)
+currentState = renderScene(currentState)
