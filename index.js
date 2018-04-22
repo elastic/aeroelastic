@@ -573,15 +573,22 @@ const selectedShape = reduce(
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
 const currentShapes = reduce(
   (previous, externalShapeUpdates, cursor, mouseDowned, {x0, y0, x1, y1, down}, alignEvent) => {
+
+    // update from an explicit shape update source
     const shapes = updateShapes(previous.shapes, externalShapeUpdates)
+
+    // set alignment type on sticky line, if needed
     if(alignEvent) {
       const {event, shapeKey} = alignEvent
       const alignmentLine = findShapeByKey(shapes, shapeKey)
       alignmentLine.alignment = event !== 'alignRemove' && event
     }
+
+    // generally useful data
     const hoveredShape = hoveringAt(shapes, cursor)
     const draggedShape = draggingShape(previous.draggedShape, shapes, hoveredShape, down)
     const constraints = constraintLookup(shapes)
+
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
       const beingDragged = down && shape.beingDragged || !draggedShape && hoveredShape && shape.key === hoveredShape.key && down && mouseDowned
