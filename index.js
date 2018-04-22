@@ -427,7 +427,7 @@ const constraintLookup = shapes => {
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = (previousDraggedShape, shapes, hoveredShape, down) => {
   const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
-  return dragInProgress && (previousDraggedShape && shapes.find(shape => shape.key === previousDraggedShape.key) || hoveredShape)
+  return dragInProgress && (previousDraggedShape /*&& shapes.find(shape => shape.key === previousDraggedShape.key)*/ || hoveredShape)
 }
 
 // true if the two lines are parallel
