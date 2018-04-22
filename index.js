@@ -307,6 +307,33 @@ const snapGuideLines = map(
   }
 )(shapes, draggedShape)
 
+const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned) => {
+  const grabStart = mouseDowned
+  const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
+  const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
+  const x = x1 + grabOffsetX
+  const y = y1 + grabOffsetY
+  return {
+    x,
+    y,
+    unconstrainedX: x,
+    unconstrainedY: y,
+    grabOffsetX,
+    grabOffsetY,
+  }
+}
+
+const snapUpdate = (constraints, shape) => {
+  const xConstraintPrevious = constraints[shape.xConstraint]
+  const yConstraintPrevious = constraints[shape.yConstraint]
+  const x = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
+  const y = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
+  return {
+    ...!isNaN(x) && {x}, // simplify by making nextConstraintX return false?
+    ...!isNaN(y) && {y}  // simplify by making nextConstraintY return false?
+  }
+}
+
 const nextShapes = map(
   (shapes, draggedShape, {x0, y0, x1, y1, down}, alignUpdate, constraints, snapGuideLines, mouseDowned) => {
 
@@ -314,25 +341,10 @@ const nextShapes = map(
     const newShapes = shapes.map(shape => {
       const beingDragged = draggedShape && draggedShape.key === shape.key
       const constrainedShape = beingDragged && findShapeByKey(shapes, shape.key)
-      const grabStart = mouseDowned && beingDragged
-      const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
-      const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
-      const unconstrainedX = beingDragged ? x1 + grabOffsetX : shape.x
-      const unconstrainedY = beingDragged ? y1 + grabOffsetY : shape.y
-      const xConstraintPrevious = constraints[shape.xConstraint]
-      const yConstraintPrevious = constraints[shape.yConstraint]
-      const xConstraint = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
-      const yConstraint = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
-      const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
-      const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
       return {
         ...shape,
-        x: newX,
-        y: newY,
-        unconstrainedX,
-        unconstrainedY,
-        grabOffsetX,
-        grabOffsetY,
+        ...beingDragged && dragUpdate(shape, constraints, x0, y0, x1, y1, mouseDowned),
+        ...snapUpdate(constraints, shape),
         ...alignUpdate && shape.key === alignUpdate.shapeKey && {alignment: alignUpdate.alignment},
         ...constrainedShape && shape.key === constrainedShape.key && shapeConstraintUpdate(shapes, snapGuideLines, shape)
       }
