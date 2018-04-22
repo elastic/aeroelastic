@@ -41,18 +41,6 @@ const map = fun => (...inputs) => {
   }
 }
 
-const each = fun => (...inputs) => {
-  // last-value memoizing version of this single line function:
-  //const each = fun => (...inputs) => state => {fun(...inputs.map(input => input(state)))}
-  let argumentValues = []
-  return state => {
-    if(shallowEqual(argumentValues, argumentValues = inputs.map(input => input(state)))) {
-      return
-    }
-    fun(...argumentValues)
-  }
-}
-
 
 /**
  * Mock config
