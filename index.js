@@ -109,32 +109,35 @@ const initialShapes = [
   {key: 'rect5', type: 'rectangle', x: 900, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9', backgroundImage: pattern3},
 ]
 
-const state = {
+const initialState = {
   shapeAdditions: initialShapes,
-  primaryActions: null
+  primaryActions: null,
+  test: 0
 }
 
+let currentState = initialState
 
 
 /**
  * PoC action dispatch
  */
 
-const dispatch = (actionType, payload) => {
-  const s = {
-    shapeAdditions: initialShapes,
-    primaryActions: {actionType, payload}
-  }
-  renderScene(s)
+const commit = (actionType, payload) => {
+  console.log(currentState.test)
+  const nextState = Object.assign(
+    {},
+    currentState,
+    {
+      shapeAdditions: initialShapes,
+      primaryActions: {actionType, payload}
+    },
+    {test: currentState.test + 1}
+  )
+  renderScene(nextState)
+  currentState = nextState
 }
 
-const dispatchAsync = (actionType, payload) => setTimeout(() => {
-  const s = {
-    shapeAdditions: initialShapes,
-    primaryActions: {actionType, payload}
-  }
-  renderScene(s)
-})
+const dispatch = (actionType, payload) => setTimeout(() => commit(actionType, payload))
 
 
 /**
@@ -154,10 +157,10 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) =
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
   const selected = shape.key === selectedShapeKey
 
-  const alignLeft = () => dispatch('align', {event: 'alignLeft', shapeKey: shape.key})
-  const alignCenter = () => dispatch('align', {event: 'alignCenter', shapeKey: shape.key})
-  const alignRight = () => dispatch('align', {event: 'alignRight', shapeKey: shape.key})
-  const alignRemove = () => dispatch('align', {event: 'alignRemove', shapeKey: shape.key})
+  const alignLeft = () => commit('align', {event: 'alignLeft', shapeKey: shape.key})
+  const alignCenter = () => commit('align', {event: 'alignCenter', shapeKey: shape.key})
+  const alignRight = () => commit('align', {event: 'alignRight', shapeKey: shape.key})
+  const alignRemove = () => commit('align', {event: 'alignRemove', shapeKey: shape.key})
 
   return h('div', {
     class: dragged ? 'draggable' : null,
@@ -287,10 +290,10 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
 const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => h('div', {
     id: 'root',
-    onmousemove: event => dispatch('cursorPosition', {x: event.clientX, y: event.clientY}),
-    onmouseup: event => dispatch('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
-    onmousedown: event => dispatch('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
-    onclick: event => dispatch('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY}),
+    onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
+    onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
+    onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
+    onclick: event => commit('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY}),
   },
   shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
 )
@@ -708,9 +711,9 @@ const renderScene = each(
   (frag, newShapeEvent) => {
     render(frag, root)
     if(newShapeEvent) {
-      dispatchAsync('shapeEvent', newShapeEvent)
+      dispatch('shapeEvent', newShapeEvent)
     }
   }
 )(scenegraph, newShapeEvent)
 
-renderScene(state)
+renderScene(currentState)
