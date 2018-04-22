@@ -568,7 +568,7 @@ const dragVector = map(
  */
 
 const selectedShape = reduce(
-  (prev, next) => prev || next && (next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev),
+  (prev, next) => next && (next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev) || prev,
   null
 )(shapeEvent)
 
