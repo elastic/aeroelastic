@@ -344,8 +344,8 @@ const nextShapes = map(
         ...shape,
         ...beingDragged && dragUpdate(shape, constraints, x0, y0, x1, y1, mouseDowned),
         ...snapUpdate(constraints, shape),
-        ...alignUpdate && shape.key === alignUpdate.shapeKey && {alignment: alignUpdate.alignment},
-        ...beingDragged && shapeConstraintUpdate(shapes, snapGuideLines, shape)
+        ...beingDragged && shapeConstraintUpdate(shapes, snapGuideLines, shape),
+        ...alignUpdate && shape.key === alignUpdate.shapeKey && {alignment: alignUpdate.alignment}
       }
     })
     return newShapes
