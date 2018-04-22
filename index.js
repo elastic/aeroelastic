@@ -585,7 +585,7 @@ const currentShapes = reduce(
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
       const beingDragged = draggedShape && draggedShape.key === shape.key
-      const constrainedShape = beingDragged ? findShapeByKey(shapes, shape.key) : null
+      const constrainedShape = beingDragged && findShapeByKey(shapes, shape.key)
       const grabStart = !shape.beingDragged && beingDragged
       const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
       const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
@@ -597,7 +597,8 @@ const currentShapes = reduce(
       const yConstraint = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
       const newX = isNaN(xConstraint) ? unconstrainedX : xConstraint
       const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
-      return Object.assign({}, shape, {
+      return {
+        ...shape,
         x: snapToGrid(newX),
         y: snapToGrid(newY),
         unconstrainedX,
@@ -606,9 +607,8 @@ const currentShapes = reduce(
         height: snapToGridUp(shape.height),
         beingDragged,
         grabOffsetX,
-        grabOffsetY
-      },
-        constrainedShape ? (() => {
+        grabOffsetY,
+        ...constrainedShape ? (() => {
           const lines = snapGuideLines(shapes, draggedShape)
           const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
           const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), shape, 'vertical')
@@ -619,8 +619,8 @@ const currentShapes = reduce(
             yConstraintAnchor: shape.key === constrainedShape.key ? verticalAnchor : shape.yConstraintAnchor,
           }
         })() : {}
-      )}
-    )
+      }
+    })
     //console.log('hovered:', hoveredShape.key, 'dragged:', draggedShape.key)
     const newState = {
       hoveredShape,
