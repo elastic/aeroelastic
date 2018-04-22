@@ -258,7 +258,7 @@ const dragVector = map(
   ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
 )(mouseButtonStateMachine, cursorPosition)
 
-const shapeConstraintProperties = (shapes, snapGuideLines, shape) => {
+const shapeConstraintUpdate = (shapes, snapGuideLines, shape) => {
   const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(snapGuideLines.filter(isVertical), shape, 'horizontal')
   const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(snapGuideLines.filter(isHorizontal), shape, 'vertical')
   return {
@@ -334,7 +334,7 @@ const nextShapes = map(
         grabOffsetX,
         grabOffsetY,
         ...alignUpdate && shape.key === alignUpdate.shapeKey && {alignment: alignUpdate.alignment},
-        ...constrainedShape && shape.key === constrainedShape.key && shapeConstraintProperties(shapes, snapGuideLines, shape)
+        ...constrainedShape && shape.key === constrainedShape.key && shapeConstraintUpdate(shapes, snapGuideLines, shape)
       }
     })
     return newShapes
