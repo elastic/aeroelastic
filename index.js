@@ -608,7 +608,7 @@ const currentShapes = reduce(
         beingDragged,
         grabOffsetX,
         grabOffsetY,
-        ...constrainedShape ? (() => {
+        ...constrainedShape && (() => {
           const lines = snapGuideLines(shapes, draggedShape)
           const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
           const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), shape, 'vertical')
@@ -618,7 +618,7 @@ const currentShapes = reduce(
             xConstraintAnchor: shape.key === constrainedShape.key ? horizontAnchor : shape.xConstraintAnchor,
             yConstraintAnchor: shape.key === constrainedShape.key ? verticalAnchor : shape.yConstraintAnchor,
           }
-        })() : {}
+        })()
       }
     })
     //console.log('hovered:', hoveredShape.key, 'dragged:', draggedShape.key)
