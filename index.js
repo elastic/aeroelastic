@@ -144,16 +144,6 @@ const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) 
 // true if the two lines are parallel
 const parallel = (line1, line2) => isHorizontal(line1) === isHorizontal(line2)
 
-// returns those snap guidelines that may affect the draggedShape
-const snapGuideLines = (shapes, draggedShape) => {
-  // The guidelines may come from explicit guidelines (as in the mock of this PoC) or generated automatically in the future, so that dragging a
-  // shape dynamically traces other shapes, flashing temporary alignment lines, example snap guides here: https://i.imgur.com/QKrK6.png
-  const allGuideLines = allLines(shapes)
-  return isLine(draggedShape)
-    ? allGuideLines.filter(line => !parallel(line, draggedShape))
-    : allGuideLines
-}
-
 // quick (to write) function for finding a shape by key, may be okay for up to ~100 shapes
 const findShapeByKey = (shapes, key) => shapes.find(shape => shape.key === key)
 
@@ -270,6 +260,17 @@ const dragVector = map(
   ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
 )(mouseButtonStateMachine, cursorPosition)
 
+const shapeConstraintProperties = (shapes, snapGuideLines, shape) => {
+  const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(snapGuideLines.filter(isVertical), shape, 'horizontal')
+  const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(snapGuideLines.filter(isHorizontal), shape, 'vertical')
+  return {
+    xConstraint: verticalSnap && verticalSnap.key,
+    yConstraint: horizontSnap && horizontSnap.key,
+    xConstraintAnchor: horizontAnchor,
+    yConstraintAnchor: verticalAnchor
+  }
+}
+
 
 /**
  * Scenegraph update based on events, gestures...
@@ -292,20 +293,24 @@ const alignInstruction = map(alignEvent => {
   }
 })(alignEvent)
 
-const shapeConstraints = (shapes, shape, draggedShape) => {
-  const lines = snapGuideLines(shapes, draggedShape)
-  const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
-  const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), shape, 'vertical')
-  return {
-    xConstraint: verticalSnap && verticalSnap.key,
-    yConstraint: horizontSnap && horizontSnap.key,
-    xConstraintAnchor: horizontAnchor,
-    yConstraintAnchor: verticalAnchor
+// returns those snap guidelines that may affect the draggedShape
+const snapGuideLines = map(
+  (shapes, draggedShape) => {
+    // The guidelines may come from explicit guidelines (as in the mock of this PoC) or generated automatically in the future, so that dragging a
+    // shape dynamically traces other shapes, flashing temporary alignment lines, example snap guides here: https://i.imgur.com/QKrK6.png
+    if(draggedShape) {
+      const allGuideLines = allLines(shapes)
+      return isLine(draggedShape)
+        ? allGuideLines.filter(line => !parallel(line, draggedShape))
+        : allGuideLines
+    } else {
+      return [] // snap lines are in practice nonexistent if there's no ongoing dragging
+    }
   }
-}
+)(shapes, draggedShape)
 
 const nextShapes = map(
-  (shapes, draggedShape, {x0, y0, x1, y1, down}, alignInstruction, constraints) => {
+  (shapes, draggedShape, {x0, y0, x1, y1, down}, alignInstruction, constraints, snapGuideLines) => {
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
@@ -333,13 +338,13 @@ const nextShapes = map(
         beingDragged,
         grabOffsetX,
         grabOffsetY,
-        ...alignInstruction && alignInstruction.shapeKey === shape.key && {alignment: alignInstruction.alignment},
-        ...constrainedShape && shape.key === constrainedShape.key && shapeConstraints(shapes, shape, draggedShape)
+        ...alignInstruction && shape.key === alignInstruction.shapeKey && {alignment: alignInstruction.alignment},
+        ...constrainedShape && shape.key === constrainedShape.key && shapeConstraintProperties(shapes, snapGuideLines, shape)
       }
     })
     return newShapes
   }
-)(shapes, draggedShape, dragVector, alignInstruction, constraints)
+)(shapes, draggedShape, dragVector, alignInstruction, constraints, snapGuideLines)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
