@@ -335,7 +335,7 @@ const snapUpdate = (constraints, shape) => {
 }
 
 const nextShapes = map(
-  (shapes, draggedShape, {x0, y0, x1, y1, down}, alignUpdate, constraints, snapGuideLines, mouseDowned) => {
+  (shapes, draggedShape, {x0, y0, x1, y1}, alignUpdate, constraints, snapGuideLines, mouseDowned) => {
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
