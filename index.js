@@ -292,6 +292,18 @@ const alignInstruction = map(alignEvent => {
   }
 })(alignEvent)
 
+const shapeConstraints = (shapes, shape, draggedShape, constrainedShape) => {
+  const lines = snapGuideLines(shapes, draggedShape)
+  const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
+  const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), shape, 'vertical')
+  return {
+    xConstraint: shape.key === constrainedShape.key ? verticalSnap && verticalSnap.key : shape.xConstraint,
+    yConstraint: shape.key === constrainedShape.key ? horizontSnap && horizontSnap.key : shape.yConstraint,
+    xConstraintAnchor: shape.key === constrainedShape.key ? horizontAnchor : shape.xConstraintAnchor,
+    yConstraintAnchor: shape.key === constrainedShape.key ? verticalAnchor : shape.yConstraintAnchor,
+  }
+}
+
 const nextShapes = map(
   (shapes, draggedShape, {x0, y0, x1, y1, down}, alignInstruction, constraints) => {
 
@@ -322,17 +334,7 @@ const nextShapes = map(
         grabOffsetX,
         grabOffsetY,
         ...alignInstruction && alignInstruction.shapeKey === shape.key && {alignment: alignInstruction.alignment},
-        ...constrainedShape && (() => {
-          const lines = snapGuideLines(shapes, draggedShape)
-          const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
-          const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), shape, 'vertical')
-          return {
-            xConstraint: shape.key === constrainedShape.key ? verticalSnap && verticalSnap.key : shape.xConstraint,
-            yConstraint: shape.key === constrainedShape.key ? horizontSnap && horizontSnap.key : shape.yConstraint,
-            xConstraintAnchor: shape.key === constrainedShape.key ? horizontAnchor : shape.xConstraintAnchor,
-            yConstraintAnchor: shape.key === constrainedShape.key ? verticalAnchor : shape.yConstraintAnchor,
-          }
-        })()
+        ...constrainedShape && shapeConstraints(shapes, shape, draggedShape, constrainedShape)
       }
     })
     return newShapes
