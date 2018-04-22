@@ -136,9 +136,9 @@ const constraintLookup = shapes => {
 }
 
 // returns the currently dragged shape, or a falsey value otherwise
-const draggingShape = (previousDraggedShape, shapes, hoveredShape, down, mouseDowned) => {
+const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
   const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
-  return dragInProgress && previousDraggedShape  || down && mouseDowned && hoveredShape
+  return dragInProgress && draggedShape  || down && mouseDowned && hoveredShape
 }
 
 // true if the two lines are parallel
@@ -281,20 +281,10 @@ const selectedShape = reduce(
 )(shapeEvent)
 
 const shapes = map((scene, externalShapeUpdates) => updateShapes(scene.shapes, externalShapeUpdates))(scene, shapeAdditions)
-
-const hoveredShape = map(
-  hoveringAt
-)(shapes, cursorPosition)
-
-const draggedShape = map(
-  (scene, hoveredShape, down, mouseDowned) => draggingShape(scene.draggedShape, scene.shapes, hoveredShape, down, mouseDowned)
-)(scene, hoveredShape, mouseIsDown, mouseDowned)
-
-const constraints = map(
-  constraintLookup
-)(shapes)
-
-const alignInstruction = map((alignEvent) => {
+const hoveredShape = map(hoveringAt)(shapes, cursorPosition)
+const draggedShape = map(draggingShape)(scene, hoveredShape, mouseIsDown, mouseDowned)
+const constraints = map(constraintLookup)(shapes)
+const alignInstruction = map(alignEvent => {
   // set alignment type on sticky line, if needed
   if(alignEvent) {
     const {event, shapeKey} = alignEvent
