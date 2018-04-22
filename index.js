@@ -427,7 +427,7 @@ const constraintLookup = shapes => {
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = (previousDraggedShape, shapes, hoveredShape, down) => {
   const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
-  return dragInProgress && (previousDraggedShape /*&& shapes.find(shape => shape.key === previousDraggedShape.key)*/ || hoveredShape)
+  return dragInProgress && (previousDraggedShape /*&& shapes.find(shape => shape.key === previousDraggedShape.key)*/)  || down && hoveredShape
 }
 
 // true if the two lines are parallel
@@ -591,8 +591,7 @@ const currentShapes = reduce(
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
-      const beingDragged = down && shape.beingDragged || /*!draggedShape && */hoveredShape && shape.key === hoveredShape.key /*&& down */&& mouseDowned
-      //const beingDragged = draggedShape && draggedShape.key === shape.key
+      const beingDragged = draggedShape && draggedShape.key === shape.key
       const constrainedShape = beingDragged ? findShapeByKey(shapes, shape.key) : null
       const grabStart = !shape.beingDragged && beingDragged
       const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
@@ -629,6 +628,7 @@ const currentShapes = reduce(
         })() : {}
       )}
     )
+    //console.log('hovered:', hoveredShape.key, 'dragged:', draggedShape.key)
     const newState = {
       hoveredShape,
       draggedShape,
