@@ -329,8 +329,8 @@ const snapUpdate = (constraints, shape) => {
   const x = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
   const y = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
   return {
-    ...!isNaN(x) && {x}, // simplify by making nextConstraintX return false?
-    ...!isNaN(y) && {y}  // simplify by making nextConstraintY return false?
+    ...!isNaN(x) && {x},
+    ...!isNaN(y) && {y}
   }
 }
 
@@ -341,10 +341,15 @@ const nextShapes = map(
     return shapes.map(shape => {
       const beingDragged = draggedShape && draggedShape.key === shape.key
       return {
+        // update the preexisting shape:
         ...shape,
+        // with the effect of dragging:
         ...beingDragged && dragUpdate(shape, constraints, x0, y0, x1, y1, mouseDowned),
+        // and the effect of establishing / breaking snap connections:
         ...beingDragged && shapeConstraintUpdate(shapes, snapGuideLines, shape),
+        // and following any necessary snapping due to establishing / breaking snap constraints:
         ...snapUpdate(constraints, shape),
+        // and updating a possible alignment constraint on a snap line:
         ...alignUpdate && shape.key === alignUpdate.shapeKey && {alignment: alignUpdate.alignment}
       }
     })
