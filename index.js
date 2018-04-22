@@ -283,7 +283,7 @@ const shapes = map((scene, externalShapeUpdates) => updateShapes(scene.shapes, e
 const hoveredShape = map(hoveringAt)(shapes, cursorPosition)
 const draggedShape = map(draggingShape)(scene, hoveredShape, mouseIsDown, mouseDowned)
 const constraints = map(constraintLookup)(shapes)
-const alignInstruction = map(alignEvent => {
+const alignUpdate = map(alignEvent => {
   // set alignment type on sticky line, if needed
   if(alignEvent) {
     const {event, shapeKey} = alignEvent
@@ -308,7 +308,7 @@ const snapGuideLines = map(
 )(shapes, draggedShape)
 
 const nextShapes = map(
-  (shapes, draggedShape, {x0, y0, x1, y1, down}, alignInstruction, constraints, snapGuideLines, mouseDowned) => {
+  (shapes, draggedShape, {x0, y0, x1, y1, down}, alignUpdate, constraints, snapGuideLines, mouseDowned) => {
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
@@ -333,13 +333,13 @@ const nextShapes = map(
         unconstrainedY,
         grabOffsetX,
         grabOffsetY,
-        ...alignInstruction && shape.key === alignInstruction.shapeKey && {alignment: alignInstruction.alignment},
+        ...alignUpdate && shape.key === alignUpdate.shapeKey && {alignment: alignUpdate.alignment},
         ...constrainedShape && shape.key === constrainedShape.key && shapeConstraintProperties(shapes, snapGuideLines, shape)
       }
     })
     return newShapes
   }
-)(shapes, draggedShape, dragVector, alignInstruction, constraints, snapGuideLines, mouseDowned)
+)(shapes, draggedShape, dragVector, alignUpdate, constraints, snapGuideLines, mouseDowned)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
