@@ -657,7 +657,7 @@ const currentFreeShapes = map(
   ({shapes}, {dragStartShape}) =>
     shapes
       .filter(shape => dragStartShape && shape.key === dragStartShape.key)
-      .map(shape => Object.assign({}, shape, {x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
+      .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
 )(currentShapes, dragStartAt)
 
 // affordance for permanent selection of a shape
