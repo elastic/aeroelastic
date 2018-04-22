@@ -340,13 +340,12 @@ const nextShapes = map(
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
       const beingDragged = draggedShape && draggedShape.key === shape.key
-      const constrainedShape = beingDragged && findShapeByKey(shapes, shape.key)
       return {
         ...shape,
         ...beingDragged && dragUpdate(shape, constraints, x0, y0, x1, y1, mouseDowned),
         ...snapUpdate(constraints, shape),
         ...alignUpdate && shape.key === alignUpdate.shapeKey && {alignment: alignUpdate.alignment},
-        ...constrainedShape && shape.key === constrainedShape.key && shapeConstraintUpdate(shapes, snapGuideLines, shape)
+        ...beingDragged && shapeConstraintUpdate(shapes, snapGuideLines, shape)
       }
     })
     return newShapes
