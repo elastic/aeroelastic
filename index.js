@@ -1,5 +1,5 @@
 /**
- * Input cells
+ * Selectors directly from the state
  */
 
 const shapeAdditions = state => state.shapeAdditions
@@ -12,15 +12,6 @@ const scene = state => state.currentScene
  */
 
 const vectorLength = (x, y) =>  Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
-
-// map x0, y0, x1, y1 to deltas, length and angle
-const positionsToLineAttribsViewer = (x0, y0, x1, y1) => {
-  const deltaX = x1 - x0
-  const deltaY = y1 - y0
-  const length = vectorLength(deltaX, deltaY)
-  const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
-  return {length, angle, deltaX, deltaY}
-}
 
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.filter(shape => {
@@ -142,9 +133,6 @@ const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) 
 // true if the two lines are parallel
 const parallel = (line1, line2) => isHorizontal(line1) === isHorizontal(line2)
 
-// quick (to write) function for finding a shape by key, may be okay for up to ~100 shapes
-const findShapeByKey = (shapes, key) => shapes.find(shape => shape.key === key)
-
 // shape updates may include newly added shapes, deleted or modified shapes
 const updateShapes = (preexistingShapes, shapeUpdates) => {
   // Shell function - this is now a simple OR ie. in the PoC it initializes with the given mock states and no more update happens.
@@ -171,9 +159,56 @@ const nextConstraintY = (xConstraint, yConstraint, previousShape) => {
     : (xConstraint && (sectionConstrained('horizontal', previousShape, xConstraint) - anchorOffset(previousShape, 'middle')))
 }
 
+const shapeConstraintUpdate = (shapes, snapGuideLines, shape) => {
+  const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(snapGuideLines.filter(isVertical), shape, 'horizontal')
+  const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(snapGuideLines.filter(isHorizontal), shape, 'vertical')
+  return {
+    xConstraint: verticalSnap && verticalSnap.key,
+    yConstraint: horizontSnap && horizontSnap.key,
+    xConstraintAnchor: horizontAnchor,
+    yConstraintAnchor: verticalAnchor
+  }
+}
+
+const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned) => {
+  const grabStart = mouseDowned
+  const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
+  const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
+  const x = x1 + grabOffsetX
+  const y = y1 + grabOffsetY
+  return {
+    x,
+    y,
+    unconstrainedX: x,
+    unconstrainedY: y,
+    grabOffsetX,
+    grabOffsetY,
+  }
+}
+
+const snapUpdate = (constraints, shape) => {
+  const xConstraintPrevious = constraints[shape.xConstraint]
+  const yConstraintPrevious = constraints[shape.yConstraint]
+  const x = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
+  const y = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
+  return {
+    ...!isNaN(x) && {x},
+    ...!isNaN(y) && {y}
+  }
+}
+
+// map x0, y0, x1, y1 to deltas, length and angle
+const positionsToLineAttribs = (x0, y0, x1, y1) => {
+  const deltaX = x1 - x0
+  const deltaY = y1 - y0
+  const length = vectorLength(deltaX, deltaY)
+  const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI
+  return {length, angle, deltaX, deltaY}
+}
+
 
 /**
- * Gestures - filters and finite state machine reducers, mostly
+ * Gestures - derived selectors for transient state
  */
 
 // dispatch the various types of actions
@@ -206,7 +241,7 @@ const mouseIsDown = reduce(
 )(mouseButtonEvent)
 
 /**
- * mouseButtonStateMachine
+ * mouseButtonStateTransitions
  *
  *    View: http://stable.ascii-flow.appspot.com/#567671116534197027
  *    Edit: http://stable.ascii-flow.appspot.com/#567671116534197027/776257435
@@ -258,17 +293,6 @@ const dragVector = map(
   ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
 )(mouseButtonStateMachine, cursorPosition)
 
-const shapeConstraintUpdate = (shapes, snapGuideLines, shape) => {
-  const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(snapGuideLines.filter(isVertical), shape, 'horizontal')
-  const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(snapGuideLines.filter(isHorizontal), shape, 'vertical')
-  return {
-    xConstraint: verticalSnap && verticalSnap.key,
-    yConstraint: horizontSnap && horizontSnap.key,
-    xConstraintAnchor: horizontAnchor,
-    yConstraintAnchor: verticalAnchor
-  }
-}
-
 
 /**
  * Scenegraph update based on events, gestures...
@@ -306,33 +330,6 @@ const snapGuideLines = map(
     }
   }
 )(shapes, draggedShape)
-
-const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned) => {
-  const grabStart = mouseDowned
-  const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
-  const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
-  const x = x1 + grabOffsetX
-  const y = y1 + grabOffsetY
-  return {
-    x,
-    y,
-    unconstrainedX: x,
-    unconstrainedY: y,
-    grabOffsetX,
-    grabOffsetY,
-  }
-}
-
-const snapUpdate = (constraints, shape) => {
-  const xConstraintPrevious = constraints[shape.xConstraint]
-  const yConstraintPrevious = constraints[shape.yConstraint]
-  const x = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
-  const y = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
-  return {
-    ...!isNaN(x) && {x},
-    ...!isNaN(y) && {y}
-  }
-}
 
 const nextShapes = map(
   (shapes, draggedShape, {x0, y0, x1, y1}, alignUpdate, constraints, snapGuideLines, mouseDowned) => {
@@ -422,7 +419,7 @@ const freeShapeFrags = map(
 const dragLineFrag = map(
   (cursor, dragStartAt) => {
     const origin = dragStartAt.down ? dragStartAt : cursor
-    const lineAttribs = positionsToLineAttribsViewer(origin.x, origin.y, cursor.x, cursor.y)
+    const lineAttribs = positionsToLineAttribs(origin.x, origin.y, cursor.x, cursor.y)
     return renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
   }
 )(cursorPosition, dragStartAt)
