@@ -1,5 +1,6 @@
-const {h} = ultradom
+const {h, render} = ultradom
 
+const rootRender = frag => render(frag, document.body)
 
 /**
  * Pure functions: fragment makers (PoC: React DOM fragments)
