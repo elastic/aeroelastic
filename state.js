@@ -13,7 +13,7 @@ const initialShapes = [
 const initialState = {
   shapeAdditions: initialShapes,
   primaryActions: null,
-  currentShapes: {shapes: initialShapes}
+  currentScene: {shapes: initialShapes}
 }
 
 let currentState = initialState
@@ -25,7 +25,7 @@ let currentState = initialState
 
 const commit = (actionType, payload) => {
   currentState = renderScene({...currentState, primaryActions: {actionType, payload}})
-  //console.log(currentState.currentShapes.shapes[4])
+  //console.log(currentState.currentScene.shapes[4])
 }
 
 const dispatch = (actionType, payload) => setTimeout(() => commit(actionType, payload))

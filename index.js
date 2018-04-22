@@ -4,6 +4,7 @@
 
 const shapeAdditions = state => state.shapeAdditions
 const primaryActions = state => state.primaryActions
+const scene = state => state.currentScene
 
 
 /**
@@ -281,7 +282,7 @@ const selectedShape = reduce(
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
-const currentShapes = reduce(
+const nextScene = reduce(
   (previous, externalShapeUpdates, cursor, mouseDowned, {x0, y0, x1, y1, down}, alignEvent) => {
 
     // update from an explicit shape update source
@@ -352,7 +353,7 @@ const currentShapes = reduce(
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = map(
   ({draggedShape, hoveredShape}) => draggedShape || hoveredShape
-)(currentShapes)
+)(nextScene)
 
 const dragStartAt = reduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
@@ -375,7 +376,7 @@ const currentFreeShapes = map(
     shapes
       .filter(shape => dragStartShape && shape.key === dragStartShape.key)
       .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
-)(currentShapes, dragStartAt)
+)(nextScene, dragStartAt)
 
 // affordance for permanent selection of a shape
 const newShapeEvent = map(
@@ -396,7 +397,7 @@ const metaCursorFrag = map(
 
 const shapeFrags = map(
   ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => renderShapeFrags(shapes, hoveredShape, dragStartAt, selectedShapeKey)
-)(currentShapes, focusedShape, dragStartAt, selectedShape)
+)(nextScene, focusedShape, dragStartAt, selectedShape)
 
 const freeShapeFrags = map(
   shapes => renderShapeFrags(shapes, null, null, false)
@@ -415,7 +416,7 @@ const scenegraph = map(
 )(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 renderScene = map(
-  (currentShapes, shapeAdditions, primaryActions, frag, newShapeEvent) => {
+  (nextScene, shapeAdditions, primaryActions, frag, newShapeEvent) => {
 
     // perform side effects: rendering, and possibly, asynchronously dispatching arising events
     rootRender(frag)
@@ -427,9 +428,9 @@ renderScene = map(
     return {
       shapeAdditions,
       primaryActions,
-      currentShapes
+      currentScene: nextScene
     }
   }
-)(currentShapes, shapeAdditions, primaryActions, scenegraph, newShapeEvent)
+)(nextScene, shapeAdditions, primaryActions, scenegraph, newShapeEvent)
 
 currentState = renderScene(currentState)
