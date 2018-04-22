@@ -282,21 +282,30 @@ const selectedShape = reduce(
 
 const shapes = map((scene, externalShapeUpdates) => updateShapes(scene.shapes, externalShapeUpdates))(scene, shapeAdditions)
 
-const hoveredShape = map(hoveringAt)(shapes, cursorPosition)
-const draggedShape = map((scene, hoveredShape, down, mouseDowned) => draggingShape(scene.draggedShape, scene.shapes, hoveredShape, down, mouseDowned))(scene, hoveredShape, mouseIsDown, mouseDowned)
-const constraints = map(constraintLookup)(shapes)
+const hoveredShape = map(
+  hoveringAt
+)(shapes, cursorPosition)
+
+const draggedShape = map(
+  (scene, hoveredShape, down, mouseDowned) => draggingShape(scene.draggedShape, scene.shapes, hoveredShape, down, mouseDowned)
+)(scene, hoveredShape, mouseIsDown, mouseDowned)
+
+const constraints = map(
+  constraintLookup
+)(shapes)
+
+const alignInstruction = map((alignEvent) => {
+  // set alignment type on sticky line, if needed
+  if(alignEvent) {
+    const {event, shapeKey} = alignEvent
+    return {shapeKey, alignment: event !== 'alignRemove' && event}
+  }
+})(alignEvent)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
 const nextScene = reduce(
-  (previous, shapes, hoveredShape, draggedShape, {x0, y0, x1, y1, down}, alignEvent, constraints) => {
-
-    // set alignment type on sticky line, if needed
-    if(alignEvent) {
-      const {event, shapeKey} = alignEvent
-      const alignmentLine = findShapeByKey(shapes, shapeKey)
-      alignmentLine.alignment = event !== 'alignRemove' && event
-    }
+  (previous, shapes, hoveredShape, draggedShape, {x0, y0, x1, y1, down}, alignInstruction, constraints) => {
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
@@ -324,6 +333,7 @@ const nextScene = reduce(
         beingDragged,
         grabOffsetX,
         grabOffsetY,
+        ...alignInstruction && alignInstruction.shapeKey === shape.key && {alignment: alignInstruction.alignment},
         ...constrainedShape && (() => {
           const lines = snapGuideLines(shapes, draggedShape)
           const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
@@ -337,7 +347,6 @@ const nextScene = reduce(
         })()
       }
     })
-    //console.log('hovered:', hoveredShape.key, 'dragged:', draggedShape.key)
     const newState = {
       hoveredShape,
       draggedShape,
@@ -346,7 +355,7 @@ const nextScene = reduce(
     return newState
   },
   {shapes: null, draggedShape: null}
-)(shapes, hoveredShape, draggedShape, dragVector, alignEvent, constraints)
+)(shapes, hoveredShape, draggedShape, dragVector, alignInstruction, constraints)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = map(
