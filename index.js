@@ -292,15 +292,15 @@ const alignInstruction = map(alignEvent => {
   }
 })(alignEvent)
 
-const shapeConstraints = (shapes, shape, draggedShape, constrainedShape) => {
+const shapeConstraints = (shapes, shape, draggedShape) => {
   const lines = snapGuideLines(shapes, draggedShape)
   const {snapLine: verticalSnap, snapAnchor: horizontAnchor} = snappingGuideLine(lines.filter(isVertical), shape, 'horizontal')
   const {snapLine: horizontSnap, snapAnchor: verticalAnchor} = snappingGuideLine(lines.filter(isHorizontal), shape, 'vertical')
   return {
-    xConstraint: shape.key === constrainedShape.key ? verticalSnap && verticalSnap.key : shape.xConstraint,
-    yConstraint: shape.key === constrainedShape.key ? horizontSnap && horizontSnap.key : shape.yConstraint,
-    xConstraintAnchor: shape.key === constrainedShape.key ? horizontAnchor : shape.xConstraintAnchor,
-    yConstraintAnchor: shape.key === constrainedShape.key ? verticalAnchor : shape.yConstraintAnchor,
+    xConstraint: verticalSnap && verticalSnap.key,
+    yConstraint: horizontSnap && horizontSnap.key,
+    xConstraintAnchor: horizontAnchor,
+    yConstraintAnchor: verticalAnchor
   }
 }
 
@@ -334,7 +334,7 @@ const nextShapes = map(
         grabOffsetX,
         grabOffsetY,
         ...alignInstruction && alignInstruction.shapeKey === shape.key && {alignment: alignInstruction.alignment},
-        ...constrainedShape && shapeConstraints(shapes, shape, draggedShape, constrainedShape)
+        ...constrainedShape && shape.key === constrainedShape.key && shapeConstraints(shapes, shape, draggedShape)
       }
     })
     return newShapes
