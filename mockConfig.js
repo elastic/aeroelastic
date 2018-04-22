@@ -16,7 +16,6 @@ const cornerHotspotSize = 6
 const edgeHotspotSize = 12
 const devColor = 'magenta'
 const pad = 10
-const gridPitch = 1
 const snapEngageDistance = 18
 const snapReleaseDistance = 2 * snapEngageDistance // hysteresis: make it harder to break the bond
 const enforceAlignment = true // whether snap lines enforce all elements to anchor left/center/right etc. or only preexisting ones

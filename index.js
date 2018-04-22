@@ -38,8 +38,6 @@ const hoveringAt = (shapes, {x, y}) => {
   return topShape(hoveredShapes)
 }
 
-const snapToGrid = x => gridPitch * Math.round(x / gridPitch)
-const snapToGridUp = x => gridPitch * Math.ceil(x / gridPitch)
 const isHorizontal = line => line.height === 0
 const isVertical = line => line.width === 0
 const isHorizontalDirection = direction => direction === 'horizontal'
@@ -329,12 +327,10 @@ const nextShapes = map(
       const newY = isNaN(yConstraint) ? unconstrainedY : yConstraint
       return {
         ...shape,
-        x: snapToGrid(newX),
-        y: snapToGrid(newY),
+        x: newX,
+        y: newY,
         unconstrainedX,
         unconstrainedY,
-        width: snapToGridUp(shape.width),
-        height: snapToGridUp(shape.height),
         beingDragged,
         grabOffsetX,
         grabOffsetY,
