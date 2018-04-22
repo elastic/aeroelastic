@@ -135,7 +135,7 @@ const constraintLookup = shapes => {
 
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
-  const dragInProgress = down && shapes.reduce((prev, next) => prev || next.beingDragged, false)
+  const dragInProgress = down && shapes.reduce((prev, next) => prev || next.key === draggedShape.key, false)
   return dragInProgress && draggedShape  || down && mouseDowned && hoveredShape
 }
 
@@ -308,13 +308,13 @@ const snapGuideLines = map(
 )(shapes, draggedShape)
 
 const nextShapes = map(
-  (shapes, draggedShape, {x0, y0, x1, y1, down}, alignInstruction, constraints, snapGuideLines) => {
+  (shapes, draggedShape, {x0, y0, x1, y1, down}, alignInstruction, constraints, snapGuideLines, mouseDowned) => {
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
       const beingDragged = draggedShape && draggedShape.key === shape.key
       const constrainedShape = beingDragged && findShapeByKey(shapes, shape.key)
-      const grabStart = !shape.beingDragged && beingDragged
+      const grabStart = mouseDowned && beingDragged
       const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
       const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
       const unconstrainedX = beingDragged ? x1 + grabOffsetX : shape.x
@@ -331,7 +331,6 @@ const nextShapes = map(
         y: newY,
         unconstrainedX,
         unconstrainedY,
-        beingDragged,
         grabOffsetX,
         grabOffsetY,
         ...alignInstruction && shape.key === alignInstruction.shapeKey && {alignment: alignInstruction.alignment},
@@ -340,7 +339,7 @@ const nextShapes = map(
     })
     return newShapes
   }
-)(shapes, draggedShape, dragVector, alignInstruction, constraints, snapGuideLines)
+)(shapes, draggedShape, dragVector, alignInstruction, constraints, snapGuideLines, mouseDowned)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
