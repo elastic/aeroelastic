@@ -591,7 +591,7 @@ const currentShapes = reduce(
 
     // this is the per-shape model update at the current PoC level
     const newShapes = shapes.map(shape => {
-      const beingDragged = down && shape.beingDragged || !draggedShape && hoveredShape && shape.key === hoveredShape.key /*&& down */&& mouseDowned
+      const beingDragged = down && shape.beingDragged || /*!draggedShape && */hoveredShape && shape.key === hoveredShape.key /*&& down */&& mouseDowned
       //const beingDragged = draggedShape && draggedShape.key === shape.key
       const constrainedShape = beingDragged ? findShapeByKey(shapes, shape.key) : null
       const grabStart = !shape.beingDragged && beingDragged
