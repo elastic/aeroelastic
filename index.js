@@ -100,7 +100,7 @@ const initialShapes = [
 const initialState = {
   shapeAdditions: initialShapes,
   primaryActions: null,
-  currentShapes: undefined
+  currentShapes: {shapes: initialShapes}
 }
 
 let currentState = initialState
