@@ -12,7 +12,7 @@ const {
       } = require('./example/mockConfig')
 
 /**
- * Selectors directly from the state
+ * Selectors directly from a state object
  */
 
 const shapeAdditions = state => state.shapeAdditions
