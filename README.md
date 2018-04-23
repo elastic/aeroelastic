@@ -2,7 +2,7 @@
 
 Transformations library for common layout editing functions [WIP]
 
-The current version needs no build tools as the dependencies are now just script inclusions, so opening the `index.html` should work. Alternatively, for instantaneous browser reload:
+Due to using modules, a build tool is needed, for example, a _recent_ version of `budo`:
 
 ```
 npm install -g budo
@@ -39,6 +39,23 @@ Main building blocks of the PoC:
 
 The initially implemented guide lines can be the implementation basis for many of the listed functions (drag&drop with snap to grid, to shape or to implicit snap guides; distribution, anchoring and alignment). Grouping / ungrouping can be thought of being constrained along (perhaps invisible) horizontal and vertical lines, ie. similar to snapping, except for both dimensions, and acting as a hard constraint (while snaps are breakable connections). A lot of very common layout functions, present in Adobe Illustrator, Powerpoint etc. already deal with a single dimension at a time, eg. alignments. This approach may be handy for an eventual responsive layout too.
 
-Depending on the performance needs (platform, number of shapes etc.) it can be useful to _incrementally_ update the state, ie. a new piece of input doesn't typically involve the recalculation of the entire state, and the entire output (be it a DOM graph or a representative JSON object) so it's currently using a model dependency graph [microlibrary](https://github.com/monfera/crosslink) involving topological sorting of what needs to be recomputed. Besides the performance considerations, which may not be stringent, it's useful if the code mirrors the conceptual links between originating input and downstream consequences. The approach uses reducers and lifted functions (same as reducers except they don't use the previous state) which are independent of the specific microlibrary and other approaches may work as well.
+Depending on the performance needs (platform, number of shapes etc.) it can be useful to _incrementally_ update the state, ie. a new piece of input doesn't typically involve the recalculation of the entire state, and the entire output (be it a DOM graph or a representative JSON object). Therefore we currently use memoized selectors called `map` analogous to `createSelector` in `reselect`. The improvement is that selectors can also be reducers (`reduce` instead of `map`) ie. a reducer function can use the previous value of the selection, which is memoized anyway - this has performance benefit with high frequency, transient updates eg. mouse interactions, and code is more localized compared to the alternative of persisting all transient state on a singleton state object.
+
+The distinction between `commit` and `dispatch` is similar to the difference in `Vuex` - the former implies synchronous state update while the latter is asynchronous. Currently, an asynchronous action can commit only one update ("mutation" would be a misnomer, as currently a fresh state is generated, with possible _structural sharing_) but this can be generalized to more, if needed.
+
+The transform selectors (`map` and `reduce` functions) might be exchanged with reactive versions (analogous to `Vue`/`Vuex`, `ObservableHQ`, `RxJS`/`Angular 2`, `most.js`, `crosslink`, TC39 observables etc.) although for the current workload (manipulation of up to several dozens of rectangles) it's likely unnecessary, therefore the current style is closer to `redux` with `reselect`. As an alternative, if performance desires so, it can follow `Vuex` in that the state is _mutated_ instead of always generating a fresh state.
+
+
+## Build approach
+
+Modern tooling requires that on one hand, development can be done with current or even evolving standards, and on the other, the user deployment, and therefore automated testing, be done on ES5 code, so that it runs even in Internet Explorer which Microsoft no longer improves functionally. The entire code transform typically includes transpilers such as Babel or Bublé, minification, optimization (Google Closure, Rollup or now Webpack treeshaking), code splitting and of course, assembling the code from ES2015 or CommonJS modules.
+
+Even with moderate code size on modern hardware, this can lead to seconds of code transform time, which can be jarring during very quick iterations of code change and seeing the effect.
+
+In the meantime, evergreen browsers (Chrome, Firefox, Edge, Safari) now support most of the ES2015 standard. Therefore it is possible to avoid most of the code transformations while doing _development_, and leave them until test running and code publishing time. This ensures instant availability in the browser (eg. instant reload with `budo`/`Webpack`) or simply, being able to refresh the browser page without counting to some number (conservatively more, so as not to get stale code), or monitoring the OS console or other notification (or simply wait for `Webpack` to reload). Zero-second refresh instead of a (stochastic) two-second wait time sounds like a negligible improvement but it lets some of the people to be in the groove while coding.
+
+This is why the library doesn't do code transformation other than the instantaneous module bundling via `browserify` behind `budo`. We might switch to ES2015 modules in the future.
+
+The test and build approach (devDependencies, tooling etc.) will be patterned after https://github.com/elastic/tinymath but minute by minute development should require no time consuming code transformation.
 
 (to be continued)
