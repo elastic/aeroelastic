@@ -1,7 +1,5 @@
 const {
-        getCurrentState,
-        setCurrentState,
-        dispatch,
+        createStore,
         map,
         reduce
       } = require('./src/state')
@@ -21,6 +19,28 @@ const {
         snapReleaseDistance,
         enforceAlignment
       } = require('./example/mockConfig')
+
+const {pattern1, pattern2, pattern3} = require('./example/mockAssets')
+
+const initialShapes = [
+  {key: 'line1', type: 'line', x: 200, y: 150, width: 1400, height: 0, z: 5, rotation: 0, color: 'grey'},
+  {key: 'line2', type: 'line', x: 200, y: 650, width: 1400, height: 0, z: 5, rotation: 0, color: 'grey'},
+  {key: 'line3', type: 'line', x: 80,  y: 100, width: 0, height: 900, z: 5, rotation: 0, color: 'grey'},
+  {key: 'line4', type: 'line', x: 700, y: 100, width: 0, height: 900, z: 5, rotation: 0, color: 'grey'},
+  {key: 'rect1', type: 'rectangle', x: 300, y: 200, rotation: 0, width: 250, height: 180, z: 5, backgroundColor: '#b3e2cd', backgroundImage: pattern1},
+  {key: 'rect2', type: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac', backgroundImage: pattern2},
+  {key: 'rect3', type: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
+  {key: 'rect4', type: 'rectangle', x: 100, y: 250, rotation: 0, width: 250, height: 150, z: 8, backgroundColor: '#f4cae4'},
+  {key: 'rect5', type: 'rectangle', x: 900, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9', backgroundImage: pattern3},
+]
+
+const initialState = {
+  shapeAdditions: initialShapes,
+  primaryActions: null,
+  currentScene: {shapes: initialShapes}
+}
+
+const store = createStore(initialState)
 
 
 /**
@@ -434,11 +454,11 @@ const metaCursorFrag = map(
 )(cursorPosition, mouseIsDown, dragStartAt)
 
 const shapeFrags = map(
-  ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => renderShapeFrags(shapes, hoveredShape, dragStartAt, selectedShapeKey)
+  ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => renderShapeFrags(store.commit)(shapes, hoveredShape, dragStartAt, selectedShapeKey)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
 const freeShapeFrags = map(
-  shapes => renderShapeFrags(shapes, null, null, false)
+  shapes => renderShapeFrags(store.commit)(shapes, null, null, false)
 )(currentFreeShapes)
 
 const dragLineFrag = map(
@@ -450,16 +470,16 @@ const dragLineFrag = map(
 )(cursorPosition, dragStartAt)
 
 const scenegraph = map(
-  renderSubstrateFrag
+  renderSubstrateFrag(store.commit)
 )(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
-updateScene = map(
+const updateScene = map(
   (nextScene, shapeAdditions, primaryActions, frag, newShapeEvent) => {
 
     // perform side effects: rendering, and possibly, asynchronously dispatching arising events
     rootRender(frag)
     if(newShapeEvent) {
-      dispatch('shapeEvent', newShapeEvent) // async!
+      store.dispatch('shapeEvent', newShapeEvent) // async!
     }
 
     // yield the new state
@@ -471,5 +491,7 @@ updateScene = map(
   }
 )(nextScene, shapeAdditions, primaryActions, scenegraph, newShapeEvent)
 
+store.setUpdater(updateScene)
+
 // initial scene update
-setCurrentState(updateScene(getCurrentState()))
+store.setCurrentState(updateScene(store.getCurrentState()))

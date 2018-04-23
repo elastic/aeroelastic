@@ -21,8 +21,6 @@ const {
         cancelIcon
       } = require('./mockAssets')
 
-const { commit } = require('../src/state')
-
 const rootRender = frag => render(frag, document.body)
 
 /**
@@ -30,7 +28,7 @@ const rootRender = frag => render(frag, document.body)
  */
 
 // renders a shape including its (not yet factored out) control points, so it's not quite DRY compliant atm :-)
-const renderShapeFrags = (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
+const renderShapeFrags = commit => (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
   const selected = shape.key === selectedShapeKey
   const rotation = selected && shape.type === 'line' && shape.height === 0 ? 'rotate(-90deg)' : ''
@@ -165,7 +163,7 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => h('div', {
+const renderSubstrateFrag = commit => (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => h('div', {
     id: 'root',
     onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
     onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
