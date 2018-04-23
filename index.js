@@ -4,7 +4,7 @@ const {
         dispatch,
         map,
         reduce
-      } = require('./state')
+      } = require('./src/state')
 
 const {
         rootRender,
@@ -12,7 +12,7 @@ const {
         renderMetaCursorFrag,
         renderDragLineFrag,
         renderSubstrateFrag
-      } = require('./mockDomFragments')
+      } = require('./src/mockDomFragments')
 
 const {
         freeDragZ,
@@ -20,7 +20,7 @@ const {
         snapEngageDistance,
         snapReleaseDistance,
         enforceAlignment
-      } = require('./mockConfig')
+      } = require('./src/mockConfig')
 
 
 /**
