@@ -1,7 +1,6 @@
 const {
         getCurrentState,
         setCurrentState,
-        commit,
         dispatch,
         map,
         reduce
