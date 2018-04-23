@@ -21,7 +21,7 @@ const {
         cancelIcon
       } = require('./mockAssets')
 
-const { commit } = require('./state')
+const { commit } = require('../src/state')
 
 const rootRender = frag => render(frag, document.body)
 

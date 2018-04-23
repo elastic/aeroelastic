@@ -1,4 +1,4 @@
-const {pattern1, pattern2, pattern3} = require('./mockAssets')
+const {pattern1, pattern2, pattern3} = require('../example/mockAssets')
 
 const initialShapes = [
   {key: 'line1', type: 'line', x: 200, y: 150, width: 1400, height: 0, z: 5, rotation: 0, color: 'grey'},

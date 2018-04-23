@@ -12,7 +12,7 @@ const {
         renderMetaCursorFrag,
         renderDragLineFrag,
         renderSubstrateFrag
-      } = require('./src/mockDomFragments')
+      } = require('./example/mockDomFragments')
 
 const {
         freeDragZ,
@@ -20,7 +20,7 @@ const {
         snapEngageDistance,
         snapReleaseDistance,
         enforceAlignment
-      } = require('./src/mockConfig')
+      } = require('./example/mockConfig')
 
 
 /**
