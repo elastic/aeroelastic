@@ -6,7 +6,7 @@ Due to using modules, a build tool is needed, for example, a _recent_ version of
 
 ```
 npm install -g budo
-budo --live --open --host localhost index.js
+budo --live --open --host localhost example.js
 ```
 
 ![aeroelastic](https://user-images.githubusercontent.com/1548516/38812286-3116ca22-418c-11e8-818b-afd4bc0e8f27.gif)
