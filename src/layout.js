@@ -317,6 +317,39 @@ const alignUpdate = map(alignEvent => {
   }
 })(alignEvent)
 
+// the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
+const focusedShape = map(
+  (draggedShape, hoveredShape) => draggedShape || hoveredShape
+)(draggedShape, hoveredShape)
+
+const dragStartAt = reduce(
+  (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
+    // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
+    if(down) {
+      const newDragStart = mouseDowned && !previous.down
+      return newDragStart
+        ? {down, x: x1, y: y1, dragStartShape: focusedShape}
+        : previous
+    } else {
+      return {down: false}
+    }
+  },
+  {down: false}
+)(mouseDowned, dragVector, focusedShape)
+
+// free shapes are for showing the unconstrained location of the shape(s) being dragged
+const currentFreeShapes = map(
+  (shapes, {dragStartShape}) =>
+    shapes
+      .filter(shape => dragStartShape && shape.key === dragStartShape.key)
+      .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
+)(shapes, dragStartAt)
+
+// affordance for permanent selection of a shape
+const newShapeEvent = map(
+  (click, shape, {x, y}) => click && {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}
+)(mouseClickEvent, focusedShape, cursorPosition)
+
 // returns those snap guidelines that may affect the draggedShape
 const snapGuideLines = map(
   (shapes, draggedShape) => {
@@ -364,40 +397,6 @@ const nextScene = map(
     shapes: nextShapes
   })
 )(hoveredShape, draggedShape, nextShapes)
-
-// the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
-const focusedShape = map(
-  (draggedShape, hoveredShape) => draggedShape || hoveredShape
-)(draggedShape, hoveredShape)
-
-const dragStartAt = reduce(
-  (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
-    // the cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
-    if(down) {
-      const newDragStart = mouseDowned && !previous.down
-      return newDragStart
-        ? {down, x: x1, y: y1, dragStartShape: focusedShape}
-        : previous
-    } else {
-      return {down: false}
-    }
-  },
-  {down: false}
-)(mouseDowned, dragVector, focusedShape)
-
-// free shapes are for showing the unconstrained location of the shape(s) being dragged
-const currentFreeShapes = map(
-  (shapes, {dragStartShape}) =>
-    shapes
-      .filter(shape => dragStartShape && shape.key === dragStartShape.key)
-      .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
-)(shapes, dragStartAt)
-
-// affordance for permanent selection of a shape
-const newShapeEvent = map(
-  (click, shape, {x, y}) => click && {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}
-)(mouseClickEvent, focusedShape, cursorPosition)
-
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt,
