@@ -367,8 +367,8 @@ const nextScene = map(
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
 const focusedShape = map(
-  ({draggedShape, hoveredShape}) => draggedShape || hoveredShape
-)(nextScene)
+  (draggedShape, hoveredShape) => draggedShape || hoveredShape
+)(draggedShape, hoveredShape)
 
 const dragStartAt = reduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
@@ -387,11 +387,11 @@ const dragStartAt = reduce(
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = map(
-  ({shapes}, {dragStartShape}) =>
+  (shapes, {dragStartShape}) =>
     shapes
       .filter(shape => dragStartShape && shape.key === dragStartShape.key)
       .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
-)(nextScene, dragStartAt)
+)(shapes, dragStartAt)
 
 // affordance for permanent selection of a shape
 const newShapeEvent = map(
