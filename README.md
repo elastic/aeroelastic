@@ -58,4 +58,11 @@ This is why the library doesn't do code transformation other than the instantane
 
 The test and build approach (devDependencies, tooling etc.) will be patterned after https://github.com/elastic/tinymath but minute by minute development should require no time consuming code transformation.
 
+
+## Notes
+
+Although the current version switched to modules, it's not fully structured yet; pure math functions will be extracted into their own module, and transient layout state (eg. mouse interactions, drag&drop gesture data etc.) will be separated from more persistent data ie. the scene elements with their projection data.
+
+Since the last implementation step aimed at the removal of reactive dataflow (`crosslink`) and code structuring, and few functions were added, the persistent state structures are by no means final, they're unchanged now, only specifying size and translation. But it's coming up next :-)
+
 (to be continued)
