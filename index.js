@@ -36,7 +36,7 @@ const initialShapes = [
 
 const initialState = {
   shapeAdditions: initialShapes,
-  primaryActions: null,
+  primaryUpdate: null,
   currentScene: {shapes: initialShapes}
 }
 
@@ -48,7 +48,7 @@ const store = createStore(initialState)
  */
 
 const shapeAdditions = state => state.shapeAdditions
-const primaryActions = state => state.primaryActions
+const primaryUpdate = state => state.primaryUpdate
 const scene = state => state.currentScene
 
 
@@ -259,19 +259,19 @@ const positionsToLineAttribs = (x0, y0, x1, y1) => {
 // dispatch the various types of actions
 const rawCursorPosition = map(
   cursorPositionAction
-)(primaryActions)
+)(primaryUpdate)
 
 const mouseButtonEvent = map(
   mouseButtonEventAction
-)(primaryActions)
+)(primaryUpdate)
 
 const shapeEvent = map(
   shapeEventAction
-)(primaryActions)
+)(primaryUpdate)
 
 const alignEvent = map(
   d => {return alignEventAction(d)}
-)(primaryActions)
+)(primaryUpdate)
 
 const cursorPosition = reduce(
   (previous, position) => position || previous,
@@ -474,7 +474,7 @@ const scenegraph = map(
 )(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const updateScene = map(
-  (nextScene, shapeAdditions, primaryActions, frag, newShapeEvent) => {
+  (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {
 
     // perform side effects: rendering, and possibly, asynchronously dispatching arising events
     rootRender(frag)
@@ -485,11 +485,11 @@ const updateScene = map(
     // yield the new state
     return {
       shapeAdditions,
-      primaryActions,
+      primaryUpdate,
       currentScene: nextScene
     }
   }
-)(nextScene, shapeAdditions, primaryActions, scenegraph, newShapeEvent)
+)(nextScene, shapeAdditions, primaryUpdate, scenegraph, newShapeEvent)
 
 store.setUpdater(updateScene)
 

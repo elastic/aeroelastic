@@ -47,7 +47,7 @@ const createStore = initialState => {
   const setUpdater = updaterFunction => updateScene = updaterFunction
 
   const commit = (actionType, payload) => {
-    currentState = updateScene({...currentState, primaryActions: {actionType, payload}})
+    currentState = updateScene({...currentState, primaryUpdate: {actionType, payload}})
   }
 
   const dispatch = (actionType, payload) => setTimeout(() => commit(actionType, payload))
