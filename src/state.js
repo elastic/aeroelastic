@@ -23,18 +23,16 @@ let currentState = initialState
 const getCurrentState = () => currentState
 const setCurrentState = newState => currentState = newState
 
+
 /**
  * PoC action dispatch
  */
 
 const commit = (actionType, payload) => {
   currentState = updateScene({...currentState, primaryActions: {actionType, payload}})
-  //console.log(currentState.currentScene.shapes[4])
 }
 
 const dispatch = (actionType, payload) => setTimeout(() => commit(actionType, payload))
-
-let renderScene
 
 const shallowEqual = (a, b) => {
   if(a === b) return true
