@@ -19,3 +19,23 @@ const pad = 10
 const snapEngageDistance = 18
 const snapReleaseDistance = 2 * snapEngageDistance // hysteresis: make it harder to break the bond
 const enforceAlignment = true // whether snap lines enforce all elements to anchor left/center/right etc. or only preexisting ones
+
+module.exports = {
+  metaCursorRadius,
+  metaCursorZ ,
+  dragLineZ,
+  toolbarZ,
+  freeDragZ,
+  toolbarY,
+  toolbarHeight,
+  toolbarPad,
+  paddedToolbarHeight,
+  dragLineColor,
+  cornerHotspotSize,
+  edgeHotspotSize,
+  devColor,
+  pad,
+  snapEngageDistance,
+  snapReleaseDistance,
+  enforceAlignment
+}

@@ -1,4 +1,35 @@
-const {h, render} = ultradom
+const {h, render} = require('ultradom')
+const {
+        metaCursorRadius,
+        metaCursorZ ,
+        dragLineZ,
+        toolbarZ,
+        toolbarY,
+        toolbarHeight,
+        paddedToolbarHeight,
+        dragLineColor,
+        cornerHotspotSize,
+        edgeHotspotSize,
+        devColor,
+      } = require('./mockConfig')
+
+const {
+        horizontalCenterIcon,
+        horizontalLeftIcon,
+        horizontalRightIcon,
+        cancelIcon,
+        pattern1,
+        pattern2,
+        pattern3
+      } = require('./mockAssets')
+
+const {
+        currentState,
+        commit,
+        dispatch,
+        map,
+        reduce
+      } = require('./state')
 
 const rootRender = frag => render(frag, document.body)
 
@@ -152,3 +183,10 @@ const renderSubstrateFrag = (shapeFrags, freeShapeFrags, metaCursorFrag, dragLin
   shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
 )
 
+module.exports = {
+  rootRender,
+  renderShapeFrags,
+  renderMetaCursorFrag,
+  renderDragLineFrag,
+  renderSubstrateFrag
+}

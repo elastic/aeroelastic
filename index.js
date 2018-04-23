@@ -1,3 +1,29 @@
+const {
+        getCurrentState,
+        setCurrentState,
+        commit,
+        dispatch,
+        map,
+        reduce
+      } = require('./state')
+
+const {
+        rootRender,
+        renderShapeFrags,
+        renderMetaCursorFrag,
+        renderDragLineFrag,
+        renderSubstrateFrag
+      } = require('./mockDomFragments')
+
+const {
+        freeDragZ,
+        pad,
+        snapEngageDistance,
+        snapReleaseDistance,
+        enforceAlignment
+      } = require('./mockConfig')
+
+
 /**
  * Selectors directly from the state
  */
@@ -428,7 +454,7 @@ const scenegraph = map(
   renderSubstrateFrag
 )(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
-renderScene = map(
+updateScene = map(
   (nextScene, shapeAdditions, primaryActions, frag, newShapeEvent) => {
 
     // perform side effects: rendering, and possibly, asynchronously dispatching arising events
@@ -446,4 +472,5 @@ renderScene = map(
   }
 )(nextScene, shapeAdditions, primaryActions, scenegraph, newShapeEvent)
 
-currentState = renderScene(currentState)
+// initial scene update
+setCurrentState(updateScene(getCurrentState()))
