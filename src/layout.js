@@ -1,7 +1,7 @@
 const {
         map,
         reduce
-      } = require('./src/state')
+      } = require('./state')
 
 const {
         freeDragZ,
@@ -9,7 +9,7 @@ const {
         snapEngageDistance,
         snapReleaseDistance,
         enforceAlignment
-      } = require('./example/mockConfig')
+      } = require('../example/mockConfig')
 
 /**
  * Selectors directly from a state object

@@ -1,7 +1,6 @@
 const {
         createStore,
-        map,
-        reduce
+        map
       } = require('./src/state')
 
 const {
@@ -20,7 +19,7 @@ const {
         cursorPosition, mouseIsDown, dragStartAt,
         nextScene, focusedShape, selectedShape, currentFreeShapes,
         shapeAdditions, primaryUpdate, newShapeEvent
-      } = require('./layout')
+      } = require('./src/layout')
 
 
 /**
@@ -85,5 +84,5 @@ const updateScene = map(
 
 store.setUpdater(updateScene)
 
-// initial scene update
+// set the initial scene
 store.setCurrentState(updateScene(store.getCurrentState()))
