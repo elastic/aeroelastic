@@ -343,14 +343,6 @@ const dragStartAt = reduce(
   {down: false}
 )(dragging, dragVector, focusedShape)
 
-// free shapes are for showing the unconstrained location of the shape(s) being dragged
-const currentFreeShapes = map(
-  (shapes, {dragStartShape}) =>
-    shapes
-      .filter(shape => dragStartShape && shape.key === dragStartShape.key)
-      .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
-)(shapes, dragStartAt)
-
 // affordance for permanent selection of a shape
 const newShapeEvent = map(
   (click, shape, {x, y}) => click && {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}
@@ -397,19 +389,33 @@ const nextShapes = map(
 // currently the determination of transform data is done in this post-processing step; in future versions, the operations themselves (drag etc.)
 // will directly maintain the transform data
 
-const transformedShapes = map(shapes => {
-  return shapes.map(shape => {
-    const {x, y, z, rotation} = shape
-    const translationMatrix = matrix.translate(x, y, z)
-    const transformMatrix = rotation
-      ? matrix.multiply(translationMatrix, matrix.rotateZ(rotation))
-      : translationMatrix
-    return {
-      ...shape,
-      transform3d: 'matrix3d(' + transformMatrix.join(',') + ')'
-    }
-  })
-})(nextShapes)
+const transformShape = shape => {
+  const {x, y, z, rotation} = shape
+  const translationMatrix = matrix.translate(x, y, z)
+  // minor optimization for the common case of no rotation:
+  const transformMatrix = rotation
+    ? matrix.multiply(translationMatrix, matrix.rotateZ(rotation))
+    : translationMatrix
+  return {
+    ...shape,
+    transform3d: 'matrix3d(' + transformMatrix.join(',') + ')'
+  }
+}
+
+const transformShapes = shapes => {
+  return shapes.map(transformShape)
+}
+
+const transformedShapes = map(transformShapes)(nextShapes)
+
+// free shapes are for showing the unconstrained location of the shape(s) being dragged
+const currentFreeShapes = map(
+  (shapes, {dragStartShape}) =>
+    shapes
+      .filter(shape => dragStartShape && shape.key === dragStartShape.key)
+      .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: 'rgba(0,0,0,0.03)'}))
+      .map(transformShape)
+)(shapes, dragStartAt)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
