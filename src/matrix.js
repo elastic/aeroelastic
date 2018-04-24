@@ -1,8 +1,8 @@
 /**
  * transpose
  *
- * Turns a row major ordered vector representation of a 4 x 4 matrix into a column major ordered vector representation, or the
- * other way around.
+ * Turns a row major ordered vector representation of a 4 x 4 matrix into a column major ordered vector representation, or
+ * the other way around.
  *
  * Must pass a row major ordered vector if the goal is to obtain a columm major ordered vector.
  *
@@ -20,8 +20,8 @@
  *
  *      [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]
  *
- *  so it's clear that the first _column vector_ corresponds to a, b, c, d but in source code, we must write a, e, i, m in the
- *  first row if we want to visually resemble the above 4x4 matrix, ie. if we don't want that us programmers transpose
+ *  so it's clear that the first _column vector_ corresponds to a, b, c, d but in source code, we must write a, e, i, m in
+ *  the first row if we want to visually resemble the above 4x4 matrix, ie. if we don't want that us programmers transpose
  *  matrices in our heads.
  *
  */
@@ -61,16 +61,20 @@ const translate = (x, y, z) => transpose([
  * @returns {number[][]} a 4x4 transform matrix in column major order
  */
 const rotate = (x, y, z, a) => {
-  // looks like the formula but inefficient; common terms could be precomputed, transpose can be avoided
-  // an optimizing compiler eg. Google Closure Advanced could perform most of the optimizations and
-  // JIT also watches out for eg. common expressions
+  // it looks like the formula but inefficient; common terms could be precomputed, transpose can be avoided.
+  // an optimizing compiler eg. Google Closure Advanced could perform most of the optimizations and JIT also watches out
+  // for eg. common expressions
+
   const sinA = Math.sin(a)
   const coshAi = 1 - Math.cos(a)
+
   return transpose([
+
     1 + coshAi * (x * x - 1),      z * sinA + x * y * coshAi,    -y * sinA + x * y * coshAi,      0,
     -z * sinA + x * y * coshAi,    1 + coshAi * (y * y - 1),     x * sinA + y * x * coshAi,       0,
     y * sinA + x * z * coshAi,     -x * sinA + y * z * coshAi,   1 + coshAi * (z * z - 1),        0,
     0,                             0,                            0,                               1
+
   ])
 }
 

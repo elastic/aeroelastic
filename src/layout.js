@@ -14,6 +14,7 @@ const {
 
 const matrix = require('./matrix')
 
+
 /**
  * Selectors directly from a state object
  */
@@ -176,7 +177,7 @@ const parallel = (line1, line2) => isHorizontal(line1) === isHorizontal(line2)
 
 // shape updates may include newly added shapes, deleted or modified shapes
 const updateShapes = (preexistingShapes, shapeUpdates) => {
-  // Shell function - this is now a simple OR ie in the PoC it initializes with the given mock states; no more update happens.
+  // Shell function - this is now a simple OR ie in the PoC it initializes with the given mock states; no more update happens
   // A real function must handle additions, removals and updates, merging the new info into the current shape state.
   return preexistingShapes || shapeUpdates
 }
@@ -364,7 +365,6 @@ const focusedShape = map(
 
 const dragStartAt = reduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
-    // cursor must be over the shape at the _start_ of the gesture (x0 === x1 && y0 === y1 good enough) when downing the mouse
     if(down) {
       const newDragStart = mouseDowned && !previous.down
       return newDragStart
@@ -379,13 +379,14 @@ const dragStartAt = reduce(
 
 // affordance for permanent selection of a shape
 const newShapeEvent = map(
-  (click, shape, {x, y}) => click && {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}
+  (click, shape, {x, y}) =>
+    click && {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}
 )(mouseClickEvent, focusedShape, cursorPosition)
 
 // returns those snap guidelines that may affect the draggedShape
 const snapGuideLines = map(
   (shapes, draggedShape) => {
-    // The guidelines may come from explicit guidelines (as in the mock of this PoC) or generated automatically in the future,
+    // The guidelines may come from explicit guidelines (as in the mock of this PoC) or generated automatically in the future
     // so that dragging a shape dynamically traces other shapes, flashing temporary alignment lines, example snap guides
     // here: https://i.imgur.com/QKrK6.png
     if(draggedShape) {
@@ -453,8 +454,8 @@ const currentFreeShapes = map(
 )(shapes, dragStartAt)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
-// it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection
-// of shapes themselves
+// it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
+// collection of shapes themselves
 const nextScene = map(
   (hoveredShape, draggedShape, shapes) => ({
     hoveredShape,
