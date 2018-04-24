@@ -287,6 +287,10 @@ const mouseDowned = map(
   state => state.buttonState === 'downed'
 )(mouseButtonState)
 
+const dragging = map(
+  state => state.buttonState === 'dragging'
+)(mouseButtonState)
+
 const mouseClickEvent = map(
   event => event && event.event === 'mouseClick'
 )(mouseButtonEvent)
@@ -335,7 +339,7 @@ const dragStartAt = reduce(
     }
   },
   {down: false}
-)(mouseDowned, dragVector, focusedShape)
+)(dragging, dragVector, focusedShape)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = map(
