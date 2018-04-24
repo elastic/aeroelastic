@@ -270,7 +270,7 @@ const mouseButtonStateTransitions = (state, mouseIsDown, movedAlready) => {
   }
 }
 
-const mouseButtonStateMachine = reduce(
+const mouseButtonState = reduce(
   ({buttonState, downX, downY}, mouseIsDown, {x, y}) => {
     const movedAlready = x !== downX || y !== downY
     const newButtonState = mouseButtonStateTransitions(buttonState, mouseIsDown, movedAlready)
@@ -285,7 +285,7 @@ const mouseButtonStateMachine = reduce(
 
 const mouseDowned = map(
   state => state.buttonState === 'downed'
-)(mouseButtonStateMachine)
+)(mouseButtonState)
 
 const mouseClickEvent = map(
   event => event && event.event === 'mouseClick'
@@ -293,7 +293,7 @@ const mouseClickEvent = map(
 
 const dragVector = map(
   ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
-)(mouseButtonStateMachine, cursorPosition)
+)(mouseButtonState, cursorPosition)
 
 
 /**
