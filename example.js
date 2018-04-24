@@ -11,6 +11,8 @@ const {
         renderSubstrateFrag
       } = require('./example/mockDomFragments')
 
+const {devColor} = require('./example/mockConfig')
+
 const initialState = require('./example/mockScene')
 
 const store = createStore(initialState)
@@ -40,7 +42,7 @@ const positionsToLineAttribs = (x0, y0, x1, y1) => {
 const metaCursorFrag = map(
   (cursor, mouseDown, dragStartAt) => {
     const thickness = mouseDown ? 8 : 1
-    return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, 'magenta')
+    return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, devColor)
   }
 )(cursorPosition, mouseIsDown, dragStartAt)
 

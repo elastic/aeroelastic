@@ -11,6 +11,8 @@ const {
         enforceAlignment
       } = require('../example/mockConfig')
 
+const matrix = require('./matrix')
+
 /**
  * Selectors directly from a state object
  */
@@ -392,15 +394,32 @@ const nextShapes = map(
   }
 )(shapes, draggedShape, dragVector, alignUpdate, constraints, snapGuideLines, mouseDowned)
 
+// currently the determination of transform data is done in this post-processing step; in future versions, the operations themselves (drag etc.)
+// will directly maintain the transform data
+
+const transformedShapes = map(shapes => {
+  return shapes.map(shape => {
+    const {x, y, z, rotation} = shape
+    const translationMatrix = matrix.translate(x, y, z)
+    const transformMatrix = rotation
+      ? matrix.multiply(translationMatrix, matrix.rotateZ(rotation))
+      : translationMatrix
+    return {
+      ...shape,
+      transform3d: 'matrix3d(' + transformMatrix.join(',') + ')'
+    }
+  })
+})(nextShapes)
+
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the collection of shapes themselves
 const nextScene = map(
-  (hoveredShape, draggedShape, nextShapes) => ({
+  (hoveredShape, draggedShape, shapes) => ({
     hoveredShape,
     draggedShape,
-    shapes: nextShapes
+    shapes
   })
-)(hoveredShape, draggedShape, nextShapes)
+)(hoveredShape, draggedShape, transformedShapes)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt,

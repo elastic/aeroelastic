@@ -40,7 +40,7 @@ const renderShapeFrags = commit => (shapes, hoveredShape, dragStartAt, selectedS
   return h('div', {
     class: dragged ? 'draggable' : null,
     style: {
-      transform: `translate3d(${shape.x}px, ${shape.y}px, ${shape.z}px) rotateZ(${shape.rotation}deg)`,
+      transform: shape.transform3d,
     }
   }, [
     h('div', {
