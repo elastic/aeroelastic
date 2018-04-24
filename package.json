@@ -3,11 +3,15 @@
   "version": "0.0.2",
   "description": "A predictable layout editor that isolates the view model from the view",
   "main": "index.js",
+  "scripts": {
+    "start": "budo --live --open --host localhost example.js"
+  },
   "repository": "http://github.com/elastic/aeroelastic",
   "author": "Robert Monfera <robert.monfera@elastic.co>",
   "license": "Apache-2.0",
   "dependencies": {},
   "devDependencies": {
+    "budo": "^11.2.0",
     "ultradom": "^3.0.1"
   }
 }
