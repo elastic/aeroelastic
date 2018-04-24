@@ -1,12 +1,13 @@
 /**
  * transpose
  *
- * Turns a row major ordered vector representation of a 4 x 4 matrix into a column major ordered vector representation, or the other way around
+ * Turns a row major ordered vector representation of a 4 x 4 matrix into a column major ordered vector representation, or the
+ * other way around.
  *
  * Must pass a row major ordered vector if the goal is to obtain a columm major ordered vector.
  *
- * We're using row major order in the _source code_ as this results in the correct visual shape of the matrix, but `transform3d` needs column major order.
- * It's just a 4x4 `transpose` function; the more specific naming here is only because it's clear to read code where we apply it (see below).
+ * We're using row major order in the _source code_ as this results in the correct visual shape of the matrix, but
+ * `transform3d` needs column major order.
  *
  * This is what the matrix is:                  Eg. this is the equivalent matrix of `translate3d(${x}px, ${y}px, ${z}px)`:
  *
@@ -19,8 +20,9 @@
  *
  *      [a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]
  *
- *  so it's clear that the first _column vector_ corresponds to a, b, c, d but in source code, we must write a, e, i, m in the first row if we want to
- *  visually resemble the above 4x4 matrix, ie. if we don't want that us programmers transpose matrices in our heads.
+ *  so it's clear that the first _column vector_ corresponds to a, b, c, d but in source code, we must write a, e, i, m in the
+ *  first row if we want to visually resemble the above 4x4 matrix, ie. if we don't want that us programmers transpose
+ *  matrices in our heads.
  *
  */
 const transpose = ([a, e, i, m, b, f, j, n, c, g, k, o, d, h, l, p]) =>
@@ -40,7 +42,8 @@ const UNIT = transpose([
   0, 0, 0, 1
 ])
 
-// currently these functions expensively transpose; in a future version we can have way more efficient matrix operations (eg. pre-transpose)
+// currently these functions expensively transpose; in a future version we can have way more efficient matrix operations
+// (eg. pre-transpose)
 const translate = (x, y, z) => transpose([
   1, 0, 0, x,
   0, 1, 0, y,

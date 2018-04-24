@@ -47,7 +47,8 @@ const metaCursorFrag = map(
 )(cursorPosition, mouseIsDown, dragStartAt)
 
 const shapeFrags = map(
-  ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) => renderShapeFrags(store.commit)(shapes, hoveredShape, dragStartAt, selectedShapeKey)
+  ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) =>
+    renderShapeFrags(store.commit)(shapes, hoveredShape, dragStartAt, selectedShapeKey)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
 const freeShapeFrags = map(

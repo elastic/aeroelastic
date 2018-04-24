@@ -13,7 +13,7 @@ const shallowEqual = (a, b) => {
 
 const reduce = (fun, previousValue) => (...inputs) => {
   // last-value memoizing version of this single line function:
-  // const reduce = (fun, previousValue) => (...inputs) => state => previousValue = fun(previousValue, ...inputs.map(input => input(state)))
+  // (fun, previousValue) => (...inputs) => state => previousValue = fun(previousValue, ...inputs.map(input => input(state)))
   let argumentValues = []
   let value = previousValue
   let prevValue = previousValue
@@ -28,7 +28,7 @@ const reduce = (fun, previousValue) => (...inputs) => {
 
 const map = fun => (...inputs) => {
   // last-value memoizing version of this single line function:
-  // const map = fun => (...inputs) => state => fun(...inputs.map(input => input(state)))
+  // fun => (...inputs) => state => fun(...inputs.map(input => input(state)))
   let argumentValues = []
   let value
   return state => {

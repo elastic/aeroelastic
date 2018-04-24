@@ -56,68 +56,152 @@ const renderShapeFrags = commit => (shapes, hoveredShape, dragStartAt, selectedS
     }),
     h('div', {
       class: 'rotateHotspot circle',
-      style: { width: (cornerHotspotSize * 3) + 'px', height: (cornerHotspotSize * 3) + 'px', transform: `translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)` }
+      style: {
+        width: (cornerHotspotSize * 3) + 'px',
+        height: (cornerHotspotSize * 3) + 'px',
+        transform: `translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)`
+      }
     }),
     h('div', {
       class: 'hotspot corner rectangle topLeft',
-      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(0, 0)` }
+      style: {
+        width: cornerHotspotSize + 'px',
+        height: cornerHotspotSize + 'px',
+        transform: `translate(0, 0)`
+      }
     }),
     h('div', {
       class: 'hotspot corner rectangle topRight',
-      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(${shape.width - cornerHotspotSize}px, 0)` }
+      style: {
+        width: cornerHotspotSize + 'px',
+        height: cornerHotspotSize + 'px',
+        transform: `translate(${shape.width - cornerHotspotSize}px, 0)`
+      }
     }),
     h('div', {
       class: 'hotspot corner rectangle bottomLeft',
-      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(0, ${shape.height - cornerHotspotSize}px)` }
+      style: {
+        width: cornerHotspotSize + 'px',
+        height: cornerHotspotSize + 'px',
+        transform: `translate(0, ${shape.height - cornerHotspotSize}px)`
+      }
     }),
     h('div', {
       class: 'hotspot corner rectangle bottomRight',
-      style: { width: cornerHotspotSize + 'px', height: cornerHotspotSize + 'px', transform: `translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)` }
+      style: {
+        width: cornerHotspotSize + 'px',
+        height: cornerHotspotSize + 'px',
+        transform: `translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
+      }
     }),
     h('div', {
       class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize + 'px', height: '0', transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)` }
+      style: {
+        width: edgeHotspotSize + 'px',
+        height: '0',
+        transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)`
+      }
     }),
     h('div', {
       class: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
-      style: { width: '0', height: edgeHotspotSize + 'px', transform: `translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
+      style: {
+        width: '0',
+        height: edgeHotspotSize + 'px',
+        transform: `translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)`
+      }
     }),
     h('div', {
       class: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize + 'px', height: '0', transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)` }
+      style: {
+        width: edgeHotspotSize + 'px',
+        height: '0',
+        transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)`
+      }
     }),
     h('div', {
       class: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
-      style: { width: '0', height: edgeHotspotSize + 'px', transform: `translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)` }
+      style: {
+        width: '0',
+        height: edgeHotspotSize + 'px',
+        transform: `translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
+      }
     }),
     h('div', {
       class: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
-      style: { width: '0', height: edgeHotspotSize + 'px', transform: `translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)` }
+      style: {
+        width: '0',
+        height: edgeHotspotSize + 'px',
+        transform: `translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)`
+      }
     }),
     h('div', {
       class: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
-      style: { width: edgeHotspotSize + 'px', height: '0', transform: `translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px, ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)` }
+      style: {
+        width: edgeHotspotSize + 'px',
+        height: '0',
+        transform: `translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px,
+                                ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)`
+      }
     }),
     ...(selected ? [
       h('div', {
         class: 'hotspot rectangle center',
         onclick: alignRight,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`, backgroundImage: horizontalRightIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: {
+          opacity: 0.27,
+          outline: 'none',
+          width: toolbarHeight + 'px',
+          height: toolbarHeight + 'px',
+          transform: `translate3d(${shape.width + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`,
+          backgroundImage: horizontalRightIcon,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat'
+        }
       }),
       h('div', {
         class: 'hotspot rectangle center',
         onclick: alignCenter,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`, backgroundImage: horizontalCenterIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: {
+          opacity: 0.27,
+          outline: 'none',
+          width: toolbarHeight + 'px',
+          height: toolbarHeight + 'px',
+          transform: `translate3d(${shape.width + 2 * cornerHotspotSize + paddedToolbarHeight}px, 
+                                  ${toolbarY}px, ${toolbarZ}px) 
+                      ${rotation}`,
+          backgroundImage: horizontalCenterIcon,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         class: 'hotspot rectangle center',
         onclick: alignLeft,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`, backgroundImage: horizontalLeftIcon, backgroundSize: 'contain', backgroundRepeat: 'no-repeat' }
+        style: {
+          opacity: 0.27,
+          outline: 'none',
+          width: toolbarHeight + 'px',
+          height: toolbarHeight + 'px',
+          transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, 
+                                  ${toolbarY}px, ${toolbarZ}px) 
+                      ${rotation}`,
+          backgroundImage: horizontalLeftIcon,
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat' }
       }),
       h('div', {
         class: 'hotspot rectangle center',
         onclick: alignRemove,
-        style: { opacity: 0.27, outline: 'none', width: toolbarHeight + 'px', height: toolbarHeight + 'px', transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`, backgroundImage: cancelIcon, backgroundSize: `${toolbarHeight}px ${toolbarHeight}px`, backgroundRepeat: 'no-repeat' }
+        style: {
+          opacity: 0.27,
+          outline: 'none',
+          width: toolbarHeight + 'px',
+          height: toolbarHeight + 'px',
+          transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, 
+                                  ${toolbarY}px, ${toolbarZ}px) 
+                      ${rotation}`,
+          backgroundImage: cancelIcon,
+          backgroundSize: `${toolbarHeight}px ${toolbarHeight}px`,
+          backgroundRepeat: 'no-repeat' }
       })
     ] : [])
   ])
