@@ -11,7 +11,7 @@ const shallowEqual = (a, b) => {
   return true
 }
 
-const reduce = (fun, previousValue) => (...inputs) => {
+const reduce = (fun, previousValue, logFun) => (...inputs) => {
   // last-value memoizing version of this single line function:
   // (fun, previousValue) => (...inputs) => state => previousValue = fun(previousValue, ...inputs.map(input => input(state)))
   let argumentValues = []
@@ -22,11 +22,13 @@ const reduce = (fun, previousValue) => (...inputs) => {
       return value
     }
     prevValue = value
-    return value = fun(prevValue, ...argumentValues)
+    value = fun(prevValue, ...argumentValues)
+    if(logFun) logFun(value, argumentValues)
+    return value
   }
 }
 
-const map = fun => (...inputs) => {
+const map = (fun, logFun) => (...inputs) => {
   // last-value memoizing version of this single line function:
   // fun => (...inputs) => state => fun(...inputs.map(input => input(state)))
   let argumentValues = []
@@ -35,7 +37,9 @@ const map = fun => (...inputs) => {
     if(shallowEqual(argumentValues, argumentValues = inputs.map(input => input(state)))) {
       return value
     }
-    return value = fun(...argumentValues)
+    value = fun(...argumentValues)
+    if(logFun) logFun(value, argumentValues)
+    return value
   }
 }
 

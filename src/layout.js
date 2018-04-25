@@ -467,5 +467,5 @@ const nextScene = map(
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt,
   nextScene, focusedShape, selectedShape, currentFreeShapes,
-  shapeAdditions, primaryUpdate, newShapeEvent
+  shapeAdditions, primaryUpdate, newShapeEvent, shapes
 }

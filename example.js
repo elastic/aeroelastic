@@ -6,7 +6,8 @@ const {
 const {
         rootRender,
         renderShapeFrags,
-        renderShapeOverlayFrags,
+        renderShapeTransformOverlayFrags,
+        renderShapeMenuOverlayFrags,
         renderMetaCursorFrag,
         renderDragLineFrag,
         renderSubstrateFrag
@@ -21,7 +22,7 @@ const store = createStore(initialState)
 const {
         cursorPosition, mouseIsDown, dragStartAt,
         nextScene, focusedShape, selectedShape, currentFreeShapes,
-        shapeAdditions, primaryUpdate, newShapeEvent
+        shapeAdditions, primaryUpdate, newShapeEvent, shapes
       } = require('./src/layout')
 
 
@@ -52,10 +53,20 @@ const shapeFrags = map(
     renderShapeFrags(shapes, hoveredShape, dragStartAt)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
-const shapeOverlayFrags = map(
-  ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) =>
-    renderShapeOverlayFrags(store.commit)(shapes, hoveredShape, dragStartAt, selectedShapeKey)
-)(nextScene, focusedShape, dragStartAt, selectedShape)
+const shapeTransformOverlayFrags = map(
+  (shapes, focusedShape, dragStartAt) => {
+    // focusedShapes has updated position etc. information while focusedShape may have stale position
+    const focusedShapes = shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
+    return renderShapeTransformOverlayFrags(focusedShapes, dragStartAt)
+  }
+)(shapes, focusedShape, dragStartAt)
+
+const shapeMenuOverlayFrags = map(
+  (shapes, selectedShapeKey) => {
+    const selectedShapes = shapes.filter(shape => shape.key === selectedShapeKey)
+    return renderShapeMenuOverlayFrags(store.commit)(selectedShapes)
+  }
+)(shapes, selectedShape)
 
 const freeShapeFrags = map(
   shapes => renderShapeFrags(shapes, null, null, false)
@@ -71,7 +82,7 @@ const dragLineFrag = map(
 
 const scenegraph = map(
   renderSubstrateFrag(store.commit)
-)(shapeFrags, shapeOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+)(shapeFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const updateScene = map(
   (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {
