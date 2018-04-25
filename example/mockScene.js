@@ -1,7 +1,9 @@
 const {
         pattern1,
         pattern2,
-        pattern3
+        pattern3,
+        elasticLogo,
+        bach
       } = require('./mockAssets')
 
 const initialShapes = [
@@ -13,8 +15,10 @@ const initialShapes = [
     backgroundColor: '#b3e2cd', backgroundImage: pattern1},
   {key: 'rect2', type: 'rectangle', x: 600, y: 350, rotation: 0, width: 300, height: 220, z: 6, backgroundColor: '#fdcdac',
     backgroundImage: pattern2},
-  {key: 'rect3', type: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8'},
-  {key: 'rect4', type: 'rectangle', x: 100, y: 250, rotation: 0, width: 250, height: 150, z: 8, backgroundColor: '#f4cae4'},
+  {key: 'rect3', type: 'rectangle', x: 800, y: 250, rotation: 0, width: 200, height: 150, z: 7, backgroundColor: '#cbd5e8',
+  backgroundImage: bach},
+  {key: 'rect4', type: 'rectangle', x: 100, y: 250, rotation: 0, width: 180, height: 300, z: 8, backgroundColor: 'rgba(0,0,0,0)',
+    backgroundImage: elasticLogo}, // #f4cae4
   {key: 'rect5', type: 'rectangle', x: 900, y: 100, rotation: 0, width: 325, height: 200, z: 9, backgroundColor: '#e6f5c9',
     backgroundImage: pattern3},
 ]
