@@ -61,7 +61,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
   return h('div', {
     class: dragged ? 'draggable' : null,
     style: {
-      transform: shape.transform3d,
+      //transform: shape.transform3d,
     }
   }, [
     h('div', {
@@ -69,7 +69,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: (cornerHotspotSize * 3) + 'px',
         height: (cornerHotspotSize * 3) + 'px',
-        transform: `translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px)`
+        transform:  shape.transform3d + ` translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px) `
       }
     }),
     h('div', {
@@ -77,7 +77,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: cornerHotspotSize + 'px',
         height: cornerHotspotSize + 'px',
-        transform: `translate(0, 0)`
+        transform: shape.transform3d
       }
     }),
     h('div', {
@@ -85,7 +85,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: cornerHotspotSize + 'px',
         height: cornerHotspotSize + 'px',
-        transform: `translate(${shape.width - cornerHotspotSize}px, 0)`
+        transform: shape.transform3d + ` translate(${shape.width - cornerHotspotSize}px, 0)`
       }
     }),
     h('div', {
@@ -93,7 +93,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: cornerHotspotSize + 'px',
         height: cornerHotspotSize + 'px',
-        transform: `translate(0, ${shape.height - cornerHotspotSize}px)`
+        transform: shape.transform3d + ` translate(0, ${shape.height - cornerHotspotSize}px)`
       }
     }),
     h('div', {
@@ -101,7 +101,8 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: cornerHotspotSize + 'px',
         height: cornerHotspotSize + 'px',
-        transform: `translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
+        transform: shape.transform3d
+                   + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
       }
     }),
     h('div', {
@@ -109,7 +110,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: edgeHotspotSize + 'px',
         height: '0',
-        transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)`
+        transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)`
       }
     }),
     h('div', {
@@ -117,7 +118,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: '0',
         height: edgeHotspotSize + 'px',
-        transform: `translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)`
+        transform: shape.transform3d + ` translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)`
       }
     }),
     h('div', {
@@ -125,7 +126,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: edgeHotspotSize + 'px',
         height: '0',
-        transform: `translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)`
+        transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)`
       }
     }),
     h('div', {
@@ -133,7 +134,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: '0',
         height: edgeHotspotSize + 'px',
-        transform: `translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
+        transform: shape.transform3d + ` translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
       }
     }),
     h('div', {
@@ -141,7 +142,8 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: '0',
         height: edgeHotspotSize + 'px',
-        transform: `translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)`
+        transform: shape.transform3d
+                   + ` translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)`
       }
     }),
     h('div', {
@@ -149,7 +151,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
       style: {
         width: edgeHotspotSize + 'px',
         height: '0',
-        transform: `translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px,
+        transform: shape.transform3d + ` translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px,
                                 ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)`
       }
     }),
@@ -162,7 +164,8 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
           outline: 'none',
           width: toolbarHeight + 'px',
           height: toolbarHeight + 'px',
-          transform: `translate3d(${shape.width + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`,
+          transform: shape.transform3d
+                     + ` translate3d(${shape.width + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`,
           backgroundImage: horizontalRightIcon,
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat'
@@ -176,7 +179,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
           outline: 'none',
           width: toolbarHeight + 'px',
           height: toolbarHeight + 'px',
-          transform: `translate3d(${shape.width + 2 * cornerHotspotSize + paddedToolbarHeight}px, 
+          transform: shape.transform3d + ` translate3d(${shape.width + 2 * cornerHotspotSize + paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
           backgroundImage: horizontalCenterIcon,
@@ -191,7 +194,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
           outline: 'none',
           width: toolbarHeight + 'px',
           height: toolbarHeight + 'px',
-          transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, 
+          transform: shape.transform3d + ` translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
           backgroundImage: horizontalLeftIcon,
@@ -206,7 +209,7 @@ const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, se
           outline: 'none',
           width: toolbarHeight + 'px',
           height: toolbarHeight + 'px',
-          transform: `translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, 
+          transform: shape.transform3d + ` translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
           backgroundImage: cancelIcon,
@@ -257,20 +260,21 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const renderSubstrateFrag = commit => (shapeFrags, shapeOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => h('div', {
-    id: 'root',
-    onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
-    onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
-    onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
-    onclick: event => commit('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY}),
-  },
-  [
-    ...shapeFrags,
-    ...shapeOverlayFrags,
-    freeShapeFrags,
-    metaCursorFrag, dragLineFrag
-  ]
-)
+const renderSubstrateFrag = commit => (shapeFrags, shapeOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
+  h('div', {
+      id: 'root',
+      onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
+      onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
+      onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
+      onclick: event => commit('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY}),
+    },
+    [
+      ...shapeFrags,
+      ...shapeOverlayFrags,
+      freeShapeFrags,
+      metaCursorFrag, dragLineFrag
+    ]
+  )
 
 module.exports = {
   rootRender,
