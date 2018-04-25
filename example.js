@@ -6,6 +6,7 @@ const {
 const {
         rootRender,
         renderShapeFrags,
+        renderShapeOverlayFrags,
         renderMetaCursorFrag,
         renderDragLineFrag,
         renderSubstrateFrag
@@ -47,12 +48,17 @@ const metaCursorFrag = map(
 )(cursorPosition, mouseIsDown, dragStartAt)
 
 const shapeFrags = map(
+  ({shapes}, hoveredShape, dragStartAt) =>
+    renderShapeFrags(shapes, hoveredShape, dragStartAt)
+)(nextScene, focusedShape, dragStartAt, selectedShape)
+
+const shapeOverlayFrags = map(
   ({shapes}, hoveredShape, dragStartAt, selectedShapeKey) =>
-    renderShapeFrags(store.commit)(shapes, hoveredShape, dragStartAt, selectedShapeKey)
+    renderShapeOverlayFrags(store.commit)(shapes, hoveredShape, dragStartAt, selectedShapeKey)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
 const freeShapeFrags = map(
-  shapes => renderShapeFrags(store.commit)(shapes, null, null, false)
+  shapes => renderShapeFrags(shapes, null, null, false)
 )(currentFreeShapes)
 
 const dragLineFrag = map(
@@ -65,7 +71,7 @@ const dragLineFrag = map(
 
 const scenegraph = map(
   renderSubstrateFrag(store.commit)
-)(shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+)(shapeFrags, shapeOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const updateScene = map(
   (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {

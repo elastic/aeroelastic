@@ -27,8 +27,29 @@ const rootRender = frag => render(frag, document.body)
  * Pure functions: fragment makers (PoC: React DOM fragments)
  */
 
-// renders a shape including its (not yet factored out) control points, so it's not quite DRY compliant atm :-)
-const renderShapeFrags = commit => (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
+// renders a shape excluding its control points
+const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape => {
+  const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+
+  return h('div', {
+    class: dragged ? 'draggable' : null,
+    style: {
+      transform: shape.transform3d,
+    }
+  }, h('div', {
+    class: shape.type,
+    style: {
+      width: shape.width + 'px',
+      height: shape.height + 'px',
+      backgroundColor: shape.backgroundColor,
+      backgroundImage: shape.backgroundImage,
+      outline: dragged ? `1px solid ${devColor}` : (shape.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
+      opacity: shape.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
+    }
+  }))
+})
+
+const renderShapeOverlayFrags = commit => (shapes, hoveredShape, dragStartAt, selectedShapeKey) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
   const selected = shape.key === selectedShapeKey
   const rotation = selected && shape.type === 'line' && shape.height === 0 ? 'rotate(-90deg)' : ''
@@ -43,17 +64,6 @@ const renderShapeFrags = commit => (shapes, hoveredShape, dragStartAt, selectedS
       transform: shape.transform3d,
     }
   }, [
-    h('div', {
-      class: shape.type,
-      style: {
-        width: shape.width + 'px',
-        height: shape.height + 'px',
-        backgroundColor: shape.backgroundColor,
-        backgroundImage: shape.backgroundImage,
-        outline: dragged ? `1px solid ${devColor}` : (shape.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
-        opacity: shape.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
-      }
-    }),
     h('div', {
       class: 'rotateHotspot circle',
       style: {
@@ -247,19 +257,25 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const renderSubstrateFrag = commit => (shapeFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => h('div', {
+const renderSubstrateFrag = commit => (shapeFrags, shapeOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) => h('div', {
     id: 'root',
     onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
     onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
     onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
     onclick: event => commit('mouseEvent', {event: 'mouseClick', x: event.clientX, y: event.clientY}),
   },
-  shapeFrags.concat(freeShapeFrags).concat([metaCursorFrag, dragLineFrag])
+  [
+    ...shapeFrags,
+    ...shapeOverlayFrags,
+    freeShapeFrags,
+    metaCursorFrag, dragLineFrag
+  ]
 )
 
 module.exports = {
   rootRender,
   renderShapeFrags,
+  renderShapeOverlayFrags,
   renderMetaCursorFrag,
   renderDragLineFrag,
   renderSubstrateFrag
