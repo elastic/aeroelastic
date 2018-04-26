@@ -131,7 +131,7 @@ const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   }
 }))
 
-const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
+const makeShapeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
 
   return h('div', {
@@ -167,9 +167,18 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
         width: dom.px(cornerHotspotSize),
         height: dom.px(cornerHotspotSize),
         transform: shape.transform3d
-                   + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
+        + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
       }
-    }),
+    })
+  ])
+})
+
+const makeShapeEdgeFrags = (shapes, dragStartAt) => shapes.map(shape => {
+  const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+
+  return h('div', {
+    class: dragged ? 'draggable' : null,
+  }, [
     h('div', {
       class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
       style: {
@@ -263,7 +272,8 @@ const makeDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeEdgeCornerFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
+const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeCornerFrags, shapeEdgeFrags, shapeMenuOverlayFrags,
+                                     freeShapeFrags, metaCursorFrag, dragLineFrag) =>
   h('div', {
       id: 'root',
       onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
@@ -274,7 +284,8 @@ const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeEdgeCorn
     [
       ...shapeFrags,
       ...shapeRotateFrags,
-      ...shapeEdgeCornerFrags,
+      ...shapeCornerFrags,
+      ...shapeEdgeFrags,
       ...shapeMenuOverlayFrags,
       freeShapeFrags,
       metaCursorFrag, dragLineFrag
@@ -285,7 +296,8 @@ module.exports = {
   renderIntoRoot,
   makeShapeFrags,
   makeRotateFrags,
-  makeShapeEdgeCornerFrags,
+  makeShapeCornerFrags,
+  makeShapeEdgeFrags,
   makeShapeMenuOverlayFrags,
   makeMetaCursorFrag,
   makeDragLineFrag,
