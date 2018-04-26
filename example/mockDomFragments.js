@@ -199,7 +199,10 @@ const makeShapeEdgeFrags = shape => [
       height: dom.px(edgeHotspotSize),
       transform: shape.transform3d + ` translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
     }
-  }),
+  })
+]
+
+const makeShapeCenterFrags = shape => [
   h('div', {
     class: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
     style: {
@@ -219,6 +222,7 @@ const makeShapeEdgeFrags = shape => [
     }
   }),
 ]
+
 // magenta debug cursor
 const makeMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
   class: 'circle metaCursor',
@@ -259,8 +263,8 @@ const makeDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeCornerFrags, shapeEdgeFrags, shapeMenuOverlayFrags,
-                                     freeShapeFrags, metaCursorFrag, dragLineFrag) =>
+const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeCornerFrags, shapeEdgeFrags, shapeCenterFrags,
+                                     shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
   h('div', {
       id: 'root',
       onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
@@ -273,9 +277,11 @@ const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeCornerFr
       ...shapeRotateFrags,
       ...shapeCornerFrags,
       ...shapeEdgeFrags,
+      ...shapeCenterFrags,
       ...shapeMenuOverlayFrags,
       freeShapeFrags,
-      metaCursorFrag, dragLineFrag
+      metaCursorFrag,
+      dragLineFrag
     ]
   )
 
@@ -285,6 +291,7 @@ module.exports = {
   makeRotateFrags,
   makeShapeCornerFrags,
   makeShapeEdgeFrags,
+  makeShapeCenterFrags,
   makeShapeMenuOverlayFrags,
   makeMetaCursorFrag,
   makeDragLineFrag,
