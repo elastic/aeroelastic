@@ -61,6 +61,11 @@ const focusedShapes = map(
   (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
 )(shapes, focusedShape)
 
+// selectedShapes has updated position etc. information while focusedShape may have stale position
+const selectedShapes = map(
+  (shapes, selectedShapeKey) => shapes.filter(shape => shape.key === selectedShapeKey)
+)(shapes, selectedShape)
+
 const shapeTransformOverlayFrags = map(
   renderShapeTransformOverlayFrags
 )(focusedShapes, dragStartAt)
@@ -73,11 +78,8 @@ const shapeRotateFrags = map(
 )(focusedShapes)
 
 const shapeMenuOverlayFrags = map(
-  (shapes, selectedShapeKey) => {
-    const selectedShapes = shapes.filter(shape => shape.key === selectedShapeKey)
-    return renderShapeMenuOverlayFrags(store.commit)(selectedShapes)
-  }
-)(shapes, selectedShape)
+  selectedShapes => renderShapeMenuOverlayFrags(store.commit)(selectedShapes)
+)(selectedShapes)
 
 const freeShapeFrags = map(
   shapes => renderShapeFrags(shapes, null, null, false)
