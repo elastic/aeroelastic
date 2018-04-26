@@ -30,23 +30,18 @@ const rootRender = frag => render(frag, document.body)
 // renders a shape excluding its control points
 const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
-
   return h('div', {
-    class: dragged ? 'draggable' : null,
-    style: {
-      transform: shape.transform3d,
-    }
-  }, h('div', {
     class: shape.type,
     style: {
+      transform: shape.transform3d,
       width: shape.width + 'px',
       height: shape.height + 'px',
       backgroundColor: shape.backgroundColor,
       backgroundImage: shape.backgroundImage,
       outline: dragged ? `1px solid ${devColor}` : (shape.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
-      opacity: shape.key === (hoveredShape && hoveredShape.key) ? 0.8 : 0.5
+      opacity: shape.key === (hoveredShape && hoveredShape.key) ? 1 : 0.8
     }
-  }))
+  })
 })
 
 const renderShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
