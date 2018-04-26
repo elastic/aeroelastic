@@ -117,12 +117,12 @@ const renderShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
   ])
 })
 
-const renderShapeTransformOverlayFrags = (shapes, dragStartAt) => shapes.map(shape => {
+const renderRotateFrags = (shapes, dragStartAt) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
 
   return h('div', {
     class: dragged ? 'draggable' : null,
-  }, [
+  },
     h('div', {
       class: 'rotateHotspot circle',
       style: {
@@ -131,6 +131,15 @@ const renderShapeTransformOverlayFrags = (shapes, dragStartAt) => shapes.map(sha
         transform:  shape.transform3d + ` translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px) `
       }
     }),
+  )
+})
+
+const renderShapeTransformOverlayFrags = (shapes, dragStartAt) => shapes.map(shape => {
+  const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+
+  return h('div', {
+    class: dragged ? 'draggable' : null,
+  }, [
     h('div', {
       class: 'hotspot corner rectangle topLeft',
       style: {
@@ -257,7 +266,7 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const renderSubstrateFrag = commit => (shapeFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
+const renderSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
   h('div', {
       id: 'root',
       onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
@@ -267,6 +276,7 @@ const renderSubstrateFrag = commit => (shapeFrags, shapeTransformOverlayFrags, s
     },
     [
       ...shapeFrags,
+      ...shapeRotateFrags,
       ...shapeTransformOverlayFrags,
       ...shapeMenuOverlayFrags,
       freeShapeFrags,
@@ -277,6 +287,7 @@ const renderSubstrateFrag = commit => (shapeFrags, shapeTransformOverlayFrags, s
 module.exports = {
   rootRender,
   renderShapeFrags,
+  renderRotateFrags,
   renderShapeTransformOverlayFrags,
   renderShapeMenuOverlayFrags,
   renderMetaCursorFrag,

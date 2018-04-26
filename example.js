@@ -6,6 +6,7 @@ const {
 const {
         rootRender,
         renderShapeFrags,
+        renderRotateFrags,
         renderShapeTransformOverlayFrags,
         renderShapeMenuOverlayFrags,
         renderMetaCursorFrag,
@@ -61,6 +62,14 @@ const shapeTransformOverlayFrags = map(
   }
 )(shapes, focusedShape, dragStartAt)
 
+const shapeRotateFrags = map(
+  (shapes, focusedShape, dragStartAt) => {
+    // focusedShapes has updated position etc. information while focusedShape may have stale position
+    const focusedShapes = shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
+    return renderRotateFrags(focusedShapes, dragStartAt)
+  }
+)(shapes, focusedShape, dragStartAt)
+
 const shapeMenuOverlayFrags = map(
   (shapes, selectedShapeKey) => {
     const selectedShapes = shapes.filter(shape => shape.key === selectedShapeKey)
@@ -82,7 +91,7 @@ const dragLineFrag = map(
 
 const scenegraph = map(
   renderSubstrateFrag(store.commit)
-)(shapeFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+)(shapeFrags, shapeRotateFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const updateScene = map(
   (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {
