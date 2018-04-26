@@ -28,13 +28,8 @@ div {
     user-select: none; /* disables drag doc cursor icon in lieu of onDrag preventDefault() */
 }
 
-.rectangle {
-    outline: 1px solid grey;
-}
-
 .line {
     outline: 1px solid rgba(127,127,127,0.25);
-    box-shadow: 0 0 0.5px 0 rgba(127,127,127, 0.25);
 }
 
 .circle {
@@ -48,8 +43,8 @@ div {
 }
 
 .hotspot {
+    outline: 1px solid darkgrey;
     box-shadow: none;
-    outline-color: darkgrey;
     opacity: 1;
 }
 
