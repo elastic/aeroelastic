@@ -131,106 +131,94 @@ const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   }
 }))
 
-const makeShapeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
-  const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+const makeShapeCornerFrags = shapes => shapes.map(shape => h('div', {}, [
+  h('div', {
+    class: 'hotspot corner rectangle topLeft',
+    style: {
+      width: dom.px(cornerHotspotSize),
+      height: dom.px(cornerHotspotSize),
+      transform: shape.transform3d
+    }
+  }),
+  h('div', {
+    class: 'hotspot corner rectangle topRight',
+    style: {
+      width: dom.px(cornerHotspotSize),
+      height: dom.px(cornerHotspotSize),
+      transform: shape.transform3d + ` translate(${shape.width - cornerHotspotSize}px, 0)`
+    }
+  }),
+  h('div', {
+    class: 'hotspot corner rectangle bottomLeft',
+    style: {
+      width: dom.px(cornerHotspotSize),
+      height: dom.px(cornerHotspotSize),
+      transform: shape.transform3d + ` translate(0, ${shape.height - cornerHotspotSize}px)`
+    }
+  }),
+  h('div', {
+    class: 'hotspot corner rectangle bottomRight',
+    style: {
+      width: dom.px(cornerHotspotSize),
+      height: dom.px(cornerHotspotSize),
+      transform: shape.transform3d
+      + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
+    }
+  })
+]))
 
-  return h('div', {
-    class: dragged ? 'draggable' : null,
-  }, [
-    h('div', {
-      class: 'hotspot corner rectangle topLeft',
-      style: {
-        width: dom.px(cornerHotspotSize),
-        height: dom.px(cornerHotspotSize),
-        transform: shape.transform3d
-      }
-    }),
-    h('div', {
-      class: 'hotspot corner rectangle topRight',
-      style: {
-        width: dom.px(cornerHotspotSize),
-        height: dom.px(cornerHotspotSize),
-        transform: shape.transform3d + ` translate(${shape.width - cornerHotspotSize}px, 0)`
-      }
-    }),
-    h('div', {
-      class: 'hotspot corner rectangle bottomLeft',
-      style: {
-        width: dom.px(cornerHotspotSize),
-        height: dom.px(cornerHotspotSize),
-        transform: shape.transform3d + ` translate(0, ${shape.height - cornerHotspotSize}px)`
-      }
-    }),
-    h('div', {
-      class: 'hotspot corner rectangle bottomRight',
-      style: {
-        width: dom.px(cornerHotspotSize),
-        height: dom.px(cornerHotspotSize),
-        transform: shape.transform3d
-        + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
-      }
-    })
-  ])
-})
-
-const makeShapeEdgeFrags = (shapes, dragStartAt) => shapes.map(shape => {
-  const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
-
-  return h('div', {
-    class: dragged ? 'draggable' : null,
-  }, [
-    h('div', {
-      class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
-      style: {
-        width: dom.px(edgeHotspotSize),
-        height: '0',
-        transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)`
-      }
-    }),
-    h('div', {
-      class: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
-      style: {
-        width: '0',
-        height: dom.px(edgeHotspotSize),
-        transform: shape.transform3d + ` translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)`
-      }
-    }),
-    h('div', {
-      class: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
-      style: {
-        width: dom.px(edgeHotspotSize),
-        height: '0',
-        transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)`
-      }
-    }),
-    h('div', {
-      class: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
-      style: {
-        width: '0',
-        height: dom.px(edgeHotspotSize),
-        transform: shape.transform3d + ` translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
-      }
-    }),
-    h('div', {
-      class: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
-      style: {
-        width: '0',
-        height: dom.px(edgeHotspotSize),
-        transform: shape.transform3d
-                   + ` translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)`
-      }
-    }),
-    h('div', {
-      class: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
-      style: {
-        width: dom.px(edgeHotspotSize),
-        height: '0',
-        transform: shape.transform3d + ` translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px,
+const makeShapeEdgeFrags = shapes => shapes.map(shape => h('div', {}, [
+  h('div', {
+    class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
+    style: {
+      width: dom.px(edgeHotspotSize),
+      height: '0',
+      transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)`
+    }
+  }),
+  h('div', {
+    class: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
+    style: {
+      width: '0',
+      height: dom.px(edgeHotspotSize),
+      transform: shape.transform3d + ` translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)`
+    }
+  }),
+  h('div', {
+    class: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
+    style: {
+      width: dom.px(edgeHotspotSize),
+      height: '0',
+      transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)`
+    }
+  }),
+  h('div', {
+    class: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
+    style: {
+      width: '0',
+      height: dom.px(edgeHotspotSize),
+      transform: shape.transform3d + ` translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
+    }
+  }),
+  h('div', {
+    class: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
+    style: {
+      width: '0',
+      height: dom.px(edgeHotspotSize),
+      transform: shape.transform3d
+      + ` translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)`
+    }
+  }),
+  h('div', {
+    class: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
+    style: {
+      width: dom.px(edgeHotspotSize),
+      height: '0',
+      transform: shape.transform3d + ` translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px,
                                 ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)`
-      }
-    }),
-  ])
-})
+    }
+  }),
+]))
 
 // magenta debug cursor
 const makeMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
