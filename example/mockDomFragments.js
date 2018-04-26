@@ -240,7 +240,7 @@ const makeDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   h('div', {
     class: 'line',
     style: {
-      width: Math.max(0, dragLineLength - metaCursorRadius),
+      width: dom.px(Math.max(0, dragLineLength - metaCursorRadius)),
       height: '0',
       border: `1px solid ${dragLineColor}`,
       boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,

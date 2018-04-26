@@ -439,11 +439,11 @@ const transformShape = shape => {
   }
 }
 
-const transformShapes = shapes => {
-  return shapes.map(transformShape)
-}
+const transformShapes = shapes => shapes.map(transformShape)
 
-const transformedShapes = map(transformShapes)(nextShapes)
+const transformedShapes = map(
+  transformShapes
+)(nextShapes)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = map(

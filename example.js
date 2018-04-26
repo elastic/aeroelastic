@@ -99,7 +99,8 @@ const dragLineFrag = map(
 
 const scenegraph = map(
   makeSubstrateFrag(store.commit)
-)(shapeFrags, shapeRotateFrags, shapeCornerFrags, shapeEdgeFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+)(shapeFrags, shapeRotateFrags, shapeCornerFrags, shapeEdgeFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag,
+  dragLineFrag)
 
 const updateScene = map(
   (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {
