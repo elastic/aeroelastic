@@ -434,6 +434,7 @@ const transformShape = shape => {
     : translationMatrix
   return {
     ...shape,
+    transformMatrix3d: transformMatrix,
     transform3d: 'matrix3d(' + transformMatrix.join(',') + ')'
   }
 }

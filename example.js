@@ -26,6 +26,8 @@ const {
         shapeAdditions, primaryUpdate, newShapeEvent, shapes
       } = require('./src/layout')
 
+const matrix = require('./src/matrix')
+
 
 /**
  * Update fragments
@@ -67,7 +69,7 @@ const shapeRotateFrags = map(
     // focusedShapes has updated position etc. information while focusedShape may have stale position
     const focusedShapes = shapes
       .filter(shape => focusedShape && shape.key === focusedShape.key)
-      .map(shape => shape.transform3d + ` translateX(${shape.width / 2}px)`)
+      .map(shape => matrix.multiply(shape.transformMatrix3d, matrix.translate(shape.width / 2, 0, 0)))
     return renderRotateFrags(focusedShapes)
   }
 )(shapes, focusedShape)

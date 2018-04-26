@@ -27,6 +27,9 @@ const rootRender = frag => render(frag, document.body)
  * Pure functions: fragment makers (PoC: React DOM fragments)
  */
 
+// converts a transform matrix to a CSS string
+const matrixToCSS = transformMatrix => 'matrix3d(' + transformMatrix.join(',') + ')'
+
 // renders a shape excluding its control points
 const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
@@ -117,14 +120,14 @@ const renderShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
   ])
 })
 
-const renderRotateFrags = shapes => shapes.map(transform3d => h('div', {
+const renderRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   class: 'rotateHotspot circle',
   style: {
     width: (cornerHotspotSize * 3) + 'px',
     height: (cornerHotspotSize * 3) + 'px',
     left: (2 * cornerHotspotSize) + 'px',
     top: (- 4 * cornerHotspotSize) + 'px',
-    transform:  transform3d
+    transform:  matrixToCSS(transformMatrix3d)
   }
 }))
 
