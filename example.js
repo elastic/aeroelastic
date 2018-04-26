@@ -63,12 +63,12 @@ const shapeTransformOverlayFrags = map(
 )(shapes, focusedShape, dragStartAt)
 
 const shapeRotateFrags = map(
-  (shapes, focusedShape, dragStartAt) => {
+  (shapes, focusedShape) => {
     // focusedShapes has updated position etc. information while focusedShape may have stale position
     const focusedShapes = shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
-    return renderRotateFrags(focusedShapes, dragStartAt)
+    return renderRotateFrags(focusedShapes)
   }
-)(shapes, focusedShape, dragStartAt)
+)(shapes, focusedShape)
 
 const shapeMenuOverlayFrags = map(
   (shapes, selectedShapeKey) => {
