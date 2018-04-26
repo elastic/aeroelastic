@@ -122,7 +122,9 @@ const renderRotateFrags = shapes => shapes.map(shape => h('div', {
   style: {
     width: (cornerHotspotSize * 3) + 'px',
     height: (cornerHotspotSize * 3) + 'px',
-    transform:  shape.transform3d + ` translate(${shape.width / 2 + 2 * cornerHotspotSize}px, ${- 4 * cornerHotspotSize}px) `
+    left: (shape.width / 2 + 2 * cornerHotspotSize) + 'px',
+    top: (- 4 * cornerHotspotSize) + 'px',
+    transform:  shape.transform3d
   }
 }))
 
