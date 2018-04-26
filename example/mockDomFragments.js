@@ -21,7 +21,7 @@ const {
         cancelIcon
       } = require('./mockAssets')
 
-const rootRender = frag => render(frag, document.body)
+const renderIntoRoot = frag => render(frag, document.body)
 
 /**
  * Pure functions: fragment makers (PoC: React DOM fragments)
@@ -31,7 +31,7 @@ const rootRender = frag => render(frag, document.body)
 const matrixToCSS = transformMatrix => 'matrix3d(' + transformMatrix.join(',') + ')'
 
 // renders a shape excluding its control points
-const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape => {
+const makeShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
   return h('div', {
     class: shape.type,
@@ -47,7 +47,7 @@ const renderShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape
   })
 })
 
-const renderShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
+const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
   const rotation = shape.type === 'line' && shape.height === 0 ? 'rotate(-90deg)' : ''
   const alignLeft = () => commit('align', {event: 'alignLeft', shapeKey: shape.key})
   const alignCenter = () => commit('align', {event: 'alignCenter', shapeKey: shape.key})
@@ -120,7 +120,7 @@ const renderShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
   ])
 })
 
-const renderRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
+const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   class: 'rotateHotspot circle',
   style: {
     width: (cornerHotspotSize * 3) + 'px',
@@ -131,7 +131,7 @@ const renderRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   }
 }))
 
-const renderShapeTransformOverlayFrags = (shapes, dragStartAt) => shapes.map(shape => {
+const makeShapeTransformOverlayFrags = (shapes, dragStartAt) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
 
   return h('div', {
@@ -224,7 +224,7 @@ const renderShapeTransformOverlayFrags = (shapes, dragStartAt) => shapes.map(sha
 })
 
 // magenta debug cursor
-const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
+const makeMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
   class: 'circle metaCursor',
   style: {
     width: (metaCursorRadius * 2) + 'px',
@@ -236,7 +236,7 @@ const renderMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, met
 })
 
 // magenta debug drag disks and drag line
-const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
+const makeDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   style: {
     transform: `translate3d(${x}px, ${y}px, ${dragLineZ}px) rotateZ(${angle}deg)`,
   }
@@ -263,7 +263,7 @@ const renderDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const renderSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
+const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
   h('div', {
       id: 'root',
       onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
@@ -282,12 +282,12 @@ const renderSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeTransf
   )
 
 module.exports = {
-  rootRender,
-  renderShapeFrags,
-  renderRotateFrags,
-  renderShapeTransformOverlayFrags,
-  renderShapeMenuOverlayFrags,
-  renderMetaCursorFrag,
-  renderDragLineFrag,
-  renderSubstrateFrag
+  renderIntoRoot,
+  makeShapeFrags,
+  makeRotateFrags,
+  makeShapeTransformOverlayFrags,
+  makeShapeMenuOverlayFrags,
+  makeMetaCursorFrag,
+  makeDragLineFrag,
+  makeSubstrateFrag
 }

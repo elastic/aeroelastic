@@ -4,14 +4,14 @@ const {
       } = require('./src/state')
 
 const {
-        rootRender,
-        renderShapeFrags,
-        renderRotateFrags,
-        renderShapeTransformOverlayFrags,
-        renderShapeMenuOverlayFrags,
-        renderMetaCursorFrag,
-        renderDragLineFrag,
-        renderSubstrateFrag
+        renderIntoRoot,
+        makeShapeFrags,
+        makeRotateFrags,
+        makeShapeTransformOverlayFrags,
+        makeShapeMenuOverlayFrags,
+        makeMetaCursorFrag,
+        makeDragLineFrag,
+        makeSubstrateFrag
       } = require('./example/mockDomFragments')
 
 const {devColor} = require('./example/mockConfig')
@@ -47,13 +47,13 @@ const positionsToLineAttribs = (x0, y0, x1, y1) => {
 const metaCursorFrag = map(
   (cursor, mouseDown, dragStartAt) => {
     const thickness = mouseDown ? 8 : 1
-    return renderMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, devColor)
+    return makeMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, devColor)
   }
 )(cursorPosition, mouseIsDown, dragStartAt)
 
 const shapeFrags = map(
   ({shapes}, hoveredShape, dragStartAt) =>
-    renderShapeFrags(shapes, hoveredShape, dragStartAt)
+    makeShapeFrags(shapes, hoveredShape, dragStartAt)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
 // focusedShapes has updated position etc. information while focusedShape may have stale position
@@ -61,47 +61,46 @@ const focusedShapes = map(
   (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
 )(shapes, focusedShape)
 
-// selectedShapes has updated position etc. information while focusedShape may have stale position
 const selectedShapes = map(
   (shapes, selectedShapeKey) => shapes.filter(shape => shape.key === selectedShapeKey)
 )(shapes, selectedShape)
 
 const shapeTransformOverlayFrags = map(
-  renderShapeTransformOverlayFrags
+  makeShapeTransformOverlayFrags
 )(focusedShapes, dragStartAt)
 
 const shapeRotateFrags = map(
   focusedShapes => {
     const translateToCenter = shape => matrix.multiply(shape.transformMatrix3d, matrix.translate(shape.width / 2, 0, 0))
-    return renderRotateFrags(focusedShapes.map(translateToCenter))
+    return makeRotateFrags(focusedShapes.map(translateToCenter))
   }
 )(focusedShapes)
 
 const shapeMenuOverlayFrags = map(
-  selectedShapes => renderShapeMenuOverlayFrags(store.commit)(selectedShapes)
+  selectedShapes => makeShapeMenuOverlayFrags(store.commit)(selectedShapes)
 )(selectedShapes)
 
 const freeShapeFrags = map(
-  shapes => renderShapeFrags(shapes, null, null, false)
+  shapes => makeShapeFrags(shapes, null, null, false)
 )(currentFreeShapes)
 
 const dragLineFrag = map(
   (cursor, dragStartAt) => {
     const origin = dragStartAt.down ? dragStartAt : cursor
     const lineAttribs = positionsToLineAttribs(origin.x, origin.y, cursor.x, cursor.y)
-    return renderDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
+    return makeDragLineFrag(lineAttribs.length, origin.x, origin.y, lineAttribs.angle)
   }
 )(cursorPosition, dragStartAt)
 
 const scenegraph = map(
-  renderSubstrateFrag(store.commit)
+  makeSubstrateFrag(store.commit)
 )(shapeFrags, shapeRotateFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const updateScene = map(
   (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {
 
     // perform side effects: rendering, and possibly, asynchronously dispatching arising events
-    rootRender(frag)
+    renderIntoRoot(frag)
     if(newShapeEvent) {
       store.dispatch('shapeEvent', newShapeEvent) // async!
     }
