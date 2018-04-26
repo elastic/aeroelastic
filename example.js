@@ -7,7 +7,7 @@ const {
         renderIntoRoot,
         makeShapeFrags,
         makeRotateFrags,
-        makeShapeTransformOverlayFrags,
+        makeShapeEdgeCornerFrags,
         makeShapeMenuOverlayFrags,
         makeMetaCursorFrag,
         makeDragLineFrag,
@@ -65,8 +65,8 @@ const selectedShapes = map(
   (shapes, selectedShapeKey) => shapes.filter(shape => shape.key === selectedShapeKey)
 )(shapes, selectedShape)
 
-const shapeTransformOverlayFrags = map(
-  makeShapeTransformOverlayFrags
+const shapeEdgeCornerFrags = map(
+  makeShapeEdgeCornerFrags
 )(focusedShapes, dragStartAt)
 
 const shapeRotateFrags = map(
@@ -94,7 +94,7 @@ const dragLineFrag = map(
 
 const scenegraph = map(
   makeSubstrateFrag(store.commit)
-)(shapeFrags, shapeRotateFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
+)(shapeFrags, shapeRotateFrags, shapeEdgeCornerFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag)
 
 const updateScene = map(
   (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {

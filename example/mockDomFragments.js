@@ -131,7 +131,7 @@ const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   }
 }))
 
-const makeShapeTransformOverlayFrags = (shapes, dragStartAt) => shapes.map(shape => {
+const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
   const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
 
   return h('div', {
@@ -263,7 +263,7 @@ const makeDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
 ])
 
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeTransformOverlayFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
+const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeEdgeCornerFrags, shapeMenuOverlayFrags, freeShapeFrags, metaCursorFrag, dragLineFrag) =>
   h('div', {
       id: 'root',
       onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
@@ -274,7 +274,7 @@ const makeSubstrateFrag = commit => (shapeFrags, shapeRotateFrags, shapeTransfor
     [
       ...shapeFrags,
       ...shapeRotateFrags,
-      ...shapeTransformOverlayFrags,
+      ...shapeEdgeCornerFrags,
       ...shapeMenuOverlayFrags,
       freeShapeFrags,
       metaCursorFrag, dragLineFrag
@@ -285,7 +285,7 @@ module.exports = {
   renderIntoRoot,
   makeShapeFrags,
   makeRotateFrags,
-  makeShapeTransformOverlayFrags,
+  makeShapeEdgeCornerFrags,
   makeShapeMenuOverlayFrags,
   makeMetaCursorFrag,
   makeDragLineFrag,
