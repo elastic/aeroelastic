@@ -56,23 +56,21 @@ const shapeFrags = map(
     renderShapeFrags(shapes, hoveredShape, dragStartAt)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
+// focusedShapes has updated position etc. information while focusedShape may have stale position
+const focusedShapes = map(
+  (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
+)(shapes, focusedShape)
+
 const shapeTransformOverlayFrags = map(
-  (shapes, focusedShape, dragStartAt) => {
-    // focusedShapes has updated position etc. information while focusedShape may have stale position
-    const focusedShapes = shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
-    return renderShapeTransformOverlayFrags(focusedShapes, dragStartAt)
-  }
-)(shapes, focusedShape, dragStartAt)
+  renderShapeTransformOverlayFrags
+)(focusedShapes, dragStartAt)
 
 const shapeRotateFrags = map(
-  (shapes, focusedShape) => {
-    // focusedShapes has updated position etc. information while focusedShape may have stale position
-    const focusedShapes = shapes
-      .filter(shape => focusedShape && shape.key === focusedShape.key)
-      .map(shape => matrix.multiply(shape.transformMatrix3d, matrix.translate(shape.width / 2, 0, 0)))
-    return renderRotateFrags(focusedShapes)
+  focusedShapes => {
+    const translateToCenter = shape => matrix.multiply(shape.transformMatrix3d, matrix.translate(shape.width / 2, 0, 0))
+    return renderRotateFrags(focusedShapes.map(translateToCenter))
   }
-)(shapes, focusedShape)
+)(focusedShapes)
 
 const shapeMenuOverlayFrags = map(
   (shapes, selectedShapeKey) => {
