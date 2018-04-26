@@ -117,14 +117,14 @@ const renderShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
   ])
 })
 
-const renderRotateFrags = shapes => shapes.map(shape => h('div', {
+const renderRotateFrags = shapes => shapes.map(transform3d => h('div', {
   class: 'rotateHotspot circle',
   style: {
     width: (cornerHotspotSize * 3) + 'px',
     height: (cornerHotspotSize * 3) + 'px',
-    left: (shape.width / 2 + 2 * cornerHotspotSize) + 'px',
+    left: (2 * cornerHotspotSize) + 'px',
     top: (- 4 * cornerHotspotSize) + 'px',
-    transform:  shape.transform3d
+    transform:  transform3d
   }
 }))
 

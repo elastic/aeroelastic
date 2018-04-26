@@ -65,7 +65,9 @@ const shapeTransformOverlayFrags = map(
 const shapeRotateFrags = map(
   (shapes, focusedShape) => {
     // focusedShapes has updated position etc. information while focusedShape may have stale position
-    const focusedShapes = shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
+    const focusedShapes = shapes
+      .filter(shape => focusedShape && shape.key === focusedShape.key)
+      .map(shape => shape.transform3d + ` translateX(${shape.width / 2}px)`)
     return renderRotateFrags(focusedShapes)
   }
 )(shapes, focusedShape)
