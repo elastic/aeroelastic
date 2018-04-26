@@ -20,6 +20,7 @@ const pad = 10
 const snapEngageDistance = 18
 const snapReleaseDistance = 2 * snapEngageDistance // hysteresis: make it harder to break the bond
 const enforceAlignment = true // whether snap lines enforce all elements to anchor left/center etc. or only preexisting ones
+const menuIconOpacity = 0.27
 
 module.exports = {
   metaCursorRadius,
@@ -39,5 +40,6 @@ module.exports = {
   pad,
   snapEngageDistance,
   snapReleaseDistance,
-  enforceAlignment
+  enforceAlignment,
+  menuIconOpacity
 }

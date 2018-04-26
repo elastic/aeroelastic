@@ -11,7 +11,8 @@ const {
         dragLineColor,
         cornerHotspotSize,
         edgeHotspotSize,
-        devColor
+        devColor,
+        menuIconOpacity
       } = require('./mockConfig')
 
 const {
@@ -60,7 +61,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       class: 'hotspot rectangle center',
       onclick: alignRight,
       style: {
-        opacity: 0.27,
+        opacity: menuIconOpacity,
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
@@ -75,7 +76,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       class: 'hotspot rectangle center',
       onclick: alignCenter,
       style: {
-        opacity: 0.27,
+        opacity: menuIconOpacity,
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
@@ -90,7 +91,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       class: 'hotspot rectangle center',
       onclick: alignLeft,
       style: {
-        opacity: 0.27,
+        opacity: menuIconOpacity,
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
@@ -105,7 +106,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       class: 'hotspot rectangle center',
       onclick: alignRemove,
       style: {
-        opacity: 0.27,
+        opacity: menuIconOpacity,
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
