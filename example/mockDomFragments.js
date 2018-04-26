@@ -131,7 +131,7 @@ const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   }
 }))
 
-const makeShapeCornerFrags = shapes => shapes.map(shape => h('div', {}, [
+const makeShapeCornerFrags = shapes => shapes.map(shape => [
   h('div', {
     class: 'hotspot corner rectangle topLeft',
     style: {
@@ -165,9 +165,9 @@ const makeShapeCornerFrags = shapes => shapes.map(shape => h('div', {}, [
       + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
     }
   })
-]))
+])
 
-const makeShapeEdgeFrags = shapes => shapes.map(shape => h('div', {}, [
+const makeShapeEdgeFrags = shapes => shapes.map(shape => [
   h('div', {
     class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
     style: {
@@ -218,7 +218,7 @@ const makeShapeEdgeFrags = shapes => shapes.map(shape => h('div', {}, [
                                 ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)`
     }
   }),
-]))
+])
 
 // magenta debug cursor
 const makeMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
