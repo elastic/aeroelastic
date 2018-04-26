@@ -36,8 +36,8 @@ const makeShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape =
     class: shape.type,
     style: {
       transform: shape.transform3d,
-      width: shape.width + 'px',
-      height: shape.height + 'px',
+      width: dom.px(shape.width),
+      height: dom.px(shape.height),
       backgroundColor: shape.backgroundColor,
       backgroundImage: shape.backgroundImage,
       outline: dragged ? `1px solid ${devColor}` : (shape.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
@@ -62,8 +62,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       style: {
         opacity: 0.27,
         outline: 'none',
-        width: toolbarHeight + 'px',
-        height: toolbarHeight + 'px',
+        width: dom.px(toolbarHeight),
+        height: dom.px(toolbarHeight),
         transform: shape.transform3d
         + ` translate3d(${shape.width + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`,
         backgroundImage: horizontalRightIcon,
@@ -77,8 +77,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       style: {
         opacity: 0.27,
         outline: 'none',
-        width: toolbarHeight + 'px',
-        height: toolbarHeight + 'px',
+        width: dom.px(toolbarHeight),
+        height: dom.px(toolbarHeight),
         transform: shape.transform3d + ` translate3d(${shape.width + 2 * cornerHotspotSize + paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
@@ -92,8 +92,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       style: {
         opacity: 0.27,
         outline: 'none',
-        width: toolbarHeight + 'px',
-        height: toolbarHeight + 'px',
+        width: dom.px(toolbarHeight),
+        height: dom.px(toolbarHeight),
         transform: shape.transform3d + ` translate3d(${shape.width + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
@@ -107,8 +107,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
       style: {
         opacity: 0.27,
         outline: 'none',
-        width: toolbarHeight + 'px',
-        height: toolbarHeight + 'px',
+        width: dom.px(toolbarHeight),
+        height: dom.px(toolbarHeight),
         transform: shape.transform3d + ` translate3d(${shape.width + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
@@ -122,10 +122,10 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
 const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
   class: 'rotateHotspot circle',
   style: {
-    width: (cornerHotspotSize * 3) + 'px',
-    height: (cornerHotspotSize * 3) + 'px',
-    left: (2 * cornerHotspotSize) + 'px',
-    top: (- 4 * cornerHotspotSize) + 'px',
+    width: dom.px(cornerHotspotSize * 3),
+    height: dom.px(cornerHotspotSize * 3),
+    left: dom.px(2 * cornerHotspotSize),
+    top: dom.px(- 4 * cornerHotspotSize),
     transform:  dom.matrixToCSS(transformMatrix3d)
   }
 }))
@@ -139,32 +139,32 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
     h('div', {
       class: 'hotspot corner rectangle topLeft',
       style: {
-        width: cornerHotspotSize + 'px',
-        height: cornerHotspotSize + 'px',
+        width: dom.px(cornerHotspotSize),
+        height: dom.px(cornerHotspotSize),
         transform: shape.transform3d
       }
     }),
     h('div', {
       class: 'hotspot corner rectangle topRight',
       style: {
-        width: cornerHotspotSize + 'px',
-        height: cornerHotspotSize + 'px',
+        width: dom.px(cornerHotspotSize),
+        height: dom.px(cornerHotspotSize),
         transform: shape.transform3d + ` translate(${shape.width - cornerHotspotSize}px, 0)`
       }
     }),
     h('div', {
       class: 'hotspot corner rectangle bottomLeft',
       style: {
-        width: cornerHotspotSize + 'px',
-        height: cornerHotspotSize + 'px',
+        width: dom.px(cornerHotspotSize),
+        height: dom.px(cornerHotspotSize),
         transform: shape.transform3d + ` translate(0, ${shape.height - cornerHotspotSize}px)`
       }
     }),
     h('div', {
       class: 'hotspot corner rectangle bottomRight',
       style: {
-        width: cornerHotspotSize + 'px',
-        height: cornerHotspotSize + 'px',
+        width: dom.px(cornerHotspotSize),
+        height: dom.px(cornerHotspotSize),
         transform: shape.transform3d
                    + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
       }
@@ -172,7 +172,7 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
     h('div', {
       class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
       style: {
-        width: edgeHotspotSize + 'px',
+        width: dom.px(edgeHotspotSize),
         height: '0',
         transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)`
       }
@@ -181,14 +181,14 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
       class: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
       style: {
         width: '0',
-        height: edgeHotspotSize + 'px',
+        height: dom.px(edgeHotspotSize),
         transform: shape.transform3d + ` translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)`
       }
     }),
     h('div', {
       class: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
       style: {
-        width: edgeHotspotSize + 'px',
+        width: dom.px(edgeHotspotSize),
         height: '0',
         transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)`
       }
@@ -197,7 +197,7 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
       class: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
       style: {
         width: '0',
-        height: edgeHotspotSize + 'px',
+        height: dom.px(edgeHotspotSize),
         transform: shape.transform3d + ` translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
       }
     }),
@@ -205,7 +205,7 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
       class: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
       style: {
         width: '0',
-        height: edgeHotspotSize + 'px',
+        height: dom.px(edgeHotspotSize),
         transform: shape.transform3d
                    + ` translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)`
       }
@@ -213,7 +213,7 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
     h('div', {
       class: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
       style: {
-        width: edgeHotspotSize + 'px',
+        width: dom.px(edgeHotspotSize),
         height: '0',
         transform: shape.transform3d + ` translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px,
                                 ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)`
@@ -226,8 +226,8 @@ const makeShapeEdgeCornerFrags = (shapes, dragStartAt) => shapes.map(shape => {
 const makeMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
   class: 'circle metaCursor',
   style: {
-    width: (metaCursorRadius * 2) + 'px',
-    height: (metaCursorRadius * 2) + 'px',
+    width: dom.px(metaCursorRadius * 2),
+    height: dom.px(metaCursorRadius * 2),
     transform: `translate3d(${x - metaCursorRadius}px, ${y - metaCursorRadius}px, ${metaCursorZ}px)`,
     border: `${metaCursorThickness}px solid ${metaCursorColor}`,
     boxShadow: `0 0 0.5px 0 ${metaCursorColor} inset, 0 0 2px 0 white`,
@@ -243,7 +243,7 @@ const makeDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   h('div', {
     class: 'line',
     style: {
-      width: Math.max(0, dragLineLength - metaCursorRadius) + 'px',
+      width: Math.max(0, dragLineLength - metaCursorRadius),
       height: '0',
       border: `1px solid ${dragLineColor}`,
       boxShadow: `0 0 1px 0 white inset, 0 0 1px 0 white`,
@@ -252,8 +252,8 @@ const makeDragLineFrag = (dragLineLength, x, y, angle) => h('div', {
   h('div', {
     class: 'circle metaCursor',
     style: {
-      width: (dragLineLength ? metaCursorRadius : 0) + 'px',
-      height: (dragLineLength ? metaCursorRadius : 0) + 'px',
+      width: dom.px(dragLineLength ? metaCursorRadius : 0),
+      height: dom.px(dragLineLength ? metaCursorRadius : 0),
       transform: `translate3d(${-metaCursorRadius / 2}px, ${-metaCursorRadius / 2}px, ${metaCursorZ}px)`,
       backgroundColor: devColor,
       boxShadow: `0 0 0.5px 0 ${devColor} inset, 0 0 2px 0 white`,
