@@ -17,7 +17,6 @@ div {
 }
 
 #root {
-    /*box-sizing: border-box;*/
     margin: 0;
     padding: 0;
     border: 0;
@@ -30,19 +29,12 @@ div {
 }
 
 .rectangle {
-    /*
-    border: 1px solid grey;
-    box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;
-    */
     outline: 1px solid grey;
-    /*box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;*/
-    /*border-radius: 5px;*/
 }
 
 .line {
     outline: 1px solid rgba(127,127,127,0.25);
     box-shadow: 0 0 0.5px 0 rgba(127,127,127, 0.25);
-    /*transform-origin: left;*/
 }
 
 .circle {
@@ -70,33 +62,3 @@ div {
     border: 1px solid rgba(0,0,255,0.05);
     box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;
 }
-
-.line ~ .hotspot.corner, /*.line ~ .hotspot.center, */.line ~ .hotspot.vertical.top, .line ~ .hotspot.vertical.bottom {
-    outline-width: 0;
-}
-
-.line ~ .rotateHotspot {
-    opacity: 0;
-}
-
-/*
-.line ~ .topLeft {
-    border-width: 1px 0 1px 1px;
-}
-
-.line ~ .bottomRight {
-    border-width: 1px 1px 1px 0;
-}
-
-.line ~ .center {
-    border-width: 1px;
-}
-*/
-
-
-
-/*
-.draggable {
-    transition: transform 150ms ease-out;
-}
-*/
