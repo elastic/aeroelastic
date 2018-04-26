@@ -8,15 +8,17 @@ const {
         makeShapeFrags,
         makeRotateFrags,
         makeShapeCornerFrags,
-        makeShapeEdgeFrags,
-        makeShapeCenterFrags,
+        makeShapeParallelFrags,
         makeShapeMenuOverlayFrags,
         makeMetaCursorFrag,
         makeDragLineFrag,
         makeSubstrateFrag
       } = require('./example/mockDomFragments')
 
-const {devColor} = require('./example/mockConfig')
+const {
+  edgeHotspotSize,
+  devColor
+} = require('./example/mockConfig')
 
 const initialState = require('./example/mockScene')
 
@@ -73,13 +75,27 @@ const shapeCornerFrags = map(
 
 const shapeEdgeFrags = map(
   focusedShapes => focusedShapes
-    .map(({width, height, transform3d, xConstraintAnchor, yConstraintAnchor}) =>
-      ({width, height, transform3d, xConstraintAnchor, yConstraintAnchor}))
-    .map(makeShapeEdgeFrags)
+    .map(({width, height, transform3d, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transform3d: transform3d + ` translate(${width / 2 - edgeHotspotSize / 2}px, 0)`,
+        snapped: yConstraintAnchor === 'top', horizontal: true},
+      {transform3d: transform3d + ` translate(${width}px, ${height / 2 - edgeHotspotSize / 2}px)`,
+        snapped: xConstraintAnchor === 'right', horizontal: false},
+      {transform3d: transform3d + ` translate(${width / 2 - edgeHotspotSize / 2}px, ${height}px)`,
+        snapped: yConstraintAnchor === 'bottom', horizontal: true},
+      {transform3d: transform3d + ` translate(0, ${height / 2 - edgeHotspotSize / 2}px)`,
+        snapped: xConstraintAnchor === 'left', horizontal: false},
+    ].map(makeShapeParallelFrags)))
 )(focusedShapes, dragStartAt)
 
 const shapeCenterFrags = map(
-  focusedShapes => focusedShapes.map(makeShapeCenterFrags)
+  focusedShapes => focusedShapes
+    .map(({width, height, transform3d, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transform3d: transform3d + ` translate3d(${width / 2}px, ${height / 2 - edgeHotspotSize / 2}px, 0.01px)`,
+        snapped: xConstraintAnchor === 'center', horizontal: false},
+      {transform3d: transform3d + ` translate3d(${width / 2 - edgeHotspotSize / 2}px, ${height / 2}px,
+                                ${xConstraintAnchor === 'center' ? 0 : 0.02}px)`,
+        snapped: yConstraintAnchor === 'middle', horizontal: true}
+    ].map(makeShapeParallelFrags)))
 )(focusedShapes, dragStartAt)
 
 const shapeRotateFrags = map(

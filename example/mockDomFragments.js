@@ -167,61 +167,15 @@ const makeShapeCornerFrags = shape => [
   })
 ]
 
-const makeShapeEdgeFrags = shape => [
-  h('div', {
-    class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
-    style: {
-      width: dom.px(edgeHotspotSize),
-      height: '0',
-      transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, 0)`
-    }
-  }),
-  h('div', {
-    class: `hotspot rectangle side right ${shape.xConstraintAnchor === 'right' ? 'snapped' : ''}`,
-    style: {
-      width: '0',
-      height: dom.px(edgeHotspotSize),
-      transform: shape.transform3d + ` translate(${shape.width}px, ${shape.height / 2 - edgeHotspotSize / 2}px)`
-    }
-  }),
-  h('div', {
-    class: `hotspot rectangle side bottom ${shape.yConstraintAnchor === 'bottom' ? 'snapped' : ''}`,
-    style: {
-      width: dom.px(edgeHotspotSize),
-      height: '0',
-      transform: shape.transform3d + ` translate(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height}px)`
-    }
-  }),
-  h('div', {
-    class: `hotspot rectangle side left ${shape.xConstraintAnchor === 'left' ? 'snapped' : ''}`,
-    style: {
-      width: '0',
-      height: dom.px(edgeHotspotSize),
-      transform: shape.transform3d + ` translate(0, ${shape.height / 2 - edgeHotspotSize / 2}px)`
-    }
-  })
-]
-
-const makeShapeCenterFrags = shape => [
-  h('div', {
-    class: `hotspot rectangle center vertical ${shape.xConstraintAnchor === 'center' ? 'snapped' : ''}`,
-    style: {
-      width: '0',
-      height: dom.px(edgeHotspotSize),
-      transform: shape.transform3d
-      + ` translate3d(${shape.width / 2}px, ${shape.height / 2 - edgeHotspotSize / 2}px, 0.01px)`
-    }
-  }),
-  h('div', {
-    class: `hotspot rectangle center horizontal ${shape.yConstraintAnchor === 'middle' ? 'snapped' : ''}`,
-    style: {
-      width: dom.px(edgeHotspotSize),
-      height: '0',
-      transform: shape.transform3d + ` translate3d(${shape.width / 2 - edgeHotspotSize / 2}px, ${shape.height / 2}px,
-                                ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)`
-    }
-  }),
-]
+const makeShapeParallelFrags = ({transform3d, snapped, horizontal}) => h('div', {
+  style: {
+    width: dom.px(horizontal ? edgeHotspotSize : 0),
+    height: dom.px(horizontal ? 0 : edgeHotspotSize),
+    transform: transform3d,
+    outline: '1px solid',
+    outlineColor: snapped ? devColor : 'darkgrey'
+  }
+})
 
 // magenta debug cursor
 const makeMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
@@ -290,8 +244,7 @@ module.exports = {
   makeShapeFrags,
   makeRotateFrags,
   makeShapeCornerFrags,
-  makeShapeEdgeFrags,
-  makeShapeCenterFrags,
+  makeShapeParallelFrags,
   makeShapeMenuOverlayFrags,
   makeMetaCursorFrag,
   makeDragLineFrag,
