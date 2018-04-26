@@ -120,18 +120,18 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
   ])
 })
 
-const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
+const makeRotateFrags = transformMatrix3d => h('div', {
   class: 'rotateHotspot circle',
   style: {
     width: dom.px(cornerHotspotSize * 3),
     height: dom.px(cornerHotspotSize * 3),
     left: dom.px(2 * cornerHotspotSize),
     top: dom.px(- 4 * cornerHotspotSize),
-    transform:  dom.matrixToCSS(transformMatrix3d)
+    transform: dom.matrixToCSS(transformMatrix3d)
   }
-}))
+})
 
-const makeShapeCornerFrags = shapes => shapes.map(shape => [
+const makeShapeCornerFrags = shape => [
   h('div', {
     class: 'hotspot corner rectangle topLeft',
     style: {
@@ -165,9 +165,9 @@ const makeShapeCornerFrags = shapes => shapes.map(shape => [
       + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
     }
   })
-])
+]
 
-const makeShapeEdgeFrags = shapes => shapes.map(shape => [
+const makeShapeEdgeFrags = shape => [
   h('div', {
     class: `hotspot rectangle side top ${shape.yConstraintAnchor === 'top' ? 'snapped' : ''}`,
     style: {
@@ -218,8 +218,7 @@ const makeShapeEdgeFrags = shapes => shapes.map(shape => [
                                 ${shape.xConstraintAnchor === 'center' ? 0 : 0.02}px)`
     }
   }),
-])
-
+]
 // magenta debug cursor
 const makeMetaCursorFrag = (x, y, shapeDragInProcess, metaCursorThickness, metaCursorColor) => h('div', {
   class: 'circle metaCursor',

@@ -67,17 +67,17 @@ const selectedShapes = map(
 )(shapes, selectedShape)
 
 const shapeCornerFrags = map(
-  makeShapeCornerFrags
+  focusedShapes => focusedShapes.map(makeShapeCornerFrags)
 )(focusedShapes, dragStartAt)
 
 const shapeEdgeFrags = map(
-  makeShapeEdgeFrags
+  focusedShapes => focusedShapes.map(makeShapeEdgeFrags)
 )(focusedShapes, dragStartAt)
 
 const shapeRotateFrags = map(
   focusedShapes => {
     const translateToCenter = shape => matrix.multiply(shape.transformMatrix3d, matrix.translate(shape.width / 2, 0, 0))
-    return makeRotateFrags(focusedShapes.map(translateToCenter))
+    return focusedShapes.map(translateToCenter).map(makeRotateFrags)
   }
 )(focusedShapes)
 
