@@ -21,14 +21,13 @@ const {
         cancelIcon
       } = require('./mockAssets')
 
+const dom = require('../src/dom')
+
 const renderIntoRoot = frag => render(frag, document.body)
 
 /**
  * Pure functions: fragment makers (PoC: React DOM fragments)
  */
-
-// converts a transform matrix to a CSS string
-const matrixToCSS = transformMatrix => 'matrix3d(' + transformMatrix.join(',') + ')'
 
 // renders a shape excluding its control points
 const makeShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape => {
@@ -127,7 +126,7 @@ const makeRotateFrags = shapes => shapes.map(transformMatrix3d => h('div', {
     height: (cornerHotspotSize * 3) + 'px',
     left: (2 * cornerHotspotSize) + 'px',
     top: (- 4 * cornerHotspotSize) + 'px',
-    transform:  matrixToCSS(transformMatrix3d)
+    transform:  dom.matrixToCSS(transformMatrix3d)
   }
 }))
 
