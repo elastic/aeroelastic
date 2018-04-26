@@ -169,6 +169,8 @@ const makeShapeCornerFrags = shape => [
 
 const makeShapeParallelFrags = ({transform3d, snapped, horizontal}) => h('div', {
   style: {
+    left: dom.px(horizontal ? - edgeHotspotSize / 2 : 0),
+    top: dom.px(horizontal ? 0 : - edgeHotspotSize / 2),
     width: dom.px(horizontal ? edgeHotspotSize : 0),
     height: dom.px(horizontal ? 0 : edgeHotspotSize),
     transform: transform3d,
