@@ -23,6 +23,8 @@ const initialState = require('./example/mockScene')
 
 const store = createStore(initialState)
 
+const {flatten, map} = require('./src/functional')
+
 const {
         cursorPosition, mouseIsDown, dragStartAt,
         nextScene, focusedShape, selectedShape, currentFreeShapes,
@@ -72,9 +74,6 @@ const shapeCornerFrags = select(
   focusedShapes => focusedShapes.map(makeShapeCornerFrags)
 )(focusedShapes, dragStartAt)
 
-const flatten = arrays => [].concat(...arrays)
-const shapeMarkerSetsToFrags = markerSet => markerSet.map(makeShapeParallelFrags)
-
 const shapeEdgeSets = select(
   focusedShapes => flatten(focusedShapes
     .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
@@ -90,7 +89,7 @@ const shapeEdgeSets = select(
   ))(focusedShapes)
 
 const shapeEdgeFrags = select(
-  shapeMarkerSetsToFrags
+  map(makeShapeParallelFrags)
 )(shapeEdgeSets)
 
 const shapeCenterSets = select(
@@ -104,7 +103,7 @@ const shapeCenterSets = select(
   ))(focusedShapes)
 
 const shapeCenterFrags = select(
-  shapeMarkerSetsToFrags
+  map(makeShapeParallelFrags)
 )(shapeCenterSets)
 
 const shapeRotateFrags = select(
