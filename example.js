@@ -72,10 +72,11 @@ const shapeCornerFrags = map(
   focusedShapes => focusedShapes.map(makeShapeCornerFrags)
 )(focusedShapes, dragStartAt)
 
-const shapeMarkerSetsToFrags = shapes => shapes.map(markerSet => markerSet.map(makeShapeParallelFrags))
+const flatten = arrays => [].concat(...arrays)
+const shapeMarkerSetsToFrags = markerSet => markerSet.map(makeShapeParallelFrags)
 
 const shapeEdgeSets = map(
-  focusedShapes => focusedShapes
+  focusedShapes => flatten(focusedShapes
     .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
       {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, 0, 0)),
         snapped: yConstraintAnchor === 'top', horizontal: true},
@@ -93,14 +94,14 @@ const shapeEdgeFrags = map(
 )(shapeEdgeSets)
 
 const shapeCenterSets = map(
-  focusedShapes => focusedShapes
+  focusedShapes => flatten(focusedShapes
     .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
       {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0.01)),
         snapped: xConstraintAnchor === 'center', horizontal: false},
       {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
         snapped: yConstraintAnchor === 'middle', horizontal: true}
     ]))
-)(focusedShapes)
+  ))(focusedShapes)
 
 const shapeCenterFrags = map(
   shapeMarkerSetsToFrags
