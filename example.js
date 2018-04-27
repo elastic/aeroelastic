@@ -74,23 +74,24 @@ const shapeCornerFrags = map(
 
 const shapeEdgeFrags = map(
   focusedShapes => focusedShapes
-    .map(({width, height, transform3d, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transform3d: transform3d + ` translate(${width / 2}px, 0)`,
+    .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, 0, 0)),
         snapped: yConstraintAnchor === 'top', horizontal: true},
-      {transform3d: transform3d + ` translate(${width}px, ${height / 2}px)`,
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width, height / 2, 0)),
         snapped: xConstraintAnchor === 'right', horizontal: false},
-      {transform3d: transform3d + ` translate(${width / 2}px, ${height}px)`,
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height, 0)),
         snapped: yConstraintAnchor === 'bottom', horizontal: true},
-      {transform3d: transform3d + ` translate(0, ${height / 2}px)`,
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(0, height / 2, 0)),
         snapped: xConstraintAnchor === 'left', horizontal: false},
     ].map(makeShapeParallelFrags)))
 )(focusedShapes, dragStartAt)
 
 const shapeCenterFrags = map(
   focusedShapes => focusedShapes
-    .map(({width, height, transform3d, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transform3d: transform3d + ` translate3d(${width / 2}px, ${height / 2}px, 0.01px)`, snapped: xConstraintAnchor === 'center', horizontal: false},
-      {transform3d: transform3d + ` translate3d(${width / 2}px, ${height / 2}px, ${xConstraintAnchor === 'center' ? 0 : 0.02}px)`,
+    .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0)),
+        snapped: xConstraintAnchor === 'center', horizontal: false},
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0)),
         snapped: yConstraintAnchor === 'middle', horizontal: true}
     ].map(makeShapeParallelFrags)))
 )(focusedShapes, dragStartAt)

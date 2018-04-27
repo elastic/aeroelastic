@@ -167,13 +167,13 @@ const makeShapeCornerFrags = shape => [
   })
 ]
 
-const makeShapeParallelFrags = ({transform3d, snapped, horizontal}) => h('div', {
+const makeShapeParallelFrags = ({transformMatrix3d, snapped, horizontal}) => h('div', {
   style: {
     left: dom.px(horizontal ? - parallelHotspotSize / 2 : 0),
     top: dom.px(horizontal ? 0 : - parallelHotspotSize / 2),
     width: dom.px(horizontal ? parallelHotspotSize : 0),
     height: dom.px(horizontal ? 0 : parallelHotspotSize),
-    transform: transform3d,
+    transform: dom.matrixToCSS(transformMatrix3d),
     outline: '1px solid',
     outlineColor: snapped ? devColor : 'darkgrey'
   }
