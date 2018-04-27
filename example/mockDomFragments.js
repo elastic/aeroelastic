@@ -137,7 +137,8 @@ const makeShapeCornerFrags = shape => [
     style: {
       width: dom.px(cornerHotspotSize),
       height: dom.px(cornerHotspotSize),
-      transform: shape.transform3d
+      transform: shape.transform3d,
+      outline: '1px solid darkgrey'
     }
   }),
   h('div', {
@@ -145,7 +146,8 @@ const makeShapeCornerFrags = shape => [
     style: {
       width: dom.px(cornerHotspotSize),
       height: dom.px(cornerHotspotSize),
-      transform: shape.transform3d + ` translate(${shape.width - cornerHotspotSize}px, 0)`
+      transform: shape.transform3d + ` translate(${shape.width - cornerHotspotSize}px, 0)`,
+      outline: '1px solid darkgrey'
     }
   }),
   h('div', {
@@ -153,7 +155,8 @@ const makeShapeCornerFrags = shape => [
     style: {
       width: dom.px(cornerHotspotSize),
       height: dom.px(cornerHotspotSize),
-      transform: shape.transform3d + ` translate(0, ${shape.height - cornerHotspotSize}px)`
+      transform: shape.transform3d + ` translate(0, ${shape.height - cornerHotspotSize}px)`,
+      outline: '1px solid darkgrey'
     }
   }),
   h('div', {
@@ -162,7 +165,8 @@ const makeShapeCornerFrags = shape => [
       width: dom.px(cornerHotspotSize),
       height: dom.px(cornerHotspotSize),
       transform: shape.transform3d
-      + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`
+      + ` translate(${shape.width - cornerHotspotSize}px, ${shape.height - cornerHotspotSize}px)`,
+      outline: '1px solid darkgrey'
     }
   })
 ]
