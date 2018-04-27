@@ -1,6 +1,6 @@
 const {
         createStore,
-        map
+        select
       } = require('./src/state')
 
 const {
@@ -47,35 +47,35 @@ const positionsToLineAttribs = (x0, y0, x1, y1) => {
   return {length, angle, deltaX, deltaY}
 }
 
-const metaCursorFrag = map(
+const metaCursorFrag = select(
   (cursor, mouseDown, dragStartAt) => {
     const thickness = mouseDown ? 8 : 1
     return makeMetaCursorFrag(cursor.x, cursor.y, dragStartAt && dragStartAt.dragStartShape, thickness, devColor)
   }
 )(cursorPosition, mouseIsDown, dragStartAt)
 
-const shapeFrags = map(
+const shapeFrags = select(
   ({shapes}, hoveredShape, dragStartAt) =>
     makeShapeFrags(shapes, hoveredShape, dragStartAt)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
 // focusedShapes has updated position etc. information while focusedShape may have stale position
-const focusedShapes = map(
+const focusedShapes = select(
   (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
 )(shapes, focusedShape)
 
-const selectedShapes = map(
+const selectedShapes = select(
   (shapes, selectedShapeKey) => shapes.filter(shape => shape.key === selectedShapeKey)
 )(shapes, selectedShape)
 
-const shapeCornerFrags = map(
+const shapeCornerFrags = select(
   focusedShapes => focusedShapes.map(makeShapeCornerFrags)
 )(focusedShapes, dragStartAt)
 
 const flatten = arrays => [].concat(...arrays)
 const shapeMarkerSetsToFrags = markerSet => markerSet.map(makeShapeParallelFrags)
 
-const shapeEdgeSets = map(
+const shapeEdgeSets = select(
   focusedShapes => flatten(focusedShapes
     .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
       {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, 0, 0)),
@@ -87,13 +87,13 @@ const shapeEdgeSets = map(
       {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(0, height / 2, 0)),
         snapped: xConstraintAnchor === 'left', horizontal: false}
     ]))
-)(focusedShapes)
+  ))(focusedShapes)
 
-const shapeEdgeFrags = map(
+const shapeEdgeFrags = select(
   shapeMarkerSetsToFrags
 )(shapeEdgeSets)
 
-const shapeCenterSets = map(
+const shapeCenterSets = select(
   focusedShapes => flatten(focusedShapes
     .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
       {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0.01)),
@@ -103,26 +103,26 @@ const shapeCenterSets = map(
     ]))
   ))(focusedShapes)
 
-const shapeCenterFrags = map(
+const shapeCenterFrags = select(
   shapeMarkerSetsToFrags
 )(shapeCenterSets)
 
-const shapeRotateFrags = map(
+const shapeRotateFrags = select(
   focusedShapes => {
     const translateToCenter = shape => matrix.multiply(shape.transformMatrix3d, matrix.translate(shape.width / 2, 0, 0))
     return focusedShapes.map(translateToCenter).map(makeRotateFrags)
   }
 )(focusedShapes)
 
-const shapeMenuOverlayFrags = map(
+const shapeMenuOverlayFrags = select(
   selectedShapes => makeShapeMenuOverlayFrags(store.commit)(selectedShapes)
 )(selectedShapes)
 
-const freeShapeFrags = map(
+const freeShapeFrags = select(
   shapes => makeShapeFrags(shapes, null, null, false)
 )(currentFreeShapes)
 
-const dragLineFrag = map(
+const dragLineFrag = select(
   (cursor, dragStartAt) => {
     const origin = dragStartAt.down ? dragStartAt : cursor
     const lineAttribs = positionsToLineAttribs(origin.x, origin.y, cursor.x, cursor.y)
@@ -130,12 +130,12 @@ const dragLineFrag = map(
   }
 )(cursorPosition, dragStartAt)
 
-const scenegraph = map(
+const scenegraph = select(
   makeSubstrateFrag(store.commit)
 )(shapeFrags, shapeRotateFrags, shapeCornerFrags, shapeEdgeFrags, shapeCenterFrags, shapeMenuOverlayFrags, freeShapeFrags,
   metaCursorFrag, dragLineFrag)
 
-const updateScene = map(
+const updateScene = select(
   (nextScene, shapeAdditions, primaryUpdate, frag, newShapeEvent) => {
 
     // perform side effects: rendering, and possibly, asynchronously dispatching arising events

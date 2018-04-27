@@ -11,7 +11,7 @@ const shallowEqual = (a, b) => {
   return true
 }
 
-const reduce = (fun, previousValue, logFun) => (...inputs) => {
+const selectReduce = (fun, previousValue, logFun) => (...inputs) => {
   // last-value memoizing version of this single line function:
   // (fun, previousValue) => (...inputs) => state => previousValue = fun(previousValue, ...inputs.map(input => input(state)))
   let argumentValues = []
@@ -28,7 +28,7 @@ const reduce = (fun, previousValue, logFun) => (...inputs) => {
   }
 }
 
-const map = (fun, logFun) => (...inputs) => {
+const select = (fun, logFun) => (...inputs) => {
   // last-value memoizing version of this single line function:
   // fun => (...inputs) => state => fun(...inputs.map(input => input(state)))
   let argumentValues = []
@@ -61,6 +61,6 @@ const createStore = initialState => {
 
 module.exports = {
   createStore,
-  map,
-  reduce
+  select,
+  selectReduce
 }

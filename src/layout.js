@@ -1,6 +1,6 @@
 const {
-        map,
-        reduce
+        select,
+        selectReduce
       } = require('./state')
 
 const {
@@ -251,28 +251,28 @@ const snapUpdate = (constraints, shape) => {
  */
 
 // dispatch the various types of actions
-const rawCursorPosition = map(
+const rawCursorPosition = select(
   cursorPositionAction
 )(primaryUpdate)
 
-const mouseButtonEvent = map(
+const mouseButtonEvent = select(
   mouseButtonEventAction
 )(primaryUpdate)
 
-const shapeEvent = map(
+const shapeEvent = select(
   shapeEventAction
 )(primaryUpdate)
 
-const alignEvent = map(
+const alignEvent = select(
   d => {return alignEventAction(d)}
 )(primaryUpdate)
 
-const cursorPosition = reduce(
+const cursorPosition = selectReduce(
   (previous, position) => position || previous,
   {x: 0, y: 0}
 )(rawCursorPosition)
 
-const mouseIsDown = reduce(
+const mouseIsDown = selectReduce(
   (previous, next) => next
     ? next.event === 'mouseDown'
     : previous,
@@ -307,7 +307,7 @@ const mouseButtonStateTransitions = (state, mouseIsDown, movedAlready) => {
   }
 }
 
-const mouseButtonState = reduce(
+const mouseButtonState = selectReduce(
   ({buttonState, downX, downY}, mouseIsDown, {x, y}) => {
     const movedAlready = x !== downX || y !== downY
     const newButtonState = mouseButtonStateTransitions(buttonState, mouseIsDown, movedAlready)
@@ -320,19 +320,19 @@ const mouseButtonState = reduce(
   {buttonState: 'up', downX: null, downY: null}
 )(mouseIsDown, cursorPosition)
 
-const mouseDowned = map(
+const mouseDowned = select(
   state => state.buttonState === 'downed'
 )(mouseButtonState)
 
-const dragging = map(
+const dragging = select(
   state => state.buttonState === 'dragging'
 )(mouseButtonState)
 
-const mouseClickEvent = map(
+const mouseClickEvent = select(
   event => event && event.event === 'mouseClick'
 )(mouseButtonEvent)
 
-const dragVector = map(
+const dragVector = select(
   ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
 )(mouseButtonState, cursorPosition)
 
@@ -341,16 +341,16 @@ const dragVector = map(
  * Scenegraph update based on events, gestures...
  */
 
-const selectedShape = reduce(
+const selectedShape = selectReduce(
   (prev, next) => next && (next.event === 'showToolbar' && next.shapeType === 'line' ? next.shapeKey : prev) || prev,
   null
 )(shapeEvent)
 
-const shapes = map((scene, externalShapeUpdates) => updateShapes(scene.shapes, externalShapeUpdates))(scene, shapeAdditions)
-const hoveredShape = map(hoveringAt)(shapes, cursorPosition)
-const draggedShape = map(draggingShape)(scene, hoveredShape, mouseIsDown, mouseDowned)
-const constraints = map(constraintLookup)(shapes)
-const alignUpdate = map(alignEvent => {
+const shapes = select((scene, externalShapeUpdates) => updateShapes(scene.shapes, externalShapeUpdates))(scene, shapeAdditions)
+const hoveredShape = select(hoveringAt)(shapes, cursorPosition)
+const draggedShape = select(draggingShape)(scene, hoveredShape, mouseIsDown, mouseDowned)
+const constraints = select(constraintLookup)(shapes)
+const alignUpdate = select(alignEvent => {
   // set alignment type on sticky line, if needed
   if(alignEvent) {
     const {event, shapeKey} = alignEvent
@@ -359,11 +359,11 @@ const alignUpdate = map(alignEvent => {
 })(alignEvent)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
-const focusedShape = map(
+const focusedShape = select(
   (draggedShape, hoveredShape) => draggedShape || hoveredShape
 )(draggedShape, hoveredShape)
 
-const dragStartAt = reduce(
+const dragStartAt = selectReduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
     if(down) {
       const newDragStart = mouseDowned && !previous.down
@@ -378,13 +378,13 @@ const dragStartAt = reduce(
 )(dragging, dragVector, focusedShape)
 
 // affordance for permanent selection of a shape
-const newShapeEvent = map(
+const newShapeEvent = select(
   (click, shape, {x, y}) =>
     click && {event: 'showToolbar', x, y, shapeKey: shape && shape.key, shapeType: shape && shape.type}
 )(mouseClickEvent, focusedShape, cursorPosition)
 
 // returns those snap guidelines that may affect the draggedShape
-const snapGuideLines = map(
+const snapGuideLines = select(
   (shapes, draggedShape) => {
     // The guidelines may come from explicit guidelines (as in the mock of this PoC) or generated automatically in the future
     // so that dragging a shape dynamically traces other shapes, flashing temporary alignment lines, example snap guides
@@ -400,7 +400,7 @@ const snapGuideLines = map(
   }
 )(shapes, draggedShape)
 
-const nextShapes = map(
+const nextShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, alignUpdate, constraints, snapGuideLines, mouseDowned) => {
 
     // this is the per-shape model update at the current PoC level
@@ -441,12 +441,12 @@ const transformShape = shape => {
 
 const transformShapes = shapes => shapes.map(transformShape)
 
-const transformedShapes = map(
+const transformedShapes = select(
   transformShapes
 )(nextShapes)
 
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
-const currentFreeShapes = map(
+const currentFreeShapes = select(
   (shapes, {dragStartShape}) =>
     shapes
       .filter(shape => dragStartShape && shape.key === dragStartShape.key)
@@ -457,7 +457,7 @@ const currentFreeShapes = map(
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
 // collection of shapes themselves
-const nextScene = map(
+const nextScene = select(
   (hoveredShape, draggedShape, shapes) => ({
     hoveredShape,
     draggedShape,
