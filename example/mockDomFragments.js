@@ -10,7 +10,7 @@ const {
         paddedToolbarHeight,
         dragLineColor,
         cornerHotspotSize,
-        edgeHotspotSize,
+        parallelHotspotSize,
         devColor,
         menuIconOpacity
       } = require('./mockConfig')
@@ -169,10 +169,10 @@ const makeShapeCornerFrags = shape => [
 
 const makeShapeParallelFrags = ({transform3d, snapped, horizontal}) => h('div', {
   style: {
-    left: dom.px(horizontal ? - edgeHotspotSize / 2 : 0),
-    top: dom.px(horizontal ? 0 : - edgeHotspotSize / 2),
-    width: dom.px(horizontal ? edgeHotspotSize : 0),
-    height: dom.px(horizontal ? 0 : edgeHotspotSize),
+    left: dom.px(horizontal ? - parallelHotspotSize / 2 : 0),
+    top: dom.px(horizontal ? 0 : - parallelHotspotSize / 2),
+    width: dom.px(horizontal ? parallelHotspotSize : 0),
+    height: dom.px(horizontal ? 0 : parallelHotspotSize),
     transform: transform3d,
     outline: '1px solid',
     outlineColor: snapped ? devColor : 'darkgrey'

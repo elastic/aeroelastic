@@ -14,7 +14,7 @@ const toolbarPad = 8
 const paddedToolbarHeight = toolbarHeight + toolbarPad
 const dragLineColor = 'rgba(255,0,255,0.5)'
 const cornerHotspotSize = 6
-const edgeHotspotSize = 12
+const parallelHotspotSize = 12
 const devColor = 'magenta'
 const pad = 10
 const snapEngageDistance = 18
@@ -35,7 +35,7 @@ module.exports = {
   paddedToolbarHeight,
   dragLineColor,
   cornerHotspotSize,
-  edgeHotspotSize,
+  parallelHotspotSize,
   devColor,
   pad,
   snapEngageDistance,
