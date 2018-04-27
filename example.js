@@ -28,7 +28,8 @@ const {flatten, map} = require('./src/functional')
 const {
         cursorPosition, mouseIsDown, dragStartAt,
         nextScene, focusedShape, selectedShape, currentFreeShapes,
-        shapeAdditions, primaryUpdate, newShapeEvent, shapes
+        shapeAdditions, primaryUpdate, newShapeEvent, shapes,
+        focusedShapes
       } = require('./src/layout')
 
 const matrix = require('./src/matrix')
@@ -60,11 +61,6 @@ const shapeFrags = select(
   ({shapes}, hoveredShape, dragStartAt) =>
     makeShapeFrags(shapes, hoveredShape, dragStartAt)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
-
-// focusedShapes has updated position etc. information while focusedShape may have stale position
-const focusedShapes = select(
-  (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
-)(shapes, focusedShape)
 
 const selectedShapes = select(
   (shapes, selectedShapeKey) => shapes.filter(shape => shape.key === selectedShapeKey)

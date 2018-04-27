@@ -465,8 +465,13 @@ const nextScene = select(
   })
 )(hoveredShape, draggedShape, transformedShapes)
 
+// focusedShapes has updated position etc. information while focusedShape may have stale position
+const focusedShapes = select(
+  (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
+)(shapes, focusedShape)
+
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt,
   nextScene, focusedShape, selectedShape, currentFreeShapes,
-  shapeAdditions, primaryUpdate, newShapeEvent, shapes
+  shapeAdditions, primaryUpdate, newShapeEvent, shapes, focusedShapes
 }
