@@ -95,9 +95,9 @@ const shapeEdgeFrags = map(
 const shapeCenterSets = map(
   focusedShapes => focusedShapes
     .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0)),
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0.01)),
         snapped: xConstraintAnchor === 'center', horizontal: false},
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0)),
+      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
         snapped: yConstraintAnchor === 'middle', horizontal: true}
     ]))
 )(focusedShapes)
