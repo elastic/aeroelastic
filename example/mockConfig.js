@@ -16,7 +16,8 @@ const dragLineColor = 'rgba(255,0,255,0.5)'
 const cornerHotspotSize = 6
 const parallelHotspotSize = 12
 const devColor = 'magenta'
-const pad = 10
+const pad = 10 // capture zone size around a box or line, Fitts law
+const markerProximityDistance = 16
 const snapEngageDistance = 18
 const snapReleaseDistance = 2 * snapEngageDistance // hysteresis: make it harder to break the bond
 const enforceAlignment = true // whether snap lines enforce all elements to anchor left/center etc. or only preexisting ones
@@ -38,6 +39,7 @@ module.exports = {
   parallelHotspotSize,
   devColor,
   pad,
+  markerProximityDistance,
   snapEngageDistance,
   snapReleaseDistance,
   enforceAlignment,

@@ -28,14 +28,16 @@
 const transpose = ([a, e, i, m, b, f, j, n, c, g, k, o, d, h, l, p]) =>
   ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p])
 
-const NULL = transpose([
+const ORIGIN = [0, 0, 0, 1]
+
+const NULLMATRIX = transpose([
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0,
   0, 0, 0, 0
 ])
 
-const UNIT = transpose([
+const UNITMATRIX = transpose([
   1, 0, 0, 0,
   0, 1, 0, 0,
   0, 0, 1, 0,
@@ -127,9 +129,33 @@ const multiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, D,
   a * M + e * N + i * O + m * P,
   b * M + f * N + j * O + n * P,
   c * M + g * N + k * O + o * P,
-  d * M + h * N + l * O + p * P,
+  d * M + h * N + l * O + p * P
+])
+
+/**
+ * mvMultiply
+ *
+ * Multiplies a matrix and a vector
+ *
+ *
+ *                               A
+ *                               B
+ *                               C
+ *                               D
+ *
+ *         a    e    i    m      .
+ *         b    f    j    n      .
+ *         c    g    k    o      .
+ *         d    h    l    p      d * A + h * B + l * C + p * D
+ *
+ */
+const mvMultiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, D]) => ([
+  a * A + e * B + i * C + m * D,
+  b * A + f * B + j * C + n * D,
+  c * A + g * B + k * C + o * D,
+  d * A + h * B + l * C + p * D
 ])
 
 module.exports = {
-  NULL, UNIT, transpose, translate, rotate, rotateX, rotateY, rotateZ, multiply
+  ORIGIN, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, multiply, mvMultiply
 }

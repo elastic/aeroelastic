@@ -29,7 +29,7 @@ const {
         cursorPosition, mouseIsDown, dragStartAt,
         nextScene, focusedShape, selectedShape, currentFreeShapes,
         shapeAdditions, primaryUpdate, newShapeEvent, shapes,
-        focusedShapes, shapeEdgeMarkers, shapeCenterMarkers
+        focusedShapes, shapeEdgeMarkers, shapeCenterMarkers, hoveredEdgeMarker
       } = require('./src/layout')
 
 const matrix = require('./src/matrix')
@@ -70,8 +70,8 @@ const shapeCornerFrags = select(
 )(focusedShapes, dragStartAt)
 
 const shapeEdgeFrags = select(
-  map(makeShapeParallelFrags)
-)(shapeEdgeMarkers)
+  (markers, hoveredMarker) => markers.map(marker => makeShapeParallelFrags(marker, hoveredMarker && hoveredMarker.key === marker.key))
+)(shapeEdgeMarkers, hoveredEdgeMarker)
 
 const shapeCenterFrags = select(
   map(makeShapeParallelFrags)

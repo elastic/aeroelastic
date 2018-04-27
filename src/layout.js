@@ -7,6 +7,7 @@ const {
         freeDragZ,
         freeColor,
         pad,
+        markerProximityDistance,
         snapEngageDistance,
         snapReleaseDistance,
         enforceAlignment
@@ -45,6 +46,9 @@ const hoveringAt = (shapes, {x, y}) => {
   const hoveredShapes = shapesAtPoint(shapes, x, y)
   return topShape(hoveredShapes)
 }
+
+const vectorLength = (x, y) => Math.sqrt(x * x + y * y)
+const pointDistance = (x0, y0, x1, y1) => vectorLength(x1 - x0, y1 - y0)
 
 const isHorizontal = line => line.height === 0
 const isVertical = line => line.width === 0
@@ -146,7 +150,7 @@ const snapGuideLine = (lines, shape, direction) => {
         const parallelDistance = sectionOvershoot(direction, shape, line)
         // ^ parallel distance from section edge is also important: pulling a shape off a guideline tangentially must remove
         // the snapping
-        const distance = Math.sqrt(Math.pow(parallelDistance, 2) + Math.pow(perpendicularDistance, 2)) // or just Math.max()
+        const distance = vectorLength(parallelDistance, perpendicularDistance) // or just Math.max()
         // distanceThreshold depends on whether we're engaging the snap or prying it apart - mainstream tools often have
         // such a snap hysteresis
         const distanceThreshold = preexistingConstraint === line.key ? snapReleaseDistance : snapEngageDistance
@@ -365,6 +369,48 @@ const focusedShape = select(
   (draggedShape, hoveredShape) => draggedShape || hoveredShape
 )(draggedShape, hoveredShape)
 
+// focusedShapes has updated position etc. information while focusedShape may have stale position
+const focusedShapes = select(
+  (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
+)(shapes, focusedShape)
+
+const shapeEdgeMarkers = select(
+  focusedShapes => flatten(focusedShapes
+    .map(({key, width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+      {key: key + ' top', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
+        snapped: yConstraintAnchor === 'top', horizontal: true, shapeKey: key},
+      {key: key + ' right', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width, height / 2, 0)),
+        snapped: xConstraintAnchor === 'right', horizontal: false, shapeKey: key},
+      {key: key + ' bottom', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height, 0)),
+        snapped: yConstraintAnchor === 'bottom', horizontal: true, shapeKey: key},
+      {key: key + ' left', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
+        snapped: xConstraintAnchor === 'left', horizontal: false, shapeKey: key}
+    ]))
+  ))(focusedShapes)
+
+const shapeCenterMarkers = select(
+  focusedShapes => flatten(focusedShapes
+    .map(({key, width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+      {key: key + ' center', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, 0.01)),
+        snapped: xConstraintAnchor === 'center', horizontal: false, shapeKey: key},
+      {key: key + ' middle', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
+        snapped: yConstraintAnchor === 'middle', horizontal: true, shapeKey: key}
+    ]))
+  ))(focusedShapes)
+
+const hoveredEdgeMarker = select((shapeEdgeMarkers, {x, y}) => {
+  const closest = shapeEdgeMarkers.reduce(
+    (previous, marker) => {
+      const [x1, y1] = matrix.mvMultiply(marker.transformMatrix, matrix.ORIGIN)
+      const distance = pointDistance(x, y, x1, y1)
+      return distance < previous.distance ? {distance, marker} : previous
+    },
+    {distance: Infinity, marker: null}
+  )
+  const hoveredMarker = closest.distance < markerProximityDistance ? closest.marker : null
+  return hoveredMarker
+})(shapeEdgeMarkers, cursorPosition)
+
 const dragStartAt = selectReduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
     if(down) {
@@ -467,37 +513,8 @@ const nextScene = select(
   })
 )(hoveredShape, draggedShape, transformedShapes)
 
-// focusedShapes has updated position etc. information while focusedShape may have stale position
-const focusedShapes = select(
-  (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
-)(shapes, focusedShape)
-
-const shapeEdgeMarkers = select(
-  focusedShapes => flatten(focusedShapes
-    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
-        snapped: yConstraintAnchor === 'top', horizontal: true},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width, height / 2, 0)),
-        snapped: xConstraintAnchor === 'right', horizontal: false},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height, 0)),
-        snapped: yConstraintAnchor === 'bottom', horizontal: true},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
-        snapped: xConstraintAnchor === 'left', horizontal: false}
-    ]))
-  ))(focusedShapes)
-
-const shapeCenterMarkers = select(
-  focusedShapes => flatten(focusedShapes
-    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, 0.01)),
-        snapped: xConstraintAnchor === 'center', horizontal: false},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
-        snapped: yConstraintAnchor === 'middle', horizontal: true}
-    ]))
-  ))(focusedShapes)
-
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt, shapeEdgeMarkers, shapeCenterMarkers,
-  nextScene, focusedShape, selectedShape, currentFreeShapes,
+  nextScene, focusedShape, selectedShape, currentFreeShapes, hoveredEdgeMarker,
   shapeAdditions, primaryUpdate, newShapeEvent, shapes, focusedShapes
 }
