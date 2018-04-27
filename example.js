@@ -23,13 +23,13 @@ const initialState = require('./example/mockScene')
 
 const store = createStore(initialState)
 
-const {flatten, map} = require('./src/functional')
+const {map} = require('./src/functional')
 
 const {
         cursorPosition, mouseIsDown, dragStartAt,
         nextScene, focusedShape, selectedShape, currentFreeShapes,
         shapeAdditions, primaryUpdate, newShapeEvent, shapes,
-        focusedShapes
+        focusedShapes, shapeEdgeMarkers, shapeCenterMarkers
       } = require('./src/layout')
 
 const matrix = require('./src/matrix')
@@ -70,33 +70,9 @@ const shapeCornerFrags = select(
   focusedShapes => focusedShapes.map(makeShapeCornerFrags)
 )(focusedShapes, dragStartAt)
 
-const shapeEdgeMarkers = select(
-  focusedShapes => flatten(focusedShapes
-    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
-        snapped: yConstraintAnchor === 'top', horizontal: true},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width, height / 2, 0)),
-        snapped: xConstraintAnchor === 'right', horizontal: false},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height, 0)),
-        snapped: yConstraintAnchor === 'bottom', horizontal: true},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
-        snapped: xConstraintAnchor === 'left', horizontal: false}
-    ]))
-  ))(focusedShapes)
-
 const shapeEdgeFrags = select(
   map(makeShapeParallelFrags)
 )(shapeEdgeMarkers)
-
-const shapeCenterMarkers = select(
-  focusedShapes => flatten(focusedShapes
-    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, 0.01)),
-        snapped: xConstraintAnchor === 'center', horizontal: false},
-      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
-        snapped: yConstraintAnchor === 'middle', horizontal: true}
-    ]))
-  ))(focusedShapes)
 
 const shapeCenterFrags = select(
   map(makeShapeParallelFrags)

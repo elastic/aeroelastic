@@ -12,6 +12,8 @@ const {
         enforceAlignment
       } = require('../example/mockConfig')
 
+const {flatten} = require('./functional')
+
 const matrix = require('./matrix')
 
 
@@ -470,8 +472,32 @@ const focusedShapes = select(
   (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
 )(shapes, focusedShape)
 
+const shapeEdgeMarkers = select(
+  focusedShapes => flatten(focusedShapes
+    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
+        snapped: yConstraintAnchor === 'top', horizontal: true},
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width, height / 2, 0)),
+        snapped: xConstraintAnchor === 'right', horizontal: false},
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height, 0)),
+        snapped: yConstraintAnchor === 'bottom', horizontal: true},
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
+        snapped: xConstraintAnchor === 'left', horizontal: false}
+    ]))
+  ))(focusedShapes)
+
+const shapeCenterMarkers = select(
+  focusedShapes => flatten(focusedShapes
+    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, 0.01)),
+        snapped: xConstraintAnchor === 'center', horizontal: false},
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
+        snapped: yConstraintAnchor === 'middle', horizontal: true}
+    ]))
+  ))(focusedShapes)
+
 module.exports = {
-  cursorPosition, mouseIsDown, dragStartAt,
+  cursorPosition, mouseIsDown, dragStartAt, shapeEdgeMarkers, shapeCenterMarkers,
   nextScene, focusedShape, selectedShape, currentFreeShapes,
   shapeAdditions, primaryUpdate, newShapeEvent, shapes, focusedShapes
 }
