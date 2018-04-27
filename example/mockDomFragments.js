@@ -120,14 +120,14 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
   ])
 })
 
-const makeRotateFrags = transformMatrix3d => h('div', {
+const makeRotateFrags = transformMatrix => h('div', {
   class: 'rotateHotspot circle',
   style: {
     width: dom.px(cornerHotspotSize * 3),
     height: dom.px(cornerHotspotSize * 3),
     left: dom.px(2 * cornerHotspotSize),
     top: dom.px(- 4 * cornerHotspotSize),
-    transform: dom.matrixToCSS(transformMatrix3d)
+    transform: dom.matrixToCSS(transformMatrix)
   }
 })
 
@@ -167,13 +167,13 @@ const makeShapeCornerFrags = shape => [
   })
 ]
 
-const makeShapeParallelFrags = ({transformMatrix3d, snapped, horizontal}) => h('div', {
+const makeShapeParallelFrags = ({transformMatrix, snapped, horizontal}) => h('div', {
   style: {
     left: dom.px(horizontal ? - parallelHotspotSize / 2 : 0),
     top: dom.px(horizontal ? 0 : - parallelHotspotSize / 2),
     width: dom.px(horizontal ? parallelHotspotSize : 0),
     height: dom.px(horizontal ? 0 : parallelHotspotSize),
-    transform: dom.matrixToCSS(transformMatrix3d),
+    transform: dom.matrixToCSS(transformMatrix),
     outline: '1px solid',
     outlineColor: snapped ? devColor : 'darkgrey'
   }

@@ -74,41 +74,41 @@ const shapeCornerFrags = select(
   focusedShapes => focusedShapes.map(makeShapeCornerFrags)
 )(focusedShapes, dragStartAt)
 
-const shapeEdgeSets = select(
+const shapeEdgeMarkers = select(
   focusedShapes => flatten(focusedShapes
-    .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, 0, 0)),
+    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
         snapped: yConstraintAnchor === 'top', horizontal: true},
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width, height / 2, 0)),
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width, height / 2, 0)),
         snapped: xConstraintAnchor === 'right', horizontal: false},
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height, 0)),
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height, 0)),
         snapped: yConstraintAnchor === 'bottom', horizontal: true},
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(0, height / 2, 0)),
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
         snapped: xConstraintAnchor === 'left', horizontal: false}
     ]))
   ))(focusedShapes)
 
 const shapeEdgeFrags = select(
   map(makeShapeParallelFrags)
-)(shapeEdgeSets)
+)(shapeEdgeMarkers)
 
-const shapeCenterSets = select(
+const shapeCenterMarkers = select(
   focusedShapes => flatten(focusedShapes
-    .map(({width, height, transformMatrix3d, xConstraintAnchor, yConstraintAnchor}) => ([
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, 0.01)),
+    .map(({width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, 0.01)),
         snapped: xConstraintAnchor === 'center', horizontal: false},
-      {transformMatrix3d: matrix.multiply(transformMatrix3d, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
+      {transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
         snapped: yConstraintAnchor === 'middle', horizontal: true}
     ]))
   ))(focusedShapes)
 
 const shapeCenterFrags = select(
   map(makeShapeParallelFrags)
-)(shapeCenterSets)
+)(shapeCenterMarkers)
 
 const shapeRotateFrags = select(
   focusedShapes => {
-    const translateToCenter = shape => matrix.multiply(shape.transformMatrix3d, matrix.translate(shape.width / 2, 0, 0))
+    const translateToCenter = shape => matrix.multiply(shape.transformMatrix, matrix.translate(shape.width / 2, 0, 0))
     return focusedShapes.map(translateToCenter).map(makeRotateFrags)
   }
 )(focusedShapes)
