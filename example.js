@@ -58,8 +58,7 @@ const metaCursorFrag = select(
 )(cursorPosition, mouseIsDown, dragStartAt)
 
 const shapeFrags = select(
-  ({shapes}, hoveredShape, dragStartAt) =>
-    makeShapeFrags(shapes, hoveredShape, dragStartAt)
+  ({shapes}, hoveredShape, dragStartAt) => makeShapeFrags(shapes, hoveredShape, dragStartAt)
 )(nextScene, focusedShape, dragStartAt, selectedShape)
 
 const selectedShapes = select(
@@ -67,7 +66,7 @@ const selectedShapes = select(
 )(shapes, selectedShape)
 
 const shapeCornerFrags = select(
-  focusedShapes => focusedShapes.map(makeShapeCornerFrags)
+  map(makeShapeCornerFrags)
 )(focusedShapes, dragStartAt)
 
 const shapeEdgeFrags = select(
