@@ -79,7 +79,7 @@ const shapeCenterFrags = select(
 
 const shapeRotateFrags = select(
   focusedShapes => {
-    const translateToCenter = shape => matrix.multiply(shape.transformMatrix, matrix.translate(0, -shape.height / 2, 0))
+    const translateToCenter = shape => matrix.multiply(shape.transformMatrix, matrix.translate(0, -shape.b, 0))
     return focusedShapes.map(translateToCenter).map(makeRotateFrags)
   }
 )(focusedShapes)

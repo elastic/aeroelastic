@@ -31,10 +31,13 @@ const scene = state => state.currentScene
  * Pure calculations
  */
 
+const vectorCenter = () => [0, 0, 0, 0]
+const vectorTop = ({b}) => [0, -b, 0, 0]
+
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.filter(shape => {
-  return withinBounds(shape.x - shape.width / 2 - pad, shape.x + shape.width / 2 + pad, x)
-    && withinBounds(shape.y - shape.height / 2 - pad, shape.y + shape.height / 2 + pad, y)
+  return withinBounds(shape.x - shape.a - pad, shape.x + shape.a + pad, x)
+    && withinBounds(shape.y - shape.b - pad, shape.y + shape.b + pad, y)
 })
 
 // pick top shape out of possibly several shapes (presumably under the same point)
@@ -51,8 +54,8 @@ const hoveringAt = (shapes, {x, y}) => {
 const vectorLength = (x, y) => Math.sqrt(x * x + y * y)
 const pointDistance = (x0, y0, x1, y1) => vectorLength(x1 - x0, y1 - y0)
 
-const isHorizontal = line => line.height === 0
-const isVertical = line => line.width === 0
+const isHorizontal = line => line.b === 0
+const isVertical = line => line.a === 0
 const isHorizontalDirection = direction => direction === 'horizontal'
 const isLine = shape => shape.type === 'line'
 const allLines = shapes => shapes.filter(isLine)
@@ -70,25 +73,22 @@ const anchorOrigin = (shape, anchor) => shape[anchorOriginMap[anchor]]
 
 // fixme do it more nicely and more efficiently
 const anchorOffsetMap = shape => ({
-  top: - shape.height / 2,
+  top: - shape.b,
   middle: 0,
-  bottom: shape.height / 2,
-  left: - shape.width / 2,
+  bottom: shape.b,
+  left: - shape.a,
   center: 0,
-  right: shape.width / 2
+  right: shape.a
 })
 
 const anchorOffset = (shape, anchor) => anchorOffsetMap(shape)[anchor]
 const anchorValue = (shape, anchor) => anchorOrigin(shape, anchor) + anchorOffset(shape, anchor)
 
 // lower bound of the (actual, eg. snapped) extent for a specific dimension
-const low = (shape, direction) => direction === 'horizontal' ? shape.y - shape.height / 2 : shape.x - shape.width / 2
-
-// size of the shape across a specific dimension
-const shapeExtent = (shape, direction) => direction === 'horizontal' ? shape.height : shape.width
+const low = (shape, direction) => direction === 'horizontal' ? shape.y - shape.b : shape.x - shape.a
 
 // upper bound of the (actual, eg. snapped) extent for a specific dimension
-const high = (shape, direction) => low(shape, direction) + shapeExtent(shape, direction)
+const high = (shape, direction) => direction === 'horizontal' ? shape.y + shape.b : shape.x + shape.a
 
 // midpoint of a shape (in terms of its unconstrained location) for a specific dimension
 // currently the center/middle points attach, not yet the corners
@@ -219,19 +219,39 @@ const shapeConstraintUpdate = (shapes, snapGuideLines, shape) => {
   }
 }
 
-const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned) => {
-  const grabStart = mouseDowned
-  const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
-  const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
-  const x = x1 + grabOffsetX
-  const y = y1 + grabOffsetY
-  return {
-    x,
-    y,
-    unconstrainedX: x,
-    unconstrainedY: y,
-    grabOffsetX,
-    grabOffsetY,
+const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned, hoveredEdgeMarker) => {
+  if(hoveredEdgeMarker) {
+    const grabStart = mouseDowned
+    const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
+    const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
+    const x = x0 + grabOffsetX
+    const y = y0 + grabOffsetY
+
+    return {
+      x,
+      y,
+      unconstrainedX: x,
+      unconstrainedY: y,
+      grabOffsetX,
+      grabOffsetY,
+      scaleX: hoveredEdgeMarker.horizontal ? shape.scaleX : 0.5,
+      scaleY: hoveredEdgeMarker.horizontal ? 0.5 : shape.scaleY
+    }
+
+  } else {
+    const grabStart = mouseDowned
+    const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
+    const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
+    const x = x1 + grabOffsetX
+    const y = y1 + grabOffsetY
+    return {
+      x,
+      y,
+      unconstrainedX: x,
+      unconstrainedY: y,
+      grabOffsetX,
+      grabOffsetY,
+    }
   }
 }
 
@@ -371,21 +391,21 @@ const focusedShapes = select(
 
 const shapeEdgeMarkers = select(
   focusedShapes => flatten(focusedShapes
-    .map(({key, width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
-      {key: key + ' top', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, - height / 2, 0)),
+    .map(({key, a, b, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+      {key: key + ' top', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, -b, 0)),
         snapped: yConstraintAnchor === 'top', horizontal: true, shapeKey: key},
-      {key: key + ' right', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
+      {key: key + ' right', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(a, 0, 0)),
         snapped: xConstraintAnchor === 'right', horizontal: false, shapeKey: key},
-      {key: key + ' bottom', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
+      {key: key + ' bottom', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, b, 0)),
         snapped: yConstraintAnchor === 'bottom', horizontal: true, shapeKey: key},
-      {key: key + ' left', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(- width / 2, 0, 0)),
+      {key: key + ' left', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(-a, 0, 0)),
         snapped: xConstraintAnchor === 'left', horizontal: false, shapeKey: key}
     ]))
   ))(focusedShapes)
 
 const shapeCenterMarkers = select(
   focusedShapes => flatten(focusedShapes
-    .map(({key, width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
+    .map(({key, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
       {key: key + ' center', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, 0, 0.01)),
         snapped: xConstraintAnchor === 'center', horizontal: false, shapeKey: key},
       {key: key + ' middle', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, 0, xConstraintAnchor === 'center' ? 0 : 0.02)),
