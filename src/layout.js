@@ -31,8 +31,15 @@ const scene = state => state.currentScene
  * Pure calculations
  */
 
-const vectorCenter = () => [0, 0, 0, 0]
-const vectorTop = ({b}) => [0, -b, 0, 0]
+const rectCenter =      (      ) => [ 0,  0,  0,  0]
+const rectLeft =        ({a   }) => [-a,  0,  0,  0]
+const rectRight =       ({a   }) => [ a,  0,  0,  0]
+const rectTop =         ({   b}) => [ 0, -b,  0,  0]
+const rectBottom =      ({   b}) => [ 0,  b,  0,  0]
+const rectTopLeft =     ({a, b}) => [-a, -b,  0,  0]
+const rectTopRight =    ({a, b}) => [ a, -b,  0,  0]
+const rectBottomLeft =  ({a, b}) => [-a,  b,  0,  0]
+const rectBottomRight = ({a, b}) => [ a,  b,  0,  0]
 
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.filter(shape => {
@@ -73,10 +80,10 @@ const anchorOrigin = (shape, anchor) => shape[anchorOriginMap[anchor]]
 
 // fixme do it more nicely and more efficiently
 const anchorOffsetMap = shape => ({
-  top: - shape.b,
+  top: -shape.b,
   middle: 0,
   bottom: shape.b,
-  left: - shape.a,
+  left: -shape.a,
   center: 0,
   right: shape.a
 })

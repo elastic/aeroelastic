@@ -67,8 +67,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
-        top: dom.px(- shape.b + toolbarHeight),
-        left: dom.px(- shape.a),
+        top: dom.px(-shape.b + toolbarHeight),
+        left: dom.px(-shape.a),
         transform: shape.transform3d
         + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`,
         backgroundImage: horizontalRightIcon,
@@ -84,8 +84,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
-        top: dom.px(- shape.b + toolbarHeight),
-        left: dom.px(- shape.a),
+        top: dom.px(-shape.b + toolbarHeight),
+        left: dom.px(-shape.a),
         transform: shape.transform3d + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
@@ -101,8 +101,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
-        top: dom.px(- shape.b + toolbarHeight),
-        left: dom.px(- shape.a),
+        top: dom.px(-shape.b + toolbarHeight),
+        left: dom.px(-shape.a),
         transform: shape.transform3d + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
@@ -118,8 +118,8 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         outline: 'none',
         width: dom.px(toolbarHeight),
         height: dom.px(toolbarHeight),
-        top: dom.px(- shape.b + toolbarHeight),
-        left: dom.px(- shape.a),
+        top: dom.px(-shape.b + toolbarHeight),
+        left: dom.px(-shape.a),
         transform: shape.transform3d + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
