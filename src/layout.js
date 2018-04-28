@@ -33,7 +33,8 @@ const scene = state => state.currentScene
 
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.filter(shape => {
-  return shape.x - pad <= x && x <= shape.x + shape.width + pad && shape.y - pad <= y && y < shape.y + shape.height + pad
+  return withinBounds(shape.x - shape.width / 2 - pad, shape.x + shape.width / 2 + pad, x)
+    && withinBounds(shape.y - shape.height / 2 - pad, shape.y + shape.height / 2 + pad, y)
 })
 
 // pick top shape out of possibly several shapes (presumably under the same point)
@@ -69,22 +70,19 @@ const anchorOrigin = (shape, anchor) => shape[anchorOriginMap[anchor]]
 
 // fixme do it more nicely and more efficiently
 const anchorOffsetMap = shape => ({
-  top: 0,
-  middle: shape.height / 2,
-  bottom: shape.height,
-  left: 0,
-  center: shape.width / 2,
-  right: shape.width
+  top: - shape.height / 2,
+  middle: 0,
+  bottom: shape.height / 2,
+  left: - shape.width / 2,
+  center: 0,
+  right: shape.width / 2
 })
 
 const anchorOffset = (shape, anchor) => anchorOffsetMap(shape)[anchor]
 const anchorValue = (shape, anchor) => anchorOrigin(shape, anchor) + anchorOffset(shape, anchor)
 
 // lower bound of the (actual, eg. snapped) extent for a specific dimension
-const low = (shape, direction) => direction === 'horizontal' ? shape.y : shape.x
-
-// lower bound of the unconstrained extent for a specific dimension
-const unconstrainedLow = (shape, direction) => direction === 'horizontal' ? shape.unconstrainedY : shape.unconstrainedX
+const low = (shape, direction) => direction === 'horizontal' ? shape.y - shape.height / 2 : shape.x - shape.width / 2
 
 // size of the shape across a specific dimension
 const shapeExtent = (shape, direction) => direction === 'horizontal' ? shape.height : shape.width
@@ -92,12 +90,9 @@ const shapeExtent = (shape, direction) => direction === 'horizontal' ? shape.hei
 // upper bound of the (actual, eg. snapped) extent for a specific dimension
 const high = (shape, direction) => low(shape, direction) + shapeExtent(shape, direction)
 
-// half-size of a shape for a specific dimension
-const shapeExtentMid = (shape, direction) => shapeExtent(shape, direction) / 2
-
 // midpoint of a shape (in terms of its unconstrained location) for a specific dimension
 // currently the center/middle points attach, not yet the corners
-const unconstrainedMidPoint = (shape, direction) => unconstrainedLow(shape, direction) + shapeExtentMid(shape, direction)
+const unconstrainedMidPoint = (shape, direction) => direction === 'horizontal' ? shape.unconstrainedY : shape.unconstrainedX
 
 // is the point within the extent?
 const withinBounds = (low, high, point) => low <= point && point <= high
@@ -377,13 +372,13 @@ const focusedShapes = select(
 const shapeEdgeMarkers = select(
   focusedShapes => flatten(focusedShapes
     .map(({key, width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
-      {key: key + ' top', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
+      {key: key + ' top', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, - height / 2, 0)),
         snapped: yConstraintAnchor === 'top', horizontal: true, shapeKey: key},
-      {key: key + ' right', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width, height / 2, 0)),
+      {key: key + ' right', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, 0, 0)),
         snapped: xConstraintAnchor === 'right', horizontal: false, shapeKey: key},
-      {key: key + ' bottom', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height, 0)),
+      {key: key + ' bottom', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
         snapped: yConstraintAnchor === 'bottom', horizontal: true, shapeKey: key},
-      {key: key + ' left', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, height / 2, 0)),
+      {key: key + ' left', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(- width / 2, 0, 0)),
         snapped: xConstraintAnchor === 'left', horizontal: false, shapeKey: key}
     ]))
   ))(focusedShapes)
@@ -391,9 +386,9 @@ const shapeEdgeMarkers = select(
 const shapeCenterMarkers = select(
   focusedShapes => flatten(focusedShapes
     .map(({key, width, height, transformMatrix, xConstraintAnchor, yConstraintAnchor}) => ([
-      {key: key + ' center', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, 0.01)),
+      {key: key + ' center', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, 0, 0.01)),
         snapped: xConstraintAnchor === 'center', horizontal: false, shapeKey: key},
-      {key: key + ' middle', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(width / 2, height / 2, xConstraintAnchor === 'center' ? 0 : 0.02)),
+      {key: key + ' middle', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, 0, xConstraintAnchor === 'center' ? 0 : 0.02)),
         snapped: yConstraintAnchor === 'middle', horizontal: true, shapeKey: key}
     ]))
   ))(focusedShapes)
@@ -449,7 +444,7 @@ const snapGuideLines = select(
 )(shapes, draggedShape)
 
 const nextShapes = select(
-  (shapes, draggedShape, {x0, y0, x1, y1}, alignUpdate, constraints, snapGuideLines, mouseDowned) => {
+  (shapes, draggedShape, {x0, y0, x1, y1}, alignUpdate, constraints, snapGuideLines, mouseDowned, hoveredEdgeMarker) => {
 
     // this is the per-shape model update at the current PoC level
     return shapes.map(shape => {
@@ -458,7 +453,7 @@ const nextShapes = select(
         // update the preexisting shape:
         ...shape,
         // with the effect of dragging:
-        ...beingDragged && dragUpdate(shape, constraints, x0, y0, x1, y1, mouseDowned),
+        ...beingDragged && dragUpdate(shape, constraints, x0, y0, x1, y1, mouseDowned, hoveredEdgeMarker),
         // and the effect of establishing / breaking snap connections:
         ...beingDragged && shapeConstraintUpdate(shapes, snapGuideLines, shape),
         // and following any necessary snapping due to establishing / breaking snap constraints:
@@ -468,18 +463,18 @@ const nextShapes = select(
       }
     })
   }
-)(shapes, draggedShape, dragVector, alignUpdate, constraints, snapGuideLines, mouseDowned)
+)(shapes, draggedShape, dragVector, alignUpdate, constraints, snapGuideLines, mouseDowned, hoveredEdgeMarker)
 
 // currently the determination of transform data is done in this post-processing step; in future versions, the operations
 // themselves (drag etc.) will directly maintain the transform data
 
 const transformShape = shape => {
-  const {x, y, z, rotation} = shape
+  const {x, y, z, rotation, scaleY} = shape
   const translationMatrix = matrix.translate(x, y, z)
   // minor optimization for the common case of no rotation:
   const transformMatrix = rotation
     ? matrix.multiply(translationMatrix, matrix.rotateZ(rotation))
-    : translationMatrix
+    : scaleY ? matrix.multiply(translationMatrix, matrix.scale(1, scaleY, 1)) : translationMatrix
   return {
     ...shape,
     transformMatrix: transformMatrix,

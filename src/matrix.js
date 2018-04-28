@@ -4,7 +4,7 @@
  * Turns a row major ordered vector representation of a 4 x 4 matrix into a column major ordered vector representation, or
  * the other way around.
  *
- * Must pass a row major ordered vector if the goal is to obtain a columm major ordered vector.
+ * Must pass a row major ordered vector if the goal is to obtain a column major ordered vector.
  *
  * We're using row major order in the _source code_ as this results in the correct visual shape of the matrix, but
  * `transform3d` needs column major order.
@@ -50,6 +50,13 @@ const translate = (x, y, z) => transpose([
   1, 0, 0, x,
   0, 1, 0, y,
   0, 0, 1, z,
+  0, 0, 0, 1
+])
+
+const scale = (x, y, z) => transpose([
+  x, 0, 0, 0,
+  0, y, 0, 0,
+  0, 0, z, 0,
   0, 0, 0, 1
 ])
 
@@ -157,5 +164,5 @@ const mvMultiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, 
 ])
 
 module.exports = {
-  ORIGIN, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, multiply, mvMultiply
+  ORIGIN, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, scale, multiply, mvMultiply
 }
