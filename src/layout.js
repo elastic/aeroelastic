@@ -238,7 +238,7 @@ const shapeConstraintUpdate = (shapes, snapGuideLines, shape) => {
 }
 
 const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned, hoveredEdgeMarker) => {
-  if(hoveredEdgeMarker) {
+  if(false && hoveredEdgeMarker) {
     const grabStart = mouseDowned
     const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
     const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
@@ -265,6 +265,7 @@ const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned, hoveredEdge
     return {
       x,
       y,
+      //transformMatrix: matrix.multiply(shape.transformMatrix, matrix.translate(x, y, 0)),
       unconstrainedX: x,
       unconstrainedY: y,
       grabOffsetX,
@@ -515,8 +516,7 @@ const transformShape = shape => {
     : scaleY ? matrix.multiply(translationMatrix, matrix.scale(1, scaleY, 1)) : translationMatrix
   return {
     ...shape,
-    transformMatrix: transformMatrix,
-    transform3d: 'matrix3d(' + transformMatrix.join(',') + ')'
+    transformMatrix: transformMatrix
   }
 }
 

@@ -36,7 +36,7 @@ const makeShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape =
   return h('div', {
     class: shape.type,
     style: {
-      transform: shape.transform3d,
+      transform: dom.matrixToCSS(shape.transformMatrix),
       width: dom.px(2 * shape.a),
       height: dom.px(2 * shape.b),
       marginLeft: dom.px(-shape.a),
@@ -69,7 +69,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         height: dom.px(toolbarHeight),
         marginLeft: dom.px(-shape.a),
         marginTop: dom.px(-shape.b + toolbarHeight),
-        transform: shape.transform3d
+        transform: dom.matrixToCSS(shape.transformMatrix)
         + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize}px, ${toolbarY}px, ${toolbarZ}px) ${rotation}`,
         backgroundImage: horizontalRightIcon,
         backgroundSize: 'contain',
@@ -86,7 +86,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         height: dom.px(toolbarHeight),
         marginLeft: dom.px(-shape.a),
         marginTop: dom.px(-shape.b + toolbarHeight),
-        transform: shape.transform3d + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + paddedToolbarHeight}px, 
+        transform: dom.matrixToCSS(shape.transformMatrix) + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
         backgroundImage: horizontalCenterIcon,
@@ -103,7 +103,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         height: dom.px(toolbarHeight),
         marginLeft: dom.px(-shape.a),
         marginTop: dom.px(-shape.b + toolbarHeight),
-        transform: shape.transform3d + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, 
+        transform: dom.matrixToCSS(shape.transformMatrix) + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + 2 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
         backgroundImage: horizontalLeftIcon,
@@ -120,7 +120,7 @@ const makeShapeMenuOverlayFrags = commit => shapes => shapes.map(shape => {
         height: dom.px(toolbarHeight),
         marginLeft: dom.px(-shape.a),
         marginTop: dom.px(-shape.b + toolbarHeight),
-        transform: shape.transform3d + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, 
+        transform: dom.matrixToCSS(shape.transformMatrix) + ` translate3d(${2 * shape.a + 2 * cornerHotspotSize + 3 * paddedToolbarHeight}px, 
                                   ${toolbarY}px, ${toolbarZ}px) 
                       ${rotation}`,
         backgroundImage: cancelIcon,
@@ -149,7 +149,7 @@ const makeShapeCornerFrags = shape => [
       height: dom.px(cornerHotspotSize),
       marginLeft: dom.px(- cornerHotspotSize / 2),
       marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: shape.transform3d + ` translate(${- shape.a + cornerHotspotSize / 2}px, ${- shape.b + cornerHotspotSize / 2}px)`,
+      transform: dom.matrixToCSS(shape.transformMatrix) + ` translate(${- shape.a + cornerHotspotSize / 2}px, ${- shape.b + cornerHotspotSize / 2}px)`,
       outline: '1px solid darkgrey'
     }
   }),
@@ -160,7 +160,7 @@ const makeShapeCornerFrags = shape => [
       height: dom.px(cornerHotspotSize),
       marginLeft: dom.px(- cornerHotspotSize / 2),
       marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: shape.transform3d + ` translate(${shape.a - cornerHotspotSize / 2}px, ${- shape.b + cornerHotspotSize / 2}px)`,
+      transform: dom.matrixToCSS(shape.transformMatrix) + ` translate(${shape.a - cornerHotspotSize / 2}px, ${- shape.b + cornerHotspotSize / 2}px)`,
       outline: '1px solid darkgrey'
     }
   }),
@@ -171,7 +171,7 @@ const makeShapeCornerFrags = shape => [
       height: dom.px(cornerHotspotSize),
       marginLeft: dom.px(- cornerHotspotSize / 2),
       marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: shape.transform3d + ` translate(${- shape.a + cornerHotspotSize / 2}px, ${shape.b - cornerHotspotSize / 2}px)`,
+      transform: dom.matrixToCSS(shape.transformMatrix) + ` translate(${- shape.a + cornerHotspotSize / 2}px, ${shape.b - cornerHotspotSize / 2}px)`,
       outline: '1px solid darkgrey'
     }
   }),
@@ -182,7 +182,7 @@ const makeShapeCornerFrags = shape => [
       height: dom.px(cornerHotspotSize),
       marginLeft: dom.px(- cornerHotspotSize / 2),
       marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: shape.transform3d
+      transform: dom.matrixToCSS(shape.transformMatrix)
       + ` translate(${shape.a - cornerHotspotSize / 2}px, ${shape.b - cornerHotspotSize / 2}px)`,
       outline: '1px solid darkgrey'
     }
