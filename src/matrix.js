@@ -30,6 +30,8 @@ const transpose = ([a, e, i, m, b, f, j, n, c, g, k, o, d, h, l, p]) =>
 
 const ORIGIN = [0, 0, 0, 1]
 
+const NULLVECTOR = [0, 0, 0, 0]
+
 const NULLMATRIX = transpose([
   0, 0, 0, 0,
   0, 0, 0, 0,
@@ -213,5 +215,5 @@ const invert = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) => {
 }
 
 module.exports = {
-  ORIGIN, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, scale, multiply, mvMultiply, invert
+  ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, scale, multiply, mvMultiply, invert
 }

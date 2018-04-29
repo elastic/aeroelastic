@@ -42,24 +42,26 @@ const rectBottomLeft  = ({a, b}) => [-a,  b,  0,  0]
 const rectBottomRight = ({a, b}) => [ a,  b,  0,  0]
 
 // set of shapes under a specific point
-const shapesAtPoint = (shapes, x, y) => shapes.filter(({transformMatrix, a, b}) => {
+const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
+  const {transformMatrix, a, b} = shape
   if(transformMatrix) {
     // We go full tilt with the inverse transform approach because that's general enough to handle any non-pathological
     // composition of transforms. Eg. this is a description of the idea: https://math.stackexchange.com/a/1685315
     // A perhaps cheaper alternative would be to forward project the four vertices and check if the cursor is within
     // the quadrilateral in 2D space.
     const inverseProjection = matrix.invert(transformMatrix)
-    const [sx, sy] = matrix.mvMultiply(inverseProjection, [x, y, 0, 1])
-    return Math.abs(sx) <= a + pad && Math.abs(sy) <= b + pad
+    const intersection = matrix.mvMultiply(inverseProjection, [x, y, 0, 1])
+    const [sx, sy] = intersection
+    return {intersection, inside: Math.abs(sx) <= a + pad && Math.abs(sy) <= b + pad, shape}
   } else {
-    return false
+    return {intersection: matrix.NULLVECTOR, inside: false, shape}
   }
 })
 
 // pick top shape out of possibly several shapes (presumably under the same point)
-const topShape = shapes => shapes.reduce((prev, next) => {
-  return prev.z > next.z ? prev : next
-}, {z: -Infinity})
+const topShape = shapes => shapes.reduce((prev, {shape, inside, intersection: [x, y, z, w]}) => {
+  return inside && (z <= prev.z) ? shape : prev
+}, {z: Infinity})
 
 // returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
 const hoveringAt = (shapes, {x, y}) => {

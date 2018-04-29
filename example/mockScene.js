@@ -25,7 +25,7 @@ const initialShapes = [
 
 const initialState = {
   shapeAdditions: initialShapes,
-  primabUpdate: null,
+  primaryUpdate: null,
   currentScene: {shapes: initialShapes}
 }
 
