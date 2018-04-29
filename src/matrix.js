@@ -173,123 +173,28 @@ const mvMultiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, 
  *         c    g    k    o
  *         d    h    l    p
  */
-const invert = ([m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15]) => {
+const invert = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) => {
 
   const inv = [
-    m5  * m10 * m15 -
-    m5  * m11 * m14 -
-    m9  * m6  * m15 +
-    m9  * m7  * m14 +
-    m13 * m6  * m11 -
-    m13 * m7  * m10,
-
-    -m1  * m10 * m15 +
-    m1  * m11 * m14 +
-    m9  * m2 * m15 -
-    m9  * m3 * m14 -
-    m13 * m2 * m11 +
-    m13 * m3 * m10,
-
-    m1  * m6 * m15 -
-    m1  * m7 * m14 -
-    m5  * m2 * m15 +
-    m5  * m3 * m14 +
-    m13 * m2 * m7 -
-    m13 * m3 * m6,
-
-    -m1 * m6 * m11 +
-    m1 * m7 * m10 +
-    m5 * m2 * m11 -
-    m5 * m3 * m10 -
-    m9 * m2 * m7 +
-    m9 * m3 * m6,
-
-    -m4  * m10 * m15 +
-    m4  * m11 * m14 +
-    m8  * m6  * m15 -
-    m8  * m7  * m14 -
-    m12 * m6  * m11 +
-    m12 * m7  * m10,
-
-    m0  * m10 * m15 -
-    m0  * m11 * m14 -
-    m8  * m2 * m15 +
-    m8  * m3 * m14 +
-    m12 * m2 * m11 -
-    m12 * m3 * m10,
-
-    -m0  * m6 * m15 +
-    m0  * m7 * m14 +
-    m4  * m2 * m15 -
-    m4  * m3 * m14 -
-    m12 * m2 * m7 +
-    m12 * m3 * m6,
-
-    m0 * m6 * m11 -
-    m0 * m7 * m10 -
-    m4 * m2 * m11 +
-    m4 * m3 * m10 +
-    m8 * m2 * m7 -
-    m8 * m3 * m6,
-
-    m4  * m9 * m15 -
-    m4  * m11 * m13 -
-    m8  * m5 * m15 +
-    m8  * m7 * m13 +
-    m12 * m5 * m11 -
-    m12 * m7 * m9,
-
-    -m0  * m9 * m15 +
-    m0  * m11 * m13 +
-    m8  * m1 * m15 -
-    m8  * m3 * m13 -
-    m12 * m1 * m11 +
-    m12 * m3 * m9,
-
-    m0  * m5 * m15 -
-    m0  * m7 * m13 -
-    m4  * m1 * m15 +
-    m4  * m3 * m13 +
-    m12 * m1 * m7 -
-    m12 * m3 * m5,
-
-    -m0 * m5 * m11 +
-    m0 * m7 * m9 +
-    m4 * m1 * m11 -
-    m4 * m3 * m9 -
-    m8 * m1 * m7 +
-    m8 * m3 * m5,
-
-    -m4  * m9 * m14 +
-    m4   * m10 * m13 +
-    m8   * m5 * m14 -
-    m8   * m6 * m13 -
-    m12  * m5 * m10 +
-    m12  * m6 * m9,
-
-    m0  * m9 * m14 -
-    m0  * m10 * m13 -
-    m8  * m1 * m14 +
-    m8  * m2 * m13 +
-    m12 * m1 * m10 -
-    m12 * m2 * m9,
-
-    -m0  * m5 * m14 +
-    m0  * m6 * m13 +
-    m4  * m1 * m14 -
-    m4  * m2 * m13 -
-    m12 * m1 * m6 +
-    m12 * m2 * m5,
-
-    m0 * m5 * m10 -
-    m0 * m6 * m9 -
-    m4 * m1 * m10 +
-    m4 * m2 * m9 +
-    m8 * m1 * m6 -
-    m8 * m2 * m5
+     f * k * p - f * l * o - j * g * p + j * h * o + n * g * l - n * h * k,
+    -b * k * p + b * l * o + j * c * p - j * d * o - n * c * l + n * d * k,
+     b * g * p - b * h * o - f * c * p + f * d * o + n * c * h - n * d * g,
+    -b * g * l + b * h * k + f * c * l - f * d * k - j * c * h + j * d * g,
+    -e * k * p + e * l * o + i * g * p - i * h * o - m * g * l + m * h * k,
+     a * k * p - a * l * o - i * c * p + i * d * o + m * c * l - m * d * k,
+    -a * g * p + a * h * o + e * c * p - e * d * o - m * c * h + m * d * g,
+     a * g * l - a * h * k - e * c * l + e * d * k + i * c * h - i * d * g,
+     e * j * p - e * l * n - i * f * p + i * h * n + m * f * l - m * h * j,
+    -a * j * p + a * l * n + i * b * p - i * d * n - m * b * l + m * d * j,
+     a * f * p - a * h * n - e * b * p + e * d * n + m * b * h - m * d * f,
+    -a * f * l + a * h * j + e * b * l - e * d * j - i * b * h + i * d * f,
+    -e * j * o + e * k * n + i * f * o - i * g * n - m * f * k + m * g * j,
+     a * j * o - a * k * n - i * b * o + i * c * n + m * b * k - m * c * j,
+    -a * f * o + a * g * n + e * b * o - e * c * n - m * b * g + m * c * f,
+     a * f * k - a * g * j - e * b * k + e * c * j + i * b * g - i * c * f
   ]
 
-  const det = m0 * inv[0] + m1 * inv[4] + m2 * inv[8] + m3 * inv[12]
+  const det = a * inv[0] + b * inv[4] + c * inv[8] + d * inv[12]
 
   if(det === 0) {
 
@@ -299,8 +204,8 @@ const invert = ([m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14
 
     const recDet = 1 / det
 
-    for(let i = 0; i < 16; i++) {
-      inv[i] *= recDet
+    for(let index = 0; index < 16; index++) {
+      inv[index] *= recDet
     }
 
     return inv
