@@ -42,9 +42,18 @@ const rectBottomLeft  = ({a, b}) => [-a,  b,  0,  0]
 const rectBottomRight = ({a, b}) => [ a,  b,  0,  0]
 
 // set of shapes under a specific point
-const shapesAtPoint = (shapes, x, y) => shapes.filter(shape => {
-  return withinBounds(shape.x - shape.a - pad, shape.x + shape.a + pad, x)
-    && withinBounds(shape.y - shape.b - pad, shape.y + shape.b + pad, y)
+const shapesAtPoint = (shapes, x, y) => shapes.filter(({transformMatrix, a, b}) => {
+  if(transformMatrix) {
+    // We go full tilt with the inverse transform approach because that's general enough to handle any non-pathological
+    // composition of transforms. Eg. this is a description of the idea: https://math.stackexchange.com/a/1685315
+    // A perhaps cheaper alternative would be to forward project the four vertices and check if the cursor is within
+    // the quadrilateral in 2D space.
+    const inverseProjection = matrix.invert(transformMatrix)
+    const [sx, sy] = matrix.mvMultiply(inverseProjection, [x, y, 0, 1])
+    return Math.abs(sx) <= a + pad && Math.abs(sy) <= b + pad
+  } else {
+    return false
+  }
 })
 
 // pick top shape out of possibly several shapes (presumably under the same point)
