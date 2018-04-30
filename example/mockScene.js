@@ -6,20 +6,22 @@ const {
         bach
       } = require('./mockAssets')
 
+const matrix = require('../src/matrix')
+
 const initialShapes = [
-  {key: 'line1', type: 'line', x: 900, y: 150, a: 700, b: 0, z: 5, rotation: 0, color: 'grey'},
-  {key: 'line2', type: 'line', x: 900, y: 650, a: 700, b: 0, z: 5, rotation: 0, color: 'grey'},
-  {key: 'line3', type: 'line', x: 80,  y: 550, a: 0, b: 450, z: 5, rotation: 0, color: 'grey'},
-  {key: 'line4', type: 'line', x: 700, y: 550, a: 0, b: 450, z: 5, rotation: 0, color: 'grey'},
-  {key: 'rect1', type: 'rectangle', x: 425, y: 290, rotation: 0 * Math.PI * Math.random(), a: 125, b: 90, z: 5,
+  {key: 'line1', type: 'line', transformMatrix: matrix.translate(900, 150, 5), a: 700, b: 0, rotation: 0, color: 'grey'},
+  {key: 'line2', type: 'line', transformMatrix: matrix.translate(900, 650, 5), a: 700, b: 0, rotation: 0, color: 'grey'},
+  {key: 'line3', type: 'line', transformMatrix: matrix.translate(80, 550, 5), a: 0, b: 450, rotation: 0, color: 'grey'},
+  {key: 'line4', type: 'line', transformMatrix: matrix.translate(700, 550, 5), a: 0, b: 450, rotation: 0, color: 'grey'},
+  {key: 'rect1', type: 'rectangle', transformMatrix: matrix.translate(425, 290, 5), rotation: 0 * Math.PI * Math.random(), a: 125, b: 90,
     backgroundColor: '#b3e2cd', backgroundImage: pattern1},
-  {key: 'rect2', type: 'rectangle', x: 750, y: 460, rotation: 0, a: 150, b: 110, z: 6, backgroundColor: '#fdcdac',
+  {key: 'rect2', type: 'rectangle', transformMatrix: matrix.translate(750, 460, 6), rotation: 0, a: 150, b: 110, backgroundColor: '#fdcdac',
     backgroundImage: pattern2},
-  {key: 'rect3', type: 'rectangle', x: 900, y: 375, rotation: 0, a: 100, b: 75, z: 7, backgroundColor: '#cbd5e8',
+  {key: 'rect3', type: 'rectangle', transformMatrix: matrix.translate(900, 375, 7), rotation: 0, a: 100, b: 75, backgroundColor: '#cbd5e8',
   backgroundImage: bach},
-  {key: 'rect4', type: 'rectangle', x: 190, y: 400, rotation: 0, a: 90, b: 150, z: 8,
+  {key: 'rect4', type: 'rectangle', transformMatrix: matrix.translate(190, 400, 8), rotation: 0, a: 90, b: 150,
     backgroundColor: 'rgba(0,0,0,0)', backgroundImage: elasticLogo}, // #f4cae4
-  {key: 'rect5', type: 'rectangle', x: 1060, y: 200, rotation: 0, a: 160, b: 100, z: 9, backgroundColor: '#e6f5c9',
+  {key: 'rect5', type: 'rectangle', transformMatrix: matrix.translate(1060, 200, 9), rotation: 0, a: 160, b: 100, backgroundColor: '#e6f5c9',
     backgroundImage: pattern3},
 ]
 

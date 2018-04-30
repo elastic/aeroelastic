@@ -31,15 +31,16 @@ const scene = state => state.currentScene
  * Pure calculations
  */
 
-const rectCenter      = (      ) => [ 0,  0,  0,  0]
-const rectLeft        = ({a   }) => [-a,  0,  0,  0]
-const rectRight       = ({a   }) => [ a,  0,  0,  0]
-const rectTop         = ({   b}) => [ 0, -b,  0,  0]
-const rectBottom      = ({   b}) => [ 0,  b,  0,  0]
-const rectTopLeft     = ({a, b}) => [-a, -b,  0,  0]
-const rectTopRight    = ({a, b}) => [ a, -b,  0,  0]
-const rectBottomLeft  = ({a, b}) => [-a,  b,  0,  0]
-const rectBottomRight = ({a, b}) => [ a,  b,  0,  0]
+const rectLeft        = (a   ) => [-a,  0,  0,  1]
+const rectCenter      = (    ) => [ 0,  0,  0,  1]
+const rectRight       = (a   ) => [ a,  0,  0,  1]
+const rectTop         = (a, b) => [ 0, -b,  0,  1]
+const rectMiddle      = (    ) => [ 0,  0,  0,  1]
+const rectBottom      = (a, b) => [ 0,  b,  0,  1]
+const rectTopLeft     = (a, b) => [-a, -b,  0,  1]
+const rectTopRight    = (a, b) => [ a, -b,  0,  1]
+const rectBottomLeft  = (a, b) => [-a,  b,  0,  1]
+const rectBottomRight = (a, b) => [ a,  b,  0,  1]
 
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
@@ -77,30 +78,6 @@ const isVertical = line => line.a === 0
 const isHorizontalDirection = direction => direction === 'horizontal'
 const isLine = shape => shape.type === 'line'
 const allLines = shapes => shapes.filter(isLine)
-
-const anchorOriginMap = {
-  top: 'unconstrainedY',
-  middle: 'unconstrainedY',
-  bottom: 'unconstrainedY',
-  left: 'unconstrainedX',
-  center: 'unconstrainedX',
-  right: 'unconstrainedX'
-}
-
-const anchorOrigin = (shape, anchor) => shape[anchorOriginMap[anchor]]
-
-// fixme do it more nicely and more efficiently
-const anchorOffsetMap = shape => ({
-  top: -shape.b,
-  middle: 0,
-  bottom: shape.b,
-  left: -shape.a,
-  center: 0,
-  right: shape.a
-})
-
-const anchorOffset = (shape, anchor) => anchorOffsetMap(shape)[anchor]
-const anchorValue = (shape, anchor) => anchorOrigin(shape, anchor) + anchorOffset(shape, anchor)
 
 // lower bound of the (actual, eg. snapped) extent for a specific dimension
 const low = (shape, direction) => direction === 'horizontal' ? shape.y - shape.b : shape.x - shape.a
@@ -147,11 +124,13 @@ const sectionConstrained = (direction, free, fixed) => {
 // returns the snap line and the attracted anchor of draggedShape for the closest snap line, if it's close enough to snap
 const snapGuideLine = (lines, shape, direction) => {
   const horizontalDirection = isHorizontalDirection(direction)
-  const possibleSnapPoints = horizontalDirection ? ['left', 'center', 'right'] : ['top', 'middle', 'bottom']
   const preexistingConstraint = horizontalDirection ? shape.xConstraint : shape.yConstraint
   // let's find the snap line / anchor combo with the shortest snapDistance
-  return possibleSnapPoints.reduce((prev, anchor) => {
-    const anchorPoint = anchorValue(shape, anchor)
+  const possibleSnapPoints = horizontalDirection
+    ? [{anchor: 'left', vector: rectLeft}, {anchor: 'center', vector: rectCenter}, {anchor: 'right', vector: rectRight}]
+    : [{anchor: 'top', vector: rectTop}, {anchor: 'middle', vector: rectMiddle}, {anchor: 'bottom', vector: rectBottom}]
+  return possibleSnapPoints.reduce((prev, {anchor, vector}) => {
+    const anchorPoint = matrix.mvMultiply(shape.unconstrainedTransformMatrix || shape.transformMatrix, vector(shape.a, shape.b))[horizontalDirection ? 0 : 1] // x : y
     return lines
       .filter(line => {
         return !line.alignment
@@ -159,18 +138,21 @@ const snapGuideLine = (lines, shape, direction) => {
           && (horizontalDirection || verticalConstraint(line) === anchor)
       })
       .reduce((prev, line) => {
-        const perpendicularDistance = Math.abs(anchorPoint - (horizontalDirection ? line.x : line.y))
-        const parallelDistance = sectionOvershoot(direction, shape, line)
+        const lineLocation = matrix.mvMultiply(line.unconstrainedTransformMatrix || line.transformMatrix, matrix.ORIGIN)[horizontalDirection ? 0 : 1]
+        const perpendicularDelta = lineLocation - anchorPoint
+        const perpendicularDistance = Math.abs(perpendicularDelta)
+        const parallelDistance = 0 && sectionOvershoot(direction, shape, line) // keeping it simple for now
         // ^ parallel distance from section edge is also important: pulling a shape off a guideline tangentially must remove
-        // the snapping
         const distance = vectorLength(parallelDistance, perpendicularDistance) // or just Math.max()
-        // distanceThreshold depends on whether we're engaging the snap or prying it apart - mainstream tools often have
-        // such a snap hysteresis
+//        if(shape.key === 'rect5' && direction === 'horizontal' && anchor === 'center' && line.key === 'line4') console.log(anchor, anchorPoint, lineLocation, distance)
+//        if(shape.key === 'rect5' && direction === 'vertical' && anchor === 'middle' && line.key === 'line1') console.log(anchor, anchorPoint, lineLocation, distance)
         const distanceThreshold = preexistingConstraint === line.key ? snapReleaseDistance : snapEngageDistance
         const closerLineFound = distance < prev.distance && distance <= distanceThreshold
-        return closerLineFound ? {line, anchor, distance} : prev
+        return closerLineFound
+          ? {line, anchor, distance, vector: horizontalDirection ? [perpendicularDelta, 0, 0, 1] : [0, perpendicularDelta, 0, 1]}
+          : prev
       }, prev)
-  }, {line: null, anchor: null, distance: Infinity})
+  }, {line: null, anchor: null, distance: Infinity, vector: null})
 }
 
 const cursorPositionAction = action => action && action.actionType === 'cursorPosition' ? action.payload : null
@@ -209,79 +191,39 @@ const verticalAlignmentMap = ({alignRight: 'top', alignLeft: 'bottom', alignCent
 const horizontalConstraint = constraint => enforceAlignment && horizontalAlignmentMap[constraint.alignment]
 const verticalConstraint = constraint => enforceAlignment && verticalAlignmentMap[constraint.alignment]
 
-// The horizontal dimension (x) is mainly constrained by, naturally, the xConstraint (vertical snap line), but if there's no
-// xConstraint is present,then it still needs to observe whether a yConstraint (horizontal snap section) end vertex is
-// breached - you can horizontally pull a rectangle off a horizontal line, and the snap needs to break/establish in this
-// direction too. In other words, since the constraints are sections, not infinite lines, a constraining section applies to
-// both dimensions.
-const nextConstraintX = (xConstraint, yConstraint, previousShape) => {
-  return xConstraint
-    ? xConstraint.x - anchorOffset(previousShape, horizontalConstraint(xConstraint) || previousShape.xConstraintAnchor)
-    : (yConstraint && (sectionConstrained('vertical', previousShape, yConstraint) - anchorOffset(previousShape, 'center')))
-}
-
-const nextConstraintY = (xConstraint, yConstraint, previousShape) => {
-  return yConstraint
-    ? yConstraint.y - anchorOffset(previousShape, verticalConstraint(yConstraint) || previousShape.yConstraintAnchor)
-    : (xConstraint && (sectionConstrained('horizontal', previousShape, xConstraint) - anchorOffset(previousShape, 'middle')))
-}
-
 const shapeConstraintUpdate = (shapes, snapGuideLines, shape) => {
-  const {line: verticalSnap, anchor: horizontAnchor} = snapGuideLine(snapGuideLines.filter(isVertical), shape, 'horizontal')
-  const {line: horizontSnap, anchor: verticalAnchor} = snapGuideLine(snapGuideLines.filter(isHorizontal), shape, 'vertical')
+  const {line: verticalSnap, anchor: horizontAnchor, vector: xConstraintVector} = snapGuideLine(snapGuideLines.filter(isVertical), shape, 'horizontal')
+  const {line: horizontSnap, anchor: verticalAnchor, vector: yConstraintVector} = snapGuideLine(snapGuideLines.filter(isHorizontal), shape, 'vertical')
+  //if(horizontSnap && shape.key === 'rect5') console.log(yConstraintVector)
+  //if(verticalSnap && shape.key === 'rect5') console.log(xConstraintVector)
   return {
     xConstraint: verticalSnap && verticalSnap.key,
     yConstraint: horizontSnap && horizontSnap.key,
     xConstraintAnchor: horizontAnchor,
-    yConstraintAnchor: verticalAnchor
+    yConstraintAnchor: verticalAnchor,
+    xConstraintVector,
+    yConstraintVector
   }
 }
 
 const dragUpdate = (shape, constraints, x0, y0, x1, y1, mouseDowned, hoveredEdgeMarker) => {
-  if(false && hoveredEdgeMarker) {
-    const grabStart = mouseDowned
-    const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
-    const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
-    const x = x0 + grabOffsetX
-    const y = y0 + grabOffsetY
-
-    return {
-      x,
-      y,
-      unconstrainedX: x,
-      unconstrainedY: y,
-      grabOffsetX,
-      grabOffsetY,
-      scaleX: hoveredEdgeMarker.horizontal ? shape.scaleX : 0.5,
-      scaleY: hoveredEdgeMarker.horizontal ? 0.5 : shape.scaleY
-    }
-
-  } else {
-    const grabStart = mouseDowned
-    const grabOffsetX = grabStart ? shape.x - x0 : (shape.grabOffsetX || 0)
-    const grabOffsetY = grabStart ? shape.y - y0 : (shape.grabOffsetY || 0)
-    const x = x1 + grabOffsetX
-    const y = y1 + grabOffsetY
-    return {
-      x,
-      y,
-      //transformMatrix: matrix.multiply(shape.transformMatrix, matrix.translate(x, y, 0)),
-      unconstrainedX: x,
-      unconstrainedY: y,
-      grabOffsetX,
-      grabOffsetY,
-    }
+  const grabStart = mouseDowned
+  const preMoveTransformMatrix = grabStart ? shape.transformMatrix : shape.preMoveTransformMatrix
+  const unconstrainedTransformMatrix = matrix.multiply(preMoveTransformMatrix, matrix.translate(x1 - x0, y1 - y0, 0, 0))
+  return {
+    preMoveTransformMatrix,
+    transformMatrix: unconstrainedTransformMatrix,
+    unconstrainedTransformMatrix
   }
 }
 
 const snapUpdate = (constraints, shape) => {
-  const xConstraintPrevious = constraints[shape.xConstraint]
-  const yConstraintPrevious = constraints[shape.yConstraint]
-  const x = nextConstraintX(xConstraintPrevious, yConstraintPrevious, shape)
-  const y = nextConstraintY(xConstraintPrevious, yConstraintPrevious, shape)
+  if(!shape.unconstrainedTransformMatrix) return {}
+  const xDiff = shape.xConstraintVector ? shape.xConstraintVector[0] : 0
+  const yDiff = shape.yConstraintVector ? shape.yConstraintVector[1] : 0
+  let transformMatrix = matrix.multiply(shape.unconstrainedTransformMatrix, matrix.translate(xDiff, yDiff, 0))
   return {
-    ...!isNaN(x) && {x},
-    ...!isNaN(y) && {y}
+    transformMatrix
   }
 }
 
@@ -504,35 +446,12 @@ const nextShapes = select(
   }
 )(shapes, draggedShape, dragVector, alignUpdate, constraints, snapGuideLines, mouseDowned, hoveredEdgeMarker)
 
-// currently the determination of transform data is done in this post-processing step; in future versions, the operations
-// themselves (drag etc.) will directly maintain the transform data
-
-const transformShape = shape => {
-  const {x, y, z, rotation, scaleY} = shape
-  const translationMatrix = matrix.translate(x, y, z)
-  // minor optimization for the common case of no rotation:
-  const transformMatrix = rotation
-    ? matrix.multiply(translationMatrix, matrix.rotateZ(rotation))
-    : scaleY ? matrix.multiply(translationMatrix, matrix.scale(1, scaleY, 1)) : translationMatrix
-  return {
-    ...shape,
-    transformMatrix: transformMatrix
-  }
-}
-
-const transformShapes = shapes => shapes.map(transformShape)
-
-const transformedShapes = select(
-  transformShapes
-)(nextShapes)
-
 // free shapes are for showing the unconstrained location of the shape(s) being dragged
 const currentFreeShapes = select(
   (shapes, {dragStartShape}) =>
     shapes
       .filter(shape => dragStartShape && shape.key === dragStartShape.key)
-      .map(shape => ({...shape, x: shape.unconstrainedX, y: shape.unconstrainedY, z: freeDragZ, backgroundColor: freeColor}))
-      .map(transformShape)
+      .map(shape => ({...shape, transformMatrix: shape.unconstrainedTransformMatrix, z: freeDragZ, backgroundColor: freeColor}))
 )(shapes, dragStartAt)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
@@ -544,7 +463,7 @@ const nextScene = select(
     draggedShape,
     shapes
   })
-)(hoveredShape, draggedShape, transformedShapes)
+)(hoveredShape, draggedShape, nextShapes)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt, shapeEdgeMarkers, shapeCenterMarkers,
