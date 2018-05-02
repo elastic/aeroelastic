@@ -28,22 +28,3 @@ div {
     display: block;
     user-select: none; /* disables drag doc cursor icon in lieu of onDrag preventDefault() */
 }
-
-.line {
-    outline: 1px solid rgba(127,127,127,0.25);
-}
-
-.circle {
-    box-sizing: border-box;
-    background-color: rgba(255,0,0,0);
-    border-radius: 50%;
-}
-
-.metaCursor {
-  opacity: 0.5
-}
-
-.rotateHotspot {
-    border: 1px solid rgba(0,0,255,0.05);
-    box-shadow: 0 0 0.25px 0 grey inset, 0 0 0.25px 0 grey;
-}
