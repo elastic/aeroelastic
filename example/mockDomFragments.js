@@ -1,8 +1,6 @@
 const {h, render} = require('ultradom')
 
 const {
-        cornerHotspotSize,
-        parallelHotspotSize,
         devColor
       } = require('./mockConfig')
 
@@ -33,68 +31,8 @@ const makeShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape =
   })
 })
 
-const makeShapeCornerFrags = shape => [
-  h('div', {
-    class: 'hotspot corner rectangle topLeft',
-    style: {
-      width: dom.px(cornerHotspotSize),
-      height: dom.px(cornerHotspotSize),
-      marginLeft: dom.px(- cornerHotspotSize / 2),
-      marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: dom.matrixToCSS(shape.transformMatrix) + ` translate(${- shape.a + cornerHotspotSize / 2}px, ${- shape.b + cornerHotspotSize / 2}px)`,
-      outline: '1px solid darkgrey'
-    }
-  }),
-  h('div', {
-    class: 'hotspot corner rectangle topRight',
-    style: {
-      width: dom.px(cornerHotspotSize),
-      height: dom.px(cornerHotspotSize),
-      marginLeft: dom.px(- cornerHotspotSize / 2),
-      marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: dom.matrixToCSS(shape.transformMatrix) + ` translate(${shape.a - cornerHotspotSize / 2}px, ${- shape.b + cornerHotspotSize / 2}px)`,
-      outline: '1px solid darkgrey'
-    }
-  }),
-  h('div', {
-    class: 'hotspot corner rectangle bottomLeft',
-    style: {
-      width: dom.px(cornerHotspotSize),
-      height: dom.px(cornerHotspotSize),
-      marginLeft: dom.px(- cornerHotspotSize / 2),
-      marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: dom.matrixToCSS(shape.transformMatrix) + ` translate(${- shape.a + cornerHotspotSize / 2}px, ${shape.b - cornerHotspotSize / 2}px)`,
-      outline: '1px solid darkgrey'
-    }
-  }),
-  h('div', {
-    class: 'hotspot corner rectangle bottomRight',
-    style: {
-      width: dom.px(cornerHotspotSize),
-      height: dom.px(cornerHotspotSize),
-      marginLeft: dom.px(- cornerHotspotSize / 2),
-      marginTop: dom.px(- cornerHotspotSize / 2),
-      transform: dom.matrixToCSS(shape.transformMatrix)
-      + ` translate(${shape.a - cornerHotspotSize / 2}px, ${shape.b - cornerHotspotSize / 2}px)`,
-      outline: '1px solid darkgrey'
-    }
-  })
-]
-
-const makeShapeParallelFrags = ({transformMatrix, horizontal}, hovered) => h('div', {
-  style: {
-    marginLeft: dom.px(horizontal ? - parallelHotspotSize / 2 : 0),
-    marginTop: dom.px(horizontal ? 0 : - parallelHotspotSize / 2),
-    width: dom.px(horizontal ? parallelHotspotSize : 0),
-    height: dom.px(horizontal ? 0 : parallelHotspotSize),
-    transform: dom.matrixToCSS(transformMatrix),
-    outline: hovered ? '2px solid' : '1px solid',
-    outlineColor: `rgba(0, 0, 0, ${hovered ? 1 : 0.3})`
-  }
-})
-
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
-const makeSubstrateFrag = commit => (shapeFrags, shapeCornerFrags, shapeEdgeFrags, shapeCenterFrags) =>
+const makeSubstrateFrag = commit => shapeFrags =>
   h('div', {
       id: 'root',
       onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
@@ -102,17 +40,12 @@ const makeSubstrateFrag = commit => (shapeFrags, shapeCornerFrags, shapeEdgeFrag
       onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY})
     },
     [
-      ...shapeFrags,
-      ...shapeCornerFrags,
-      ...shapeEdgeFrags,
-      ...shapeCenterFrags
+      ...shapeFrags
     ]
   )
 
 module.exports = {
   renderIntoRoot,
   makeShapeFrags,
-  makeShapeCornerFrags,
-  makeShapeParallelFrags,
   makeSubstrateFrag
 }

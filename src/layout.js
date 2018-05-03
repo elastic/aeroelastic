@@ -3,12 +3,6 @@ const {
         selectReduce
       } = require('./state')
 
-const {
-        markerProximityDistance
-      } = require('../example/mockConfig')
-
-const {flatten} = require('./functional')
-
 const matrix = require('./matrix')
 
 
@@ -23,17 +17,6 @@ const scene = state => state.currentScene
 /**
  * Pure calculations
  */
-
-const rectLeft        = (a   ) => [-a,  0,  0,  1]
-const rectCenter      = (    ) => [ 0,  0,  0,  1]
-const rectRight       = (a   ) => [ a,  0,  0,  1]
-const rectTop         = (a, b) => [ 0, -b,  0,  1]
-const rectMiddle      = (    ) => [ 0,  0,  0,  1]
-const rectBottom      = (a, b) => [ 0,  b,  0,  1]
-const rectTopLeft     = (a, b) => [-a, -b,  0,  1]
-const rectTopRight    = (a, b) => [ a, -b,  0,  1]
-const rectBottomLeft  = (a, b) => [-a,  b,  0,  1]
-const rectBottomRight = (a, b) => [ a,  b,  0,  1]
 
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
@@ -62,9 +45,6 @@ const hoveringAt = (shapes, {x, y}) => {
   const hoveredShapes = shapesAtPoint(shapes, x, y)
   return topShape(hoveredShapes).shape
 }
-
-const vectorLength = (x, y) => Math.sqrt(x * x + y * y)
-const pointDistance = (x0, y0, x1, y1) => vectorLength(x1 - x0, y1 - y0)
 
 const cursorPositionAction = action => action && action.actionType === 'cursorPosition' ? action.payload : null
 const mouseButtonEventAction = action => action && action.actionType === 'mouseEvent' ? action.payload : null
@@ -183,43 +163,6 @@ const focusedShapes = select(
   (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
 )(shapes, focusedShape)
 
-const shapeEdgeMarkers = select(
-  focusedShapes => flatten(focusedShapes
-    .map(({key, a, b, transformMatrix}) => ([
-      {key: key + ' top', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, -b, 0)),
-        horizontal: true, shapeKey: key},
-      {key: key + ' right', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(a, 0, 0)),
-        horizontal: false, shapeKey: key},
-      {key: key + ' bottom', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, b, 0)),
-        horizontal: true, shapeKey: key},
-      {key: key + ' left', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(-a, 0, 0)),
-        horizontal: false, shapeKey: key}
-    ]))
-  ))(focusedShapes)
-
-const shapeCenterMarkers = select(
-  focusedShapes => flatten(focusedShapes
-    .map(({key, transformMatrix}) => ([
-      {key: key + ' center', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, 0, 0.01)),
-        horizontal: false, shapeKey: key},
-      {key: key + ' middle', transformMatrix: matrix.multiply(transformMatrix, matrix.translate(0, 0, 0.02)),
-        horizontal: true, shapeKey: key}
-    ]))
-  ))(focusedShapes)
-
-const hoveredEdgeMarker = select((shapeEdgeMarkers, {x, y}) => {
-  const closest = shapeEdgeMarkers.reduce(
-    (previous, marker) => {
-      const [x1, y1] = matrix.mvMultiply(marker.transformMatrix, matrix.ORIGIN)
-      const distance = pointDistance(x, y, x1, y1)
-      return distance < previous.distance ? {distance, marker} : previous
-    },
-    {distance: Infinity, marker: null}
-  )
-  const hoveredMarker = closest.distance < markerProximityDistance ? closest.marker : null
-  return hoveredMarker
-})(shapeEdgeMarkers, cursorPosition)
-
 const dragStartAt = selectReduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
     if(down) {
@@ -262,7 +205,7 @@ const nextScene = select(
 )(hoveredShape, draggedShape, nextShapes)
 
 module.exports = {
-  cursorPosition, mouseIsDown, dragStartAt, shapeEdgeMarkers, shapeCenterMarkers,
-  nextScene, focusedShape, hoveredEdgeMarker,
+  cursorPosition, mouseIsDown, dragStartAt,
+  nextScene, focusedShape,
   primaryUpdate, shapes, focusedShapes
 }

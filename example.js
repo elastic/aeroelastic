@@ -6,8 +6,6 @@ const {
 const {
         renderIntoRoot,
         makeShapeFrags,
-        makeShapeCornerFrags,
-        makeShapeParallelFrags,
         makeSubstrateFrag
       } = require('./example/mockDomFragments')
 
@@ -33,21 +31,9 @@ const shapeFrags = select(
   ({shapes}, hoveredShape, dragStartAt) => makeShapeFrags(shapes, hoveredShape, dragStartAt)
 )(nextScene, focusedShape, dragStartAt)
 
-const shapeCornerFrags = select(
-  map(makeShapeCornerFrags)
-)(focusedShapes, dragStartAt)
-
-const shapeEdgeFrags = select(
-  (markers, hoveredMarker) => markers.map(marker => makeShapeParallelFrags(marker, hoveredMarker && hoveredMarker.key === marker.key))
-)(shapeEdgeMarkers, hoveredEdgeMarker)
-
-const shapeCenterFrags = select(
-  map(makeShapeParallelFrags)
-)(shapeCenterMarkers)
-
 const scenegraph = select(
   makeSubstrateFrag(store.commit)
-)(shapeFrags, shapeCornerFrags, shapeEdgeFrags, shapeCenterFrags)
+)(shapeFrags)
 
 const updateScene = select(
   (nextScene, primaryUpdate, frag) => {
