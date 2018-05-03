@@ -71,7 +71,7 @@ const mouseButtonEventAction = action => action && action.actionType === 'mouseE
 
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
-  const dragInProgress = down && shapes.reduce((prev, next) => prev || next.key === draggedShape.key, false)
+  const dragInProgress = down && shapes.reduce((prev, next) => prev || (draggedShape && next.key === draggedShape.key), false)
   return dragInProgress && draggedShape  || down && mouseDowned && hoveredShape
 }
 
