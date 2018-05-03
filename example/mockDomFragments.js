@@ -46,17 +46,13 @@ const makeSubstrateFrag = commit => {
         onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
         onkeydown: ({code}) => {
           window.clearInterval(timer)
-          if(code !== downQueue[downQueue.length - 1]) {
-            timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1]})}, 1000 / 60 * 2)
-          }
+          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1]})}, 1000 / 60 * 2)
           if(downQueue[downQueue.length - 1] !== code) downQueue.push(code)
           return commit('keyboardEvent', {event: 'keyDown', code})
         },
         onkeyup: ({code}) => {
           window.clearInterval(timer)
-          if(code === downQueue[downQueue.length - 1]) {
-            timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1]})}, 1000 / 60 * 2)
-          }
+          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1]})}, 1000 / 60 * 2)
           downQueue.splice(downQueue.indexOf(code), 1)
           return commit('keyboardEvent', {event: 'keyUp', code})
         },
