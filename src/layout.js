@@ -53,14 +53,14 @@ const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
 })
 
 // pick top shape out of possibly several shapes (presumably under the same point)
-const topShape = shapes => shapes.reduce((prev, {shape, inside, intersection: [x, y, z, w]}) => {
-  return inside && (z <= prev.z) ? shape : prev
-}, {z: Infinity})
+const topShape = shapes => shapes.reduce((prev, {shape, inside, intersection: [x, y, z]}) => {
+  return inside && (z <= prev.z) ? {z, shape} : prev
+}, {z: Infinity, shape: null})
 
 // returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
 const hoveringAt = (shapes, {x, y}) => {
   const hoveredShapes = shapesAtPoint(shapes, x, y)
-  return topShape(hoveredShapes)
+  return topShape(hoveredShapes).shape
 }
 
 const vectorLength = (x, y) => Math.sqrt(x * x + y * y)
