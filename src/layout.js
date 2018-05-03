@@ -48,6 +48,7 @@ const hoveringAt = (shapes, {x, y}) => {
 
 const cursorPositionAction = action => action && action.actionType === 'cursorPosition' ? action.payload : null
 const mouseButtonEventAction = action => action && action.actionType === 'mouseEvent' ? action.payload : null
+const keyboardAction = action => action && action.actionType === 'keyboardEvent' ? action.payload : null
 
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
@@ -78,6 +79,28 @@ const rawCursorPosition = select(
 const mouseButtonEvent = select(
   mouseButtonEventAction
 )(primaryUpdate)
+
+const keyboardEvent = select(
+  keyboardAction,
+)(primaryUpdate)
+
+const pressedKeys = selectReduce(
+  (lookup, next) => {
+    let result
+    if(next) {
+      if (next.event === 'keyDown') {
+        result = {...lookup, [next.code]: true}
+      } else {
+        const {[next.code]: ignore, ...rest} = lookup
+        result = rest
+      }
+    } else {
+      result ={ ...lookup }
+    }
+    return result
+  },
+  {}
+)(keyboardEvent)
 
 const cursorPosition = selectReduce(
   (previous, position) => position || previous,
@@ -177,21 +200,49 @@ const dragStartAt = selectReduce(
   {down: false}
 )(dragging, dragVector, focusedShape)
 
-const nextShapes = select(
-  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned) => {
+const transformGesture = select(
+  keys => {
+    const result = Object.keys(keys)
+      .map(keypress => {
+        switch(keypress) {
+          case 'KeyW': return matrix.translate(0, -2, 0)
+          case 'KeyA': return matrix.translate(-2, 0, 0)
+          case 'KeyS': return matrix.translate(0, 2, 0)
+          case 'KeyD': return matrix.translate(2, 0, 0)
+          case 'KeyX': return matrix.rotateX(Math.PI / 45)
+          case 'KeyY': return matrix.rotateY(Math.PI / 45)
+          case 'KeyZ': return matrix.rotateZ(Math.PI / 45)
+          case 'KeyI': return matrix.scale(1, 1.05, 1)
+          case 'KeyJ': return matrix.scale(1 / 1.05, 1, 1)
+          case 'KeyK': return matrix.scale(1, 1 / 1.05, 1)
+          case 'KeyL': return matrix.scale(1.05, 1, 1)
 
+        }
+      })
+      .filter(d => d)
+    return result
+  }
+)(pressedKeys)
+
+const transformIntent = select(
+  (transforms, shape) => {return {transforms, shape}}
+)(transformGesture, focusedShape)
+
+const nextShapes = select(
+  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
     // this is the per-shape model update at the current PoC level
     return shapes.map(shape => {
       const beingDragged = draggedShape && draggedShape.key === shape.key
       return {
         // update the preexisting shape:
         ...shape,
+        ...transformIntent.shape && transformIntent.shape.key === shape.key && {transformMatrix: transformIntent.transforms.reduce((prev, next) => matrix.multiply(prev, next), shape.transformMatrix)}
         // with the effect of dragging:
-        ...beingDragged && dragUpdate(shape, x0, y0, x1, y1, mouseDowned)
+        //...beingDragged && dragUpdate(shape, x0, y0, x1, y1, mouseDowned)
       }
     })
   }
-)(shapes, draggedShape, dragVector, mouseDowned)
+)(shapes, draggedShape, dragVector, mouseDowned, transformIntent)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the

@@ -13,13 +13,10 @@ const initialState = require('./example/mockScene')
 
 const store = createStore(initialState)
 
-const {map} = require('./src/functional')
-
 const {
         dragStartAt,
         nextScene, focusedShape,
-        primaryUpdate,
-        focusedShapes, shapeEdgeMarkers, shapeCenterMarkers, hoveredEdgeMarker
+        primaryUpdate
       } = require('./src/layout')
 
 

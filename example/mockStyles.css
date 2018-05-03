@@ -10,11 +10,12 @@ div {
     position: absolute;
     display: block;
     transform: translate3d(0, 0, 0); /* activates compositing to avoid repaint - it has performance pros and cons! */
+    transform-origin: 50% 50%;
 }
 
 #root, #root * {
     transform-style: preserve-3d;
-    transform-origin: 0 0;
+    transform-origin: center center; /* the default */
 }
 
 #root {
