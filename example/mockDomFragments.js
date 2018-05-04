@@ -64,7 +64,8 @@ const makeSubstrateFrag = commit => {
       h('li', {}, 'F, C: translate along Z'),
       h('li', {}, 'X, Y, Z: rotate around X, Y or Z respectively'),
       h('li', {}, 'I, J, K, L: scale (increase/decrease) along X / Y'),
-      h('li', {}, 'P: toggle perspective viewing')
+      h('li', {}, 'P: toggle perspective viewing'),
+      h('li', {}, 'E, R, T, G: shear along x / Y')
     )
   }
 }

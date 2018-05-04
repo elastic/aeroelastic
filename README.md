@@ -84,7 +84,14 @@ Translate, scale, Z rotation:
 
 ![scale - rotation](https://user-images.githubusercontent.com/1548516/39626044-a8df4ff8-4fa0-11e8-95b9-6220ccc94b72.gif)
 
-Perspective, Y axis rotation, partial occlusion and correct rectangle identification in 3D based on casting a ray through the mouse cursor X / Y:
+Perspective, Y axis rotation, partial occlusion:
 
 ![y rotation - perspective - rectangle picking](https://user-images.githubusercontent.com/1548516/39626053-ae2002b4-4fa0-11e8-9bc3-0c98d623cf6f.gif)
 
+Shear X / Y, intersecting with another rectangle to show these aren't rotations:
+
+![shear](https://user-images.githubusercontent.com/1548516/39627279-9f3e7f96-4fa5-11e8-8d25-24234e6872ea.gif)
+
+Correct rectangle identification in 3D based on casting a ray through the mouse cursor X / Y:
+
+![picking](https://user-images.githubusercontent.com/1548516/39627645-e16bec9a-4fa6-11e8-89fc-29b6d3bb8ed7.gif)

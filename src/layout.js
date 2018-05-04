@@ -70,18 +70,8 @@ const keyboardAction = action => action && action.actionType === 'keyboardEvent'
 
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
-  const dragInProgress = down && shapes.reduce((prev, next) => prev || (draggedShape && next.key === draggedShape.key), false)
+  const dragInProgress = down && shapes.reduce((prev, next) => prev || draggedShape && next.key === draggedShape.key, false)
   return dragInProgress && draggedShape  || down && mouseDowned && hoveredShape
-}
-
-const dragUpdate = (shape, x0, y0, x1, y1, mouseDowned) => {
-  const grabStart = mouseDowned
-  const preMoveTransformMatrix = grabStart ? shape.transformMatrix : shape.preMoveTransformMatrix
-  const transformMatrix = matrix.multiply(preMoveTransformMatrix, matrix.translate(x1 - x0, y1 - y0, 0, 0))
-  return {
-    preMoveTransformMatrix,
-    transformMatrix
-  }
 }
 
 
@@ -237,7 +227,10 @@ const transformGesture = select(
           case 'KeyK': return matrix.scale(1, 1 / 1.05, 1)
           case 'KeyL': return matrix.scale(1.05, 1, 1)
           case 'KeyP': return matrix.perspective(1000)
-
+          case 'KeyE': return matrix.shear(0.1, 0)
+          case 'KeyR': return matrix.shear(-0.1, 0)
+          case 'KeyT': return matrix.shear(0, 0.1)
+          case 'KeyG': return matrix.shear(0, -0.1)
         }
       })
       .filter(d => d)
