@@ -18,6 +18,29 @@ const scene = state => state.currentScene
  * Pure calculations
  */
 
+/**
+ *
+ * a * x0 + b * x1 = x
+ * a * y0 + b * y1 = y
+ *
+ * a, b = ?
+ *
+ * b = (y - a * y0) / y1
+ *
+ * a * x0 + b * x1 = x
+ *
+ * a * x0 + (y - a * y0) / y1 * x1 = x
+ *
+ * a * x0 + y / y1 * x1 - a * y0 / y1 * x1 = x
+ *
+ * a * x0 - a * y0 / y1 * x1 = x - y / y1 * x1
+ *
+ * a * (x0 - y0 / y1 * x1) = x - y / y1 * x1
+ *
+ * a = (x - y / y1 * x1) / (x0 - y0 / y1 * x1)
+ * b = (y - a * y0) / y1
+ *
+ */
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
   const {transformMatrix, a, b} = shape
@@ -27,15 +50,18 @@ const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
     // A perhaps cheaper alternative would be to forward project the four vertices and check if the cursor is within
     // the quadrilateral in 2D space.
 
-
     const centerPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, matrix.ORIGIN))
     const rightPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [1, 0, 0, 1]))
     const upPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [0, 1, 0, 1]))
-    const horizontalSlope = Math.atan2(rightPoint[2] - centerPoint[2], rightPoint[0] - centerPoint[0])
-    const verticalSlope = Math.atan2(upPoint[2] - centerPoint[2], upPoint[1] - centerPoint[1])
-    const dx = x - centerPoint[0]
-    const dy = y - centerPoint[1]
-    const z = centerPoint[2] + dx * Math.tan(horizontalSlope) + dy * Math.tan(verticalSlope)
+    const x0 = rightPoint[0] - centerPoint[0]
+    const y0 = rightPoint[1] - centerPoint[1]
+    const x1 = upPoint[0] - centerPoint[0]
+    const y1 = upPoint[1] - centerPoint[1]
+    const A = ((x - centerPoint[0]) - (y - centerPoint[1]) / y1 * x1) / (x0 - y0 / y1 * x1)
+    const B = ((y - centerPoint[1]) - A * y0) / y1
+    const rightSlope = rightPoint[2] - centerPoint[2]
+    const upSlope =upPoint[2] - centerPoint[2]
+    const z = centerPoint[2] + rightSlope * A + upSlope * B
     const inverseProjection = matrix.invert(transformMatrix)
     const intersection = matrix.normalize(matrix.mvMultiply(inverseProjection, [x, y, z, 1]))
     const [sx, sy] = intersection
