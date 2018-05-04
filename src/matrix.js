@@ -62,9 +62,9 @@ const scale = (x, y, z) => transpose([
   0, 0, 0, 1
 ])
 
-const shear = (hx, hy) => transpose([
-  1, hx, 0, 0,
-  hy, 1, 0, 0,
+const shear = (x, y) => transpose([
+  1, x, 0, 0,
+  y, 1, 0, 0,
   0, 0, 1, 0,
   0, 0, 0, 1
 ])

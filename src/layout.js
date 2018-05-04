@@ -238,9 +238,16 @@ const transformGesture = select(
   }
 )(pressedKeys)
 
+const selectedShape = selectReduce(
+  (prev, focusedShape, mouseDowned) => {
+    return mouseDowned ? focusedShape : prev
+  },
+  null
+)(hoveredShape, mouseDowned)
+
 const transformIntent = select(
   (transforms, shape) => {return {transforms, shape}}
-)(transformGesture, focusedShape)
+)(transformGesture, selectedShape)
 
 const nextShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
@@ -267,10 +274,10 @@ const nextScene = select(
     draggedShape,
     shapes
   })
-)(hoveredShape, draggedShape, nextShapes)
+)(hoveredShape, selectedShape, nextShapes)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt,
   nextScene, focusedShape,
-  primaryUpdate, shapes, focusedShapes
+  primaryUpdate, shapes, focusedShapes, selectedShape
 }

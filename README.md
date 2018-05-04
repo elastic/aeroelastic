@@ -95,3 +95,7 @@ Shear X / Y, intersecting with another rectangle to show these aren't rotations:
 Correct rectangle identification in 3D based on casting a ray through the mouse cursor X / Y:
 
 ![picking](https://user-images.githubusercontent.com/1548516/39627645-e16bec9a-4fa6-11e8-89fc-29b6d3bb8ed7.gif)
+
+Simultaneous application of 3-4 different transforms (and tricky keyboard monitoring...):
+
+![simultaneous](https://user-images.githubusercontent.com/1548516/39632766-44a30a0a-4fb6-11e8-88d3-b68cd8a904cc.gif)

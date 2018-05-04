@@ -13,8 +13,8 @@ const renderIntoRoot = frag => render(frag, document.body)
  */
 
 // renders a shape excluding its control points
-const makeShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape => {
-  const dragged = shape.key === (dragStartAt && dragStartAt.dragStartShape && dragStartAt.dragStartShape.key)
+const makeShapeFrags = (shapes, hoveredShape, selectedShape) => shapes.map(shape => {
+  const dragged = shape.key === (selectedShape && selectedShape.key)
   return h('div', {
     class: shape.type,
     style: {
@@ -25,8 +25,8 @@ const makeShapeFrags = (shapes, hoveredShape, dragStartAt) => shapes.map(shape =
       marginTop: dom.px(-shape.b),
       backgroundColor: shape.backgroundColor,
       backgroundImage: shape.backgroundImage,
-      outline: dragged ? `1px solid ${devColor}` : (shape.type === 'line' ? '1px solid rgba(0,0,0,0.2)' : null),
-      opacity: shape.key === (hoveredShape && hoveredShape.key) ? 1 : 0.5
+      outline: dragged ? `3px solid ${devColor}` : null,
+      opacity: dragged || (shape.key === hoveredShape && hoveredShape.key) ? 0.95 : 0.5
     }
   })
 })
@@ -59,7 +59,8 @@ const makeSubstrateFrag = commit => {
         oncreate: element => element.focus() // this is needed to capture keyboard events without clicking on it first
       },
       shapeFrags,
-      'Keys:',
+      'Operations:',
+      h('li', {}, 'mouse click: select rectangle to manipulate'),
       h('li', {}, 'W, A, S, D: translate along X / Y'),
       h('li', {}, 'F, C: translate along Z'),
       h('li', {}, 'X, Y, Z: rotate around X, Y or Z respectively'),
