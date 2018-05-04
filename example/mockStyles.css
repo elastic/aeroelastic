@@ -29,3 +29,7 @@ div {
     display: block;
     user-select: none; /* disables drag doc cursor icon in lieu of onDrag preventDefault() */
 }
+
+.rectangle {
+    outline: 1px solid black;
+}

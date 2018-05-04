@@ -62,6 +62,13 @@ const scale = (x, y, z) => transpose([
   0, 0, 0, 1
 ])
 
+const perspective = d => transpose([
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, - 1 / d, 1
+])
+
 /**
  * rotate
  *
@@ -215,5 +222,5 @@ const invert = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) => {
 }
 
 module.exports = {
-  ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, scale, multiply, mvMultiply, invert
+  ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, scale, perspective, multiply, mvMultiply, invert
 }

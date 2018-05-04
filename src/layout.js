@@ -209,6 +209,8 @@ const transformGesture = select(
           case 'KeyA': return matrix.translate(-2, 0, 0)
           case 'KeyS': return matrix.translate(0, 2, 0)
           case 'KeyD': return matrix.translate(2, 0, 0)
+          case 'KeyF': return matrix.translate(0, 0, -2)
+          case 'KeyC': return matrix.translate(0, 0, 2)
           case 'KeyX': return matrix.rotateX(Math.PI / 45)
           case 'KeyY': return matrix.rotateY(Math.PI / 45)
           case 'KeyZ': return matrix.rotateZ(Math.PI / 45)
@@ -216,6 +218,7 @@ const transformGesture = select(
           case 'KeyJ': return matrix.scale(1 / 1.05, 1, 1)
           case 'KeyK': return matrix.scale(1, 1 / 1.05, 1)
           case 'KeyL': return matrix.scale(1.05, 1, 1)
+          case 'KeyP': return matrix.perspective(1000)
 
         }
       })
