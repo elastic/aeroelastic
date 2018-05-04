@@ -749,26 +749,6 @@ get-stream@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
 
-gl-mat2@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/gl-mat2/-/gl-mat2-1.0.1.tgz#142505730a5c2fe1e9f25d9ece3d0d6cc2710a30"
-
-gl-mat3@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/gl-mat3/-/gl-mat3-1.0.0.tgz#89633219ca429379a16b9185d95d41713453b912"
-
-gl-mat4@^1.0.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/gl-mat4/-/gl-mat4-1.2.0.tgz#49d8a7636b70aa00819216635f4a3fd3f4669b26"
-
-gl-matrix-invert@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/gl-matrix-invert/-/gl-matrix-invert-1.0.0.tgz#a36d7bde3654c4590a127ee7c68f6e13fea8c63d"
-  dependencies:
-    gl-mat2 "^1.0.0"
-    gl-mat3 "^1.0.0"
-    gl-mat4 "^1.0.0"
-
 glob-base@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/glob-base/-/glob-base-0.3.0.tgz#dbb164f6221b1c0b1ccf82aea328b497df0ea3c4"
