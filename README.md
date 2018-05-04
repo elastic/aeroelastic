@@ -25,9 +25,9 @@ yarn start
 Building support for
 
 - [x] drag and drop
-- [ ] rotation, resize
-- [x] snap to grid
-- [x] implicit snap lines to match other shapes horizontally or vertically
+- [x] Z rotation, resize
+- [x] snap to grid (temporarily removed - to be generalized for 3D)
+- [x] implicit snap lines to match other shapes horizontally or vertically  (temporarily removed - to be generalized for 3D)
 - [ ] distribution, eg. space selected shapes evenly
 - [ ] anchoring, ie. anchor the shapes at their left/center/right, top/middle/bottom or corner points
 - [ ] alignment, eg. common left/center/right, top/middle/bottom adjustment relative to the same horizontal or vertical guide line
@@ -77,3 +77,14 @@ Although the current version switched to modules, it's not fully structured yet;
 Since the last implementation step aimed at the removal of reactive dataflow (`crosslink`) and code structuring, and few functions were added, the persistent state structures are by no means final, they're unchanged now, only specifying size and translation. But it's coming up next :-)
 
 (to be continued)
+
+## 3D transforms
+
+Translate, scale, Z rotation:
+
+![scale - rotation](https://user-images.githubusercontent.com/1548516/39626044-a8df4ff8-4fa0-11e8-95b9-6220ccc94b72.gif)
+
+Perspective, Y axis rotation, partial occlusion and correct rectangle identification in 3D based on casting a ray through the mouse cursor X / Y:
+
+![y rotation - perspective - rectangle picking](https://user-images.githubusercontent.com/1548516/39626053-ae2002b4-4fa0-11e8-9bc3-0c98d623cf6f.gif)
+

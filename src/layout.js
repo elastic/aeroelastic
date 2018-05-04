@@ -26,19 +26,37 @@ const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
     // composition of transforms. Eg. this is a description of the idea: https://math.stackexchange.com/a/1685315
     // A perhaps cheaper alternative would be to forward project the four vertices and check if the cursor is within
     // the quadrilateral in 2D space.
+
+
+    const centerPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, matrix.ORIGIN))
+    const rightPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [1, 0, 0, 1]))
+    const upPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [0, 1, 0, 1]))
+    const horizontalSlope = Math.atan2(rightPoint[2] - centerPoint[2], rightPoint[0] - centerPoint[0])
+    const verticalSlope = Math.atan2(upPoint[2] - centerPoint[2], upPoint[1] - centerPoint[1])
+    const dx = x - centerPoint[0]
+    const dy = y - centerPoint[1]
+    const z = centerPoint[2] + dx * Math.tan(horizontalSlope) + dy * Math.tan(verticalSlope)
     const inverseProjection = matrix.invert(transformMatrix)
-    const intersection = matrix.mvMultiply(inverseProjection, [x, y, 0, 1])
+    const intersection = matrix.normalize(matrix.mvMultiply(inverseProjection, [x, y, z, 1]))
     const [sx, sy] = intersection
-    return {intersection, inside: Math.abs(sx) <= a && Math.abs(sy) <= b, shape}
+    return {z, intersection, inside: Math.abs(sx) <= a && Math.abs(sy) <= b, shape}
   } else {
-    return {intersection: matrix.NULLVECTOR, inside: false, shape}
+    return {z: -Infinity, intersection: matrix.NULLVECTOR, inside: false, shape}
   }
 })
 
-// pick top shape out of possibly several shapes (presumably under the same point)
-const topShape = shapes => shapes.reduce((prev, {shape, inside, intersection: [x, y, z]}) => {
-  return inside && (z <= prev.z) ? {z, shape} : prev
-}, {z: Infinity, shape: null})
+// Pick top shape out of possibly several shapes (presumably under the same point).
+// Since CSS X points to the right, Y to the bottom (not the top!) and Z toward the viewer, it's a left-handed coordinate
+// system. Yet another wording is that X and Z point toward the expected directions (right, and towards the viewer,
+// respectively), but Y is pointing toward the bottom (South). It's called left-handed because we can position the thumb (X),
+// index (Y) and middle finger (Z) on the left hand such that they're all perpendicular to one another, and point to the
+// positive direction.
+//
+// If it were a right handed coordinate system, AND Y still pointed down, then Z should increase away from the
+// viewer. But that's not the case. So we maximize the Z value to tell what's on top.
+const topShape = shapes => shapes.reduce((prev, {shape, inside, z}) => {
+  return inside && (z >= prev.z) ? {z, shape} : prev
+}, {z: -Infinity, shape: null})
 
 // returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
 const hoveringAt = (shapes, {x, y}) => {

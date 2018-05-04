@@ -17,7 +17,7 @@ const initialShapes = [
   backgroundImage: bach},
   {key: 'rect4', type: 'rectangle', transformMatrix: matrix.translate(190, 400, 8), a: 90, b: 150,
     backgroundColor: 'rgba(0,0,0,0)', backgroundImage: elasticLogo}, // #f4cae4
-  {key: 'rect5', type: 'rectangle', transformMatrix: matrix.translate(1060, 200, 9), a: 160, b: 100, backgroundColor: '#e6f5c9',
+  {key: 'rect5', type: 'rectangle', transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#e6f5c9',
     backgroundImage: pattern3},
 ]
 

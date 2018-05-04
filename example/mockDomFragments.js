@@ -58,7 +58,13 @@ const makeSubstrateFrag = commit => {
         },
         oncreate: element => element.focus() // this is needed to capture keyboard events without clicking on it first
       },
-      shapeFrags
+      shapeFrags,
+      'Keys:',
+      h('li', {}, 'W, A, S, D: translate along X / Y'),
+      h('li', {}, 'F, C: translate along Z'),
+      h('li', {}, 'X, Y, Z: rotate around X, Y or Z respectively'),
+      h('li', {}, 'I, J, K, L: scale (increase/decrease) along X / Y'),
+      h('li', {}, 'P: toggle perspective viewing')
     )
   }
 }

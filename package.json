@@ -9,7 +9,9 @@
   "repository": "http://github.com/elastic/aeroelastic",
   "author": "Robert Monfera <robert.monfera@elastic.co>",
   "license": "Apache-2.0",
-  "dependencies": {},
+  "dependencies": {
+    "gl-matrix-invert": "^1.0.0"
+  },
   "devDependencies": {
     "budo": "^11.2.0",
     "ultradom": "^3.0.1"

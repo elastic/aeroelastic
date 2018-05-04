@@ -172,6 +172,8 @@ const mvMultiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, 
   d * A + h * B + l * C + p * D
 ])
 
+const normalize = ([A, B, C, D]) => ([A / D, B / D, C / D, 1])
+
 /**
  * invert
  *
@@ -222,5 +224,5 @@ const invert = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) => {
 }
 
 module.exports = {
-  ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, scale, perspective, multiply, mvMultiply, invert
+  ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, rotateX, rotateY, rotateZ, scale, perspective, multiply, mvMultiply, invert, normalize
 }
