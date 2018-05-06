@@ -230,7 +230,13 @@ const invert = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) => {
   }
 }
 
+// applies an arbitrary number of transforms - left to right - to a preexisting transform matrix
+const applyTransforms = (transforms, previousTransformMatrix) => transforms.reduce(
+  (prev, next) => multiply(prev, next),
+  previousTransformMatrix
+)
+
 module.exports = {
   ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, shear, rotateX, rotateY, rotateZ, scale,
-  perspective, multiply, mvMultiply, invert, normalize
+  perspective, multiply, mvMultiply, invert, normalize, applyTransforms
 }

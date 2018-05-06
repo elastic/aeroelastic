@@ -12,6 +12,8 @@ const {
         pressedKeys
       } = require('./gestures')
 
+const { hoveringAt } = require('./geometry')
+
 const matrix = require('./matrix')
 
 
@@ -26,77 +28,6 @@ const scene = state => state.currentScene
 /**
  * Pure calculations
  */
-
-/**
- *
- * a * x0 + b * x1 = x
- * a * y0 + b * y1 = y
- *
- * a, b = ?
- *
- * b = (y - a * y0) / y1
- *
- * a * x0 + b * x1 = x
- *
- * a * x0 + (y - a * y0) / y1 * x1 = x
- *
- * a * x0 + y / y1 * x1 - a * y0 / y1 * x1 = x
- *
- * a * x0 - a * y0 / y1 * x1 = x - y / y1 * x1
- *
- * a * (x0 - y0 / y1 * x1) = x - y / y1 * x1
- *
- * a = (x - y / y1 * x1) / (x0 - y0 / y1 * x1)
- * b = (y - a * y0) / y1
- *
- */
-// set of shapes under a specific point
-const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
-  const {transformMatrix, a, b} = shape
-
-  // determine z (depth) by composing the x, y vector out of local unit x and unit y vectors; by knowing the
-  // scalar multipliers for the unit x and unit y vectors, we can determine z from their respective 'slope' (gradient)
-  const centerPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, matrix.ORIGIN))
-  const rightPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [1, 0, 0, 1]))
-  const upPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [0, 1, 0, 1]))
-  const x0 = rightPoint[0] - centerPoint[0]
-  const y0 = rightPoint[1] - centerPoint[1]
-  const x1 = upPoint[0] - centerPoint[0]
-  const y1 = upPoint[1] - centerPoint[1]
-  const A = ((x - centerPoint[0]) - (y - centerPoint[1]) / y1 * x1) / (x0 - y0 / y1 * x1)
-  const B = ((y - centerPoint[1]) - A * y0) / y1
-  const rightSlope = rightPoint[2] - centerPoint[2]
-  const upSlope =upPoint[2] - centerPoint[2]
-  const z = centerPoint[2] + rightSlope * A + upSlope * B
-
-  // we go full tilt with the inverse transform approach because that's general enough to handle any non-pathological
-  // composition of transforms. Eg. this is a description of the idea: https://math.stackexchange.com/a/1685315
-  const inverseProjection = matrix.invert(transformMatrix)
-  const intersection = matrix.normalize(matrix.mvMultiply(inverseProjection, [x, y, z, 1]))
-  const [sx, sy] = intersection
-
-  // z is needed downstream, to tell which one is the closest shape hit by an x, y ray (shapes can be tilted in z)
-  return {z, intersection, inside: Math.abs(sx) <= a && Math.abs(sy) <= b, shape}
-})
-
-// Pick top shape out of possibly several shapes (presumably under the same point).
-// Since CSS X points to the right, Y to the bottom (not the top!) and Z toward the viewer, it's a left-handed coordinate
-// system. Yet another wording is that X and Z point toward the expected directions (right, and towards the viewer,
-// respectively), but Y is pointing toward the bottom (South). It's called left-handed because we can position the thumb (X),
-// index (Y) and middle finger (Z) on the left hand such that they're all perpendicular to one another, and point to the
-// positive direction.
-//
-// If it were a right handed coordinate system, AND Y still pointed down, then Z should increase away from the
-// viewer. But that's not the case. So we maximize the Z value to tell what's on top.
-const topShape = shapes => shapes.reduce((prev, {shape, inside, z}) => {
-  return inside && (z >= prev.z) ? {z, shape} : prev
-}, {z: -Infinity, shape: null})
-
-// returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
-const hoveringAt = (shapes, {x, y}) => {
-  const hoveredShapes = shapesAtPoint(shapes, x, y)
-  return topShape(hoveredShapes).shape
-}
 
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
@@ -187,7 +118,7 @@ const nextShapes = select(
         ...shape,
         // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
         ...transform.shape && transform.shape.key === shape.key && {
-          transformMatrix: transform.transforms.reduce((prev, next) => matrix.multiply(prev, next), shape.transformMatrix)
+          transformMatrix: matrix.applyTransforms(transform.transforms, shape.transformMatrix)
         }
       }
     })
