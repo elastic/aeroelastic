@@ -3,6 +3,15 @@ const {
         selectReduce
       } = require('./state')
 
+const {
+        dragging,
+        dragVector,
+        cursorPosition,
+        mouseDowned,
+        mouseIsDown,
+        pressedKeys
+      } = require('./gestures')
+
 const matrix = require('./matrix')
 
 
@@ -90,116 +99,11 @@ const hoveringAt = (shapes, {x, y}) => {
   return topShape(hoveredShapes).shape
 }
 
-const cursorPositionAction = action => action && action.actionType === 'cursorPosition' ? action.payload : null
-const mouseButtonEventAction = action => action && action.actionType === 'mouseEvent' ? action.payload : null
-const keyboardAction = action => action && action.actionType === 'keyboardEvent' ? action.payload : null
-
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
   const dragInProgress = down && shapes.reduce((prev, next) => prev || draggedShape && next.key === draggedShape.key, false)
   return dragInProgress && draggedShape  || down && mouseDowned && hoveredShape
 }
-
-
-/**
- * Gestures - derived selectors for transient state
- */
-
-// dispatch the various types of actions
-const rawCursorPosition = select(
-  cursorPositionAction
-)(primaryUpdate)
-
-const mouseButtonEvent = select(
-  mouseButtonEventAction
-)(primaryUpdate)
-
-const keyboardEvent = select(
-  keyboardAction,
-)(primaryUpdate)
-
-const pressedKeys = selectReduce(
-  (lookup, next) => {
-    let result
-    if(next) {
-      if (next.event === 'keyDown') {
-        result = {...lookup, [next.code]: true}
-      } else {
-        const {[next.code]: ignore, ...rest} = lookup
-        result = rest
-      }
-    } else {
-      result ={ ...lookup }
-    }
-    return result
-  },
-  {}
-)(keyboardEvent)
-
-const cursorPosition = selectReduce(
-  (previous, position) => position || previous,
-  {x: 0, y: 0}
-)(rawCursorPosition)
-
-const mouseIsDown = selectReduce(
-  (previous, next) => next
-    ? next.event === 'mouseDown'
-    : previous,
-  false
-)(mouseButtonEvent)
-
-/**
- * mouseButtonStateTransitions
- *
- *    View: http://stable.ascii-flow.appspot.com/#567671116534197027
- *    Edit: http://stable.ascii-flow.appspot.com/#567671116534197027/776257435
- *
- *
- *                             mouseIsDown
- *        initial state: 'up' +-----------> 'downed'
- *                        ^ ^                 +  +
- *                        | |  !mouseIsDown   |  |
- *           !mouseIsDown | +-----------------+  | mouseIsDown && movedAlready
- *                        |                      |
- *                        +----+ 'dragging' <----+
- *                                +      ^
- *                                |      |
- *                                +------+
- *                               mouseIsDown
- *
- */
-const mouseButtonStateTransitions = (state, mouseIsDown, movedAlready) => {
-  switch(state) {
-    case 'up': return mouseIsDown ? 'downed' : 'up'
-    case 'downed': return mouseIsDown ? (movedAlready ? 'dragging' : 'downed') : 'up'
-    case 'dragging': return mouseIsDown ? 'dragging' : 'up'
-  }
-}
-
-const mouseButtonState = selectReduce(
-  ({buttonState, downX, downY}, mouseIsDown, {x, y}) => {
-    const movedAlready = x !== downX || y !== downY
-    const newButtonState = mouseButtonStateTransitions(buttonState, mouseIsDown, movedAlready)
-    return {
-      buttonState: newButtonState,
-      downX: newButtonState === 'downed' ? x : downX,
-      downY: newButtonState === 'downed' ? y : downY
-    }
-  },
-  {buttonState: 'up', downX: null, downY: null}
-)(mouseIsDown, cursorPosition)
-
-const mouseDowned = select(
-  state => state.buttonState === 'downed'
-)(mouseButtonState)
-
-const dragging = select(
-  state => state.buttonState === 'dragging'
-)(mouseButtonState)
-
-const dragVector = select(
-  ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
-)(mouseButtonState, cursorPosition)
 
 
 /**
@@ -279,7 +183,6 @@ const nextShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
     // this is the per-shape model update at the current PoC level
     return shapes.map(shape => {
-      const beingDragged = draggedShape && draggedShape.key === shape.key
       return {
         // update the preexisting shape:
         ...shape,
