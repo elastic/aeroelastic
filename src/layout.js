@@ -53,31 +53,30 @@ const scene = state => state.currentScene
 // set of shapes under a specific point
 const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
   const {transformMatrix, a, b} = shape
-  if(transformMatrix) {
-    // We go full tilt with the inverse transform approach because that's general enough to handle any non-pathological
-    // composition of transforms. Eg. this is a description of the idea: https://math.stackexchange.com/a/1685315
-    // A perhaps cheaper alternative would be to forward project the four vertices and check if the cursor is within
-    // the quadrilateral in 2D space.
 
-    const centerPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, matrix.ORIGIN))
-    const rightPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [1, 0, 0, 1]))
-    const upPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [0, 1, 0, 1]))
-    const x0 = rightPoint[0] - centerPoint[0]
-    const y0 = rightPoint[1] - centerPoint[1]
-    const x1 = upPoint[0] - centerPoint[0]
-    const y1 = upPoint[1] - centerPoint[1]
-    const A = ((x - centerPoint[0]) - (y - centerPoint[1]) / y1 * x1) / (x0 - y0 / y1 * x1)
-    const B = ((y - centerPoint[1]) - A * y0) / y1
-    const rightSlope = rightPoint[2] - centerPoint[2]
-    const upSlope =upPoint[2] - centerPoint[2]
-    const z = centerPoint[2] + rightSlope * A + upSlope * B
-    const inverseProjection = matrix.invert(transformMatrix)
-    const intersection = matrix.normalize(matrix.mvMultiply(inverseProjection, [x, y, z, 1]))
-    const [sx, sy] = intersection
-    return {z, intersection, inside: Math.abs(sx) <= a && Math.abs(sy) <= b, shape}
-  } else {
-    return {z: -Infinity, intersection: matrix.NULLVECTOR, inside: false, shape}
-  }
+  // determine z (depth) by composing the x, y vector out of local unit x and unit y vectors; by knowing the
+  // scalar multipliers for the unit x and unit y vectors, we can determine z from their respective 'slope' (gradient)
+  const centerPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, matrix.ORIGIN))
+  const rightPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [1, 0, 0, 1]))
+  const upPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [0, 1, 0, 1]))
+  const x0 = rightPoint[0] - centerPoint[0]
+  const y0 = rightPoint[1] - centerPoint[1]
+  const x1 = upPoint[0] - centerPoint[0]
+  const y1 = upPoint[1] - centerPoint[1]
+  const A = ((x - centerPoint[0]) - (y - centerPoint[1]) / y1 * x1) / (x0 - y0 / y1 * x1)
+  const B = ((y - centerPoint[1]) - A * y0) / y1
+  const rightSlope = rightPoint[2] - centerPoint[2]
+  const upSlope =upPoint[2] - centerPoint[2]
+  const z = centerPoint[2] + rightSlope * A + upSlope * B
+
+  // we go full tilt with the inverse transform approach because that's general enough to handle any non-pathological
+  // composition of transforms. Eg. this is a description of the idea: https://math.stackexchange.com/a/1685315
+  const inverseProjection = matrix.invert(transformMatrix)
+  const intersection = matrix.normalize(matrix.mvMultiply(inverseProjection, [x, y, z, 1]))
+  const [sx, sy] = intersection
+
+  // z is needed downstream, to tell which one is the closest shape hit by an x, y ray (shapes can be tilted in z)
+  return {z, intersection, inside: Math.abs(sx) <= a && Math.abs(sy) <= b, shape}
 })
 
 // Pick top shape out of possibly several shapes (presumably under the same point).
@@ -180,15 +179,16 @@ const transformIntent = select(
 )(transformGesture, selectedShape)
 
 const nextShapes = select(
-  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
+  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transform) => {
     // this is the per-shape model update at the current PoC level
     return shapes.map(shape => {
       return {
         // update the preexisting shape:
         ...shape,
-        ...transformIntent.shape && transformIntent.shape.key === shape.key && {transformMatrix: transformIntent.transforms.reduce((prev, next) => matrix.multiply(prev, next), shape.transformMatrix)}
-        // with the effect of dragging:
-        //...beingDragged && dragUpdate(shape, x0, y0, x1, y1, mouseDowned)
+        // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
+        ...transform.shape && transform.shape.key === shape.key && {
+          transformMatrix: transform.transforms.reduce((prev, next) => matrix.multiply(prev, next), shape.transformMatrix)
+        }
       }
     })
   }
