@@ -12,7 +12,7 @@ const {
         pressedKeys
       } = require('./gestures')
 
-const { hoveringAt } = require('./geometry')
+const { topShapeAt } = require('./geometry')
 
 const matrix = require('./matrix')
 
@@ -41,7 +41,7 @@ const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) 
  */
 
 const shapes = select(scene => scene.shapes)(scene)
-const hoveredShape = select(hoveringAt)(shapes, cursorPosition)
+const hoveredShape = select(topShapeAt)(shapes, cursorPosition)
 const draggedShape = select(draggingShape)(scene, hoveredShape, mouseIsDown, mouseDowned)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape

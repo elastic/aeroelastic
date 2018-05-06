@@ -73,11 +73,11 @@ const topShape = shapes => shapes.reduce((prev, {shape, inside, z}) => {
 }, {z: -Infinity, shape: null})
 
 // returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
-const hoveringAt = (shapes, {x, y}) => {
+const topShapeAt = (shapes, {x, y}) => {
   const hoveredShapes = shapesAtPoint(shapes, x, y)
   return topShape(hoveredShapes).shape
 }
 
 module.exports = {
-  hoveringAt
+  topShapeAt
 }
