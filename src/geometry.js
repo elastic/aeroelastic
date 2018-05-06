@@ -31,7 +31,7 @@ const matrix = require('./matrix')
 const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
   const {transformMatrix, a, b} = shape
 
-  // determine z (depth) by composing the x, y vector out of local unit x and unit y vectors; by knowing the
+  // Determine z (depth) by composing the x, y vector out of local unit x and unit y vectors; by knowing the
   // scalar multipliers for the unit x and unit y vectors, we can determine z from their respective 'slope' (gradient)
   const centerPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, matrix.ORIGIN))
   const rightPoint = matrix.normalize(matrix.mvMultiply(transformMatrix, [1, 0, 0, 1]))
@@ -46,8 +46,11 @@ const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
   const upSlope =upPoint[2] - centerPoint[2]
   const z = centerPoint[2] + rightSlope * A + upSlope * B
 
-  // we go full tilt with the inverse transform approach because that's general enough to handle any non-pathological
+  // We go full tilt with the inverse transform approach because that's general enough to handle any non-pathological
   // composition of transforms. Eg. this is a description of the idea: https://math.stackexchange.com/a/1685315
+  // Hmm maybe we should reuse the above right and up unit vectors to establish whether we're within the (a, b) 'radius'
+  // rather than using matrix inversion. Bound to be cheaper.
+
   const inverseProjection = matrix.invert(transformMatrix)
   const intersection = matrix.normalize(matrix.mvMultiply(inverseProjection, [x, y, z, 1]))
   const [sx, sy] = intersection
