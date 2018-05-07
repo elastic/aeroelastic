@@ -57,6 +57,19 @@ const cursorPosition = selectReduce(
   {x: 0, y: 0}
 )(rawCursorPosition)
 
+const mouseButton = selectReduce(
+  (prev, next) => {
+    if(!next) return prev
+    const {event, uid} = next
+    return event === 'mouseDown'
+      ? {down: true, uid}
+      : (event === 'mouseUp'
+        ? {down: false, uid}
+        : prev)
+  },
+  {down: false, uid: null}
+  )(mouseButtonEvent)
+
 const mouseIsDown = selectReduce(
   (previous, next) => next
     ? next.event === 'mouseDown'
@@ -124,6 +137,7 @@ module.exports = {
   dragging,
   dragVector,
   cursorPosition,
+  mouseButton,
   mouseDowned,
   mouseIsDown,
   pressedKeys

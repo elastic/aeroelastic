@@ -8,6 +8,7 @@ const {
         dragging,
         dragVector,
         cursorPosition,
+        mouseButton,
         mouseDowned,
         mouseIsDown,
         pressedKeys
@@ -99,28 +100,20 @@ const transformGesture = select(
   }
 )(pressedKeys)
 
-const selectedShapesPreNew = selectReduce(
-  (prev, focusedShape, mouseDowned, actionUid) => {
-    const {shapes, uid} = prev
+const selectedShapesPre = selectReduce(
+  (prev, focusedShape, {down, uid}) => {
+    if(uid === prev.uid) return prev
+    const shapes = prev.shapes
     const found = shapes.find(key => focusedShape && key === focusedShape.key)
-    const result = mouseDowned && focusedShape
-      ? (found && uid !== actionUid
-        ? {shapes: shapes.filter(key => key !== focusedShape.key), uid: uid}
-        : (found ? {shapes, uid: actionUid} : {shapes: shapes.concat([focusedShape.key]).filter((d, i, a) => a.indexOf(d) === i), uid: actionUid}))
+    const result = down && focusedShape
+      ? (found
+        ? {shapes: shapes.filter(key => key !== focusedShape.key), uid}
+        : {shapes: shapes.concat([focusedShape.key]).filter((d, i, a) => a.indexOf(d) === i), uid})
       : prev
-    if(mouseDowned && focusedShape && found) console.log(uid, actionUid, result.shapes)
-    //console.log(result.shapes)
     return result
   },
   {shapes: [], uid: null}
-)(hoveredShape, mouseDowned, actionUid)
-
-const selectedShapesPre = selectReduce(
-  (prev, focusedShape, mouseDowned) => {
-    return mouseDowned && focusedShape ? {shapes: [focusedShape.key]} : prev
-  },
-  {shapes: []}
-)(hoveredShape, mouseDowned)
+)(hoveredShape, mouseButton)
 
 const selectedShapes = select(d => {return d.shapes})(selectedShapesPre)
 
