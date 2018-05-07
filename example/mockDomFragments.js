@@ -26,7 +26,7 @@ const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shap
       backgroundColor: shape.backgroundColor,
       backgroundImage: shape.backgroundImage,
       outline: dragged ? `3px solid ${devColor}` : null,
-      opacity: dragged || (shape.key === hoveredShape && hoveredShape.key) ? 0.95 : 0.5
+      opacity: dragged || (shape.key === hoveredShape && hoveredShape.key) ? 0.95 : 0.8
     }
   })
 })

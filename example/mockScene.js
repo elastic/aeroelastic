@@ -9,16 +9,18 @@ const {
 const matrix = require('../src/matrix')
 
 const initialShapes = [
-  {key: 'rect1', type: 'rectangle', transformMatrix: matrix.translate(425, 290, 5), a: 125, b: 90,
-    backgroundColor: '#b3e2cd', backgroundImage: pattern1},
-  {key: 'rect2', type: 'rectangle', transformMatrix: matrix.translate(750, 460, 6), a: 150, b: 110, backgroundColor: '#fdcdac',
-    backgroundImage: pattern2},
-  {key: 'rect3', type: 'rectangle', transformMatrix: matrix.translate(900, 375, 7), a: 100, b: 75, backgroundColor: '#cbd5e8',
-  backgroundImage: bach},
-  {key: 'rect4', type: 'rectangle', transformMatrix: matrix.translate(190, 400, 8), a: 90, b: 150,
-    backgroundColor: 'rgba(0,0,0,0)', backgroundImage: elasticLogo}, // #f4cae4
-  {key: 'rect5', type: 'rectangle', transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#e6f5c9',
+  {key: 'rect1', type: 'rectangle', localTransformMatrix: matrix.translate(425, 475, 0), transformMatrix: matrix.translate(425, 290, 5), a: 2, b: 2,
+    backgroundColor: 'rgba(0,0,0,0)'},
+  {key: 'rect2', type: 'rectangle', localTransformMatrix: matrix.translate(-200, -160, 1), transformMatrix: matrix.translate(750, 460, 6), a: 150, b: 160, backgroundColor: '#fdcdac',
+    backgroundImage: pattern2, parent: 'rect1'},
+  {key: 'rect3', type: 'rectangle', localTransformMatrix: matrix.translate(300, -175, -2), transformMatrix: matrix.translate(900, 375, 7), a: 100, b: 75, backgroundColor: '#cbd5e8',
+  backgroundImage: bach, parent: 'rect1'},
+  {key: 'rect4', type: 'rectangle', localTransformMatrix: matrix.translate(190, 150, 3), transformMatrix: matrix.translate(190, 400, 8), a: 90, b: 150,
+    backgroundColor: 'rgba(0,0,0,0)', backgroundImage: elasticLogo, parent: 'rect1'}, // #f4cae4
+  {key: 'rect5', type: 'rectangle', localTransformMatrix: matrix.translate(1260, 200, 30), transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#e6f5c9',
     backgroundImage: pattern3},
+  {key: 'rect6', type: 'rectangle', localTransformMatrix: matrix.translate(1260, 600, 90), transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#b3e2cd',
+    backgroundImage: pattern1},
 ]
 
 const initialState = {

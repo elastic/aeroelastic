@@ -11,7 +11,7 @@ const {
         mouseButton,
         mouseDowned,
         mouseIsDown,
-        pressedKeys
+        pressedKeys,
       } = require('./gestures')
 
 const { topShapeAt } = require('./geometry')
@@ -75,20 +75,20 @@ const transformGesture = select(
     const result = Object.keys(keys)
       .map(keypress => {
         switch(keypress) {
-          case 'KeyW': return matrix.translate(0, -2, 0)
-          case 'KeyA': return matrix.translate(-2, 0, 0)
-          case 'KeyS': return matrix.translate(0, 2, 0)
-          case 'KeyD': return matrix.translate(2, 0, 0)
-          case 'KeyF': return matrix.translate(0, 0, -2)
-          case 'KeyC': return matrix.translate(0, 0, 2)
+          case 'KeyW': return matrix.translate(0, -5, 0)
+          case 'KeyA': return matrix.translate(-5, 0, 0)
+          case 'KeyS': return matrix.translate(0, 5, 0)
+          case 'KeyD': return matrix.translate(5, 0, 0)
+          case 'KeyF': return matrix.translate(0, 0, -20)
+          case 'KeyC': return matrix.translate(0, 0, 20)
           case 'KeyX': return matrix.rotateX(Math.PI / 45)
-          case 'KeyY': return matrix.rotateY(Math.PI / 45)
-          case 'KeyZ': return matrix.rotateZ(Math.PI / 45)
+          case 'KeyY': return matrix.rotateY(Math.PI / 45 / 1.3)
+          case 'KeyZ': return matrix.rotateZ(Math.PI / 45 / 1.6)
           case 'KeyI': return matrix.scale(1, 1.05, 1)
           case 'KeyJ': return matrix.scale(1 / 1.05, 1, 1)
           case 'KeyK': return matrix.scale(1, 1 / 1.05, 1)
           case 'KeyL': return matrix.scale(1.05, 1, 1)
-          case 'KeyP': return matrix.perspective(1000)
+          case 'KeyP': return matrix.perspective(2000)
           case 'KeyR': return matrix.shear(0.1, 0)
           case 'KeyT': return matrix.shear(-0.1, 0)
           case 'KeyU': return matrix.shear(0, 0.1)
@@ -99,6 +99,7 @@ const transformGesture = select(
     return result
   }
 )(pressedKeys)
+
 
 const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
@@ -120,19 +121,45 @@ const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}
 )(transformGesture, selectedShapes)
 
-const nextShapes = select(
-  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transform) => {
-    // this is the per-shape model update at the current PoC level
-    return shapes.map(shape => {
-      return {
-        // update the preexisting shape:
-        ...shape,
-        // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
-        ...transform.shapes.find(key => key === shape.key) && {
-          transformMatrix: matrix.applyTransforms(transform.transforms, shape.transformMatrix)
-        }
+const applyLocalTransforms = (shapes, transformIntent) => {
+  return shapes.map(shape => {
+    return {
+      // update the preexisting shape:
+      ...shape,
+      // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
+      ...transformIntent.shapes.find(key => key === shape.key) && {
+        localTransformMatrix: matrix.applyTransforms(transformIntent.transforms, shape.localTransformMatrix)
       }
-    })
+    }
+  })
+}
+
+const getUpstreamTransforms = (shapes, shape) => shape.parent
+  ? getUpstreamTransforms(shapes, shapes.find(s => s.key === shape.parent)).concat([shape.localTransformMatrix])
+  : [shape.localTransformMatrix]
+
+const getUpstreams = (shapes, shape) => shape.parent
+  ? getUpstreams(shapes, shapes.find(s => s.key === shape.parent)).concat([shape])
+  : [shape]
+
+
+
+const cascadeTransforms = shapes => {
+  return shapes.map(shape => {
+    const upstreams = getUpstreams(shapes, shape)
+    const upstreamTransforms = upstreams.map(shape => shape.localTransformMatrix)
+    const cascadedTransforms = matrix.reduceTransforms(upstreamTransforms)
+    return {
+      ...shape,
+      transformMatrix: cascadedTransforms
+    }
+  })
+}
+
+const nextShapes = select(
+  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
+    // this is the per-shape model update at the current PoC level
+    return cascadeTransforms(applyLocalTransforms(shapes,  transformIntent))
   }
 )(shapes, draggedShape, dragVector, mouseDowned, transformIntent)
 
