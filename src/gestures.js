@@ -26,6 +26,10 @@ const mouseButtonEvent = select(
   action => action && action.actionType === 'mouseEvent' ? action.payload : null
 )(primaryUpdate)
 
+const actionUid = select(
+  action => {if(action && !action.payload.uid) debugger;  return action && action.payload.uid}
+)(primaryUpdate)
+
 const keyboardEvent = select(
   action => action && action.actionType === 'keyboardEvent' ? action.payload : null,
 )(primaryUpdate)
@@ -116,6 +120,7 @@ const dragVector = select(
 
 
 module.exports = {
+  actionUid,
   dragging,
   dragVector,
   cursorPosition,

@@ -13,8 +13,8 @@ const renderIntoRoot = frag => render(frag, document.body)
  */
 
 // renders a shape excluding its control points
-const makeShapeFrags = (shapes, hoveredShape, selectedShape) => shapes.map(shape => {
-  const dragged = shape.key === (selectedShape && selectedShape.key)
+const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shape => {
+  const dragged = selectedShapes.find(key => key === shape.key)
   return h('div', {
     class: shape.type,
     style: {
@@ -31,6 +31,8 @@ const makeShapeFrags = (shapes, hoveredShape, selectedShape) => shapes.map(shape
   })
 })
 
+const makeUid = () => 1e11 + Math.floor((1e12 - 1e11) * Math.random())
+
 // the substrate is responsible for the PoC event capture, and doubles as the parent DIV of everything else
 // the stupid queue is added only to let reliable event repetition (via a timer); without this, if the keys
 // are released in the order they were pressed, the repetition stops
@@ -41,20 +43,20 @@ const makeSubstrateFrag = commit => {
     return h('div', {
         id: 'root',
         tabindex: '0', // needed for the div to register keyboard events
-        onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY}),
-        onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY}),
-        onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY}),
+        onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY, uid: makeUid()}),
+        onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY, uid: makeUid()}),
+        onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY, uid: makeUid()}),
         onkeydown: ({code}) => {
           window.clearInterval(timer)
-          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1]})}, 1000 / 60 * 2)
+          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1], uid: makeUid()})}, 1000 / 60 * 2)
           if(downQueue[downQueue.length - 1] !== code) downQueue.push(code)
-          return commit('keyboardEvent', {event: 'keyDown', code})
+          return commit('keyboardEvent', {event: 'keyDown', code, uid: makeUid()})
         },
         onkeyup: ({code}) => {
           window.clearInterval(timer)
-          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1]})}, 1000 / 60 * 2)
+          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1], uid: makeUid()})}, 1000 / 60 * 2)
           downQueue.splice(downQueue.indexOf(code), 1)
-          return commit('keyboardEvent', {event: 'keyUp', code})
+          return commit('keyboardEvent', {event: 'keyUp', code, uid: makeUid()})
         },
         oncreate: element => element.focus() // this is needed to capture keyboard events without clicking on it first
       },

@@ -15,7 +15,7 @@ const store = createStore(initialState)
 
 const {
         dragStartAt,
-        nextScene, focusedShape, selectedShape,
+        nextScene, focusedShape, selectedShapes,
         primaryUpdate
       } = require('./src/layout')
 
@@ -25,8 +25,8 @@ const {
  */
 
 const shapeFrags = select(
-  ({shapes}, hoveredShape, selectedShape) => makeShapeFrags(shapes, hoveredShape, selectedShape)
-)(nextScene, focusedShape, selectedShape)
+  ({shapes}, hoveredShape, selectedShapes) => makeShapeFrags(shapes, hoveredShape, selectedShapes)
+)(nextScene, focusedShape, selectedShapes)
 
 const scenegraph = select(
   makeSubstrateFrag(store.commit)

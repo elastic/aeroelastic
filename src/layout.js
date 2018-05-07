@@ -4,6 +4,7 @@ const {
       } = require('./state')
 
 const {
+        actionUid,
         dragging,
         dragVector,
         cursorPosition,
@@ -87,10 +88,10 @@ const transformGesture = select(
           case 'KeyK': return matrix.scale(1, 1 / 1.05, 1)
           case 'KeyL': return matrix.scale(1.05, 1, 1)
           case 'KeyP': return matrix.perspective(1000)
-          case 'KeyE': return matrix.shear(0.1, 0)
-          case 'KeyR': return matrix.shear(-0.1, 0)
-          case 'KeyT': return matrix.shear(0, 0.1)
-          case 'KeyG': return matrix.shear(0, -0.1)
+          case 'KeyR': return matrix.shear(0.1, 0)
+          case 'KeyT': return matrix.shear(-0.1, 0)
+          case 'KeyU': return matrix.shear(0, 0.1)
+          case 'KeyH': return matrix.shear(0, -0.1)
         }
       })
       .filter(d => d)
@@ -98,16 +99,34 @@ const transformGesture = select(
   }
 )(pressedKeys)
 
-const selectedShape = selectReduce(
-  (prev, focusedShape, mouseDowned) => {
-    return mouseDowned ? focusedShape : prev
+const selectedShapesPreNew = selectReduce(
+  (prev, focusedShape, mouseDowned, actionUid) => {
+    const {shapes, uid} = prev
+    const found = shapes.find(key => focusedShape && key === focusedShape.key)
+    const result = mouseDowned && focusedShape
+      ? (found && uid !== actionUid
+        ? {shapes: shapes.filter(key => key !== focusedShape.key), uid: uid}
+        : (found ? {shapes, uid: actionUid} : {shapes: shapes.concat([focusedShape.key]).filter((d, i, a) => a.indexOf(d) === i), uid: actionUid}))
+      : prev
+    if(mouseDowned && focusedShape && found) console.log(uid, actionUid, result.shapes)
+    //console.log(result.shapes)
+    return result
   },
-  null
+  {shapes: [], uid: null}
+)(hoveredShape, mouseDowned, actionUid)
+
+const selectedShapesPre = selectReduce(
+  (prev, focusedShape, mouseDowned) => {
+    return mouseDowned && focusedShape ? {shapes: [focusedShape.key]} : prev
+  },
+  {shapes: []}
 )(hoveredShape, mouseDowned)
 
+const selectedShapes = select(d => {return d.shapes})(selectedShapesPre)
+
 const transformIntent = select(
-  (transforms, shape) => {return {transforms, shape}}
-)(transformGesture, selectedShape)
+  (transforms, shapes) => {return {transforms, shapes}}
+)(transformGesture, selectedShapes)
 
 const nextShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transform) => {
@@ -117,7 +136,7 @@ const nextShapes = select(
         // update the preexisting shape:
         ...shape,
         // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
-        ...transform.shape && transform.shape.key === shape.key && {
+        ...transform.shapes.find(key => key === shape.key) && {
           transformMatrix: matrix.applyTransforms(transform.transforms, shape.transformMatrix)
         }
       }
@@ -129,17 +148,17 @@ const nextShapes = select(
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
 // collection of shapes themselves
 const nextScene = select(
-  (hoveredShape, draggedShape, shapes) => ({
+  (hoveredShape, draggedShapes, shapes) => ({
     hoveredShape,
-    draggedShape,
+    draggedShapes,
     shapes
   })
-)(hoveredShape, selectedShape, nextShapes)
+)(hoveredShape, selectedShapes, nextShapes)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt,
   nextScene, focusedShape,
-  primaryUpdate, shapes, focusedShapes, selectedShape
+  primaryUpdate, shapes, focusedShapes, selectedShapes
 }
 
 /**
