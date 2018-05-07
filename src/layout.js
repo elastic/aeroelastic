@@ -108,7 +108,7 @@ const selectedShapes = selectReduce(
     const result = down && focusedShape
       ? (found
         ? {shapes: shapes.filter(key => key !== focusedShape.key), uid}
-        : {shapes: shapes.concat([focusedShape.key]).filter((d, i, a) => a.indexOf(d) === i), uid})
+        : {shapes: shapes.concat([focusedShape.key]), uid})
       : prev
     return result
   },
