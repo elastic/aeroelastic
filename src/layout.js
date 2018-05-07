@@ -102,15 +102,15 @@ const transformGesture = select(
 
 const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
-    if(uid === prev.uid) return prev
+    if(uid === prev.uid || !down || !focusedShape) return prev
     const shapes = prev.shapes
     const found = shapes.find(key => focusedShape && key === focusedShape.key)
-    const result = down && focusedShape
-      ? (found
-        ? {shapes: shapes.filter(key => key !== focusedShape.key), uid}
-        : {shapes: shapes.concat([focusedShape.key]), uid})
-      : prev
-    return result
+    return {
+      shapes: found
+        ? shapes.filter(key => key !== focusedShape.key) // remove from selection
+        : shapes.concat([focusedShape.key]), // add to selection
+      uid
+    }
   },
   {shapes: [], uid: null},
   d => d.shapes
