@@ -100,7 +100,7 @@ const transformGesture = select(
   }
 )(pressedKeys)
 
-const selectedShapesPre = selectReduce(
+const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
     if(uid === prev.uid) return prev
     const shapes = prev.shapes
@@ -112,10 +112,9 @@ const selectedShapesPre = selectReduce(
       : prev
     return result
   },
-  {shapes: [], uid: null}
+  {shapes: [], uid: null},
+  d => d.shapes
 )(hoveredShape, mouseButton)
-
-const selectedShapes = select(d => {return d.shapes})(selectedShapesPre)
 
 const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}
