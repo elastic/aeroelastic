@@ -16,7 +16,7 @@ const renderIntoRoot = frag => render(frag, document.body)
 const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shape => {
   const dragged = selectedShapes.find(key => key === shape.key)
   return h('div', {
-    class: shape.type,
+    class: 'rectangle',
     style: {
       transform: dom.matrixToCSS(shape.transformMatrix),
       width: dom.px(2 * shape.a),
@@ -24,9 +24,9 @@ const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shap
       marginLeft: dom.px(-shape.a),
       marginTop: dom.px(-shape.b),
       backgroundColor: shape.backgroundColor,
-      backgroundImage: shape.backgroundImage,
+      background: shape.backgroundImage,
       outline: dragged ? `3px solid ${devColor}` : null,
-      opacity: dragged || (shape.key === hoveredShape && hoveredShape.key) ? 0.95 : 0.8
+      opacity: dragged || (shape.key === hoveredShape && hoveredShape.key) ? 0.95 : 0.95
     }
   })
 })
