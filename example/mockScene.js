@@ -32,8 +32,6 @@ const initialShapes = [
   {key: 'rect11', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate( 100,    0, -120), matrix.rotateY(-Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: 'white', backgroundImage: elasticLogo},
   {key: 'rect12', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate(   0, -100, -120), matrix.rotateX(Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: 'black', backgroundImage: bach},
   {key: 'rect13', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate(   0, 100, -120), matrix.rotateX(Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: 'white', backgroundImage: animviz},
-
-
 ]
 
 const initialState = {

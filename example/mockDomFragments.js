@@ -16,6 +16,7 @@ const renderIntoRoot = frag => render(frag, document.body)
 const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shape => {
   const dragged = selectedShapes.find(key => key === shape.key)
   return h('div', {
+    key: shape.key,
     class: 'rectangle',
     style: {
       transform: dom.matrixToCSS(shape.transformMatrix),
@@ -41,6 +42,7 @@ const makeSubstrateFrag = commit => {
   let downQueue = []
   return shapeFrags => {
     return h('div', {
+        key: 'root',
         id: 'root',
         tabindex: '0', // needed for the div to register keyboard events
         onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY, uid: makeUid()}),
@@ -62,13 +64,13 @@ const makeSubstrateFrag = commit => {
       },
       shapeFrags,
       'Operations:',
-      h('li', {}, 'mouse click: select rectangle to manipulate'),
-      h('li', {}, 'W, A, S, D: translate along X / Y'),
-      h('li', {}, 'F, C: translate along Z'),
-      h('li', {}, 'X, Y, Z: rotate around X, Y or Z respectively'),
-      h('li', {}, 'I, J, K, L: scale (increase/decrease) along X / Y'),
-      h('li', {}, 'P: toggle perspective viewing'),
-      h('li', {}, 'E, R, T, G: shear along x / Y')
+      h('li', {key: 'text1'}, 'mouse click: select rectangle to manipulate'),
+      h('li', {key: 'text2'}, 'W, A, S, D: translate along X / Y'),
+      h('li', {key: 'text3'}, 'F, C: translate along Z'),
+      h('li', {key: 'text4'}, 'X, Y, Z: rotate around X, Y or Z respectively'),
+      h('li', {key: 'text5'}, 'I, J, K, L: scale (increase/decrease) along X / Y'),
+      h('li', {key: 'text6'}, 'P: toggle perspective viewing'),
+      h('li', {key: 'text7'}, 'E, R, T, G: shear along x / Y')
     )
   }
 }
