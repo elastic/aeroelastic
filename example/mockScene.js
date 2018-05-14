@@ -23,8 +23,6 @@ const initialShapes = [
     backgroundImage: pattern3},
   {key: 'rect6', type: 'rectangle', localTransformMatrix: matrix.translate(1260, 500, 90), transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#b3e2cd',
     backgroundImage: pattern1},
-
-
   {key: 'rect7',  localTransformMatrix: matrix.translate(800, 800,    0), transformMatrix: matrix.translate(1060, 200, 90), a: 2, b: 2, backgroundColor: 'rgba(0,0,0,0)'},
   {key: 'rect8',  parent: 'rect7', localTransformMatrix: matrix.translate(   0,    0, -220), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: '#b3e2cd', backgroundImage: pattern1},
   {key: 'rect9',  parent: 'rect7', localTransformMatrix: matrix.translate(   0,    0,  -20), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: '#cbd5e8', backgroundImage: graph},

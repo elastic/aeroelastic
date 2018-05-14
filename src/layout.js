@@ -18,6 +18,8 @@ const { topShapeAt } = require('./geometry')
 
 const matrix = require('./matrix')
 
+const { singleSelect } = require('./config')
+
 
 /**
  * Selectors directly from a state object
@@ -100,21 +102,31 @@ const transformGesture = select(
   }
 )(pressedKeys)
 
-
 const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
-    if(uid === prev.uid || !down || !focusedShape) return prev
+    if(uid === prev.uid || !down ) return prev
     const shapes = prev.shapes
     const found = shapes.find(key => focusedShape && key === focusedShape.key)
-    return {
-      shapes: found
-        ? shapes.filter(key => key !== focusedShape.key) // remove from selection
-        : shapes.concat([focusedShape.key]), // add to selection
-      uid
+    if(singleSelect) {
+      return {
+        shapes: focusedShape
+          ? [focusedShape.key]
+          : [],
+        uid
+      }
+    }
+    else {
+      return {
+        shapes: found
+          ? shapes.filter(key => key !== focusedShape.key) // remove from selection
+          : shapes.concat(focusedShape ? [focusedShape.key] : []), // add to selection
+        uid
+      }
     }
   },
   {shapes: [], uid: null},
   d => d.shapes
+  // d => {console.log(d.shapes); return d.shapes}
 )(hoveredShape, mouseButton)
 
 const transformIntent = select(
@@ -142,8 +154,6 @@ const getUpstreams = (shapes, shape) => shape.parent
   ? getUpstreams(shapes, shapes.find(s => s.key === shape.parent)).concat([shape])
   : [shape]
 
-
-
 const cascadeTransforms = shapes => {
   return shapes.map(shape => {
     const upstreams = getUpstreams(shapes, shape)
@@ -167,9 +177,9 @@ const nextShapes = select(
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
 // collection of shapes themselves
 const nextScene = select(
-  (hoveredShape, draggedShapes, shapes) => ({
+  (hoveredShape, selectedShapes, shapes) => ({
     hoveredShape,
-    draggedShapes,
+    selectedShapes,
     shapes
   })
 )(hoveredShape, selectedShapes, nextShapes)

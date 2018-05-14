@@ -130,8 +130,6 @@ const dragVector = select(
   ({buttonState, downX, downY}, {x, y}) => ({down: buttonState !== 'up', x0: downX, y0: downY, x1: x, y1: y})
 )(mouseButtonState, cursorPosition)
 
-
-
 module.exports = {
   actionUid,
   dragging,

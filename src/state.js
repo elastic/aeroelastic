@@ -2,6 +2,8 @@
  * PoC action dispatch
  */
 
+const makeUid = () => 1e11 + Math.floor((1e12 - 1e11) * Math.random());
+
 const shallowEqual = (a, b) => {
   return false
   if(a === b) return true
@@ -51,8 +53,9 @@ const createStore = initialState => {
   const setCurrentState = newState => currentState = newState
   const setUpdater = updaterFunction => updateScene = updaterFunction
 
-  const commit = (actionType, payload) => {
-    currentState = updateScene({...currentState, primaryUpdate: {actionType, payload}})
+  const commit = (actionType, payload, callback = () => {}) => {
+    currentState = updateScene({...currentState, primaryUpdate: {actionType, payload: {...payload, uid: makeUid()}}})
+    callback()
   }
 
   const dispatch = (actionType, payload) => setTimeout(() => commit(actionType, payload))
