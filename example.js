@@ -40,7 +40,7 @@ const updateScene = select(
     // yield the new state
     return {
       shapeAdditions: nextScene.shapes,
-      primaryUpdate,
+      //primaryUpdate,
       currentScene: nextScene
     }
   }

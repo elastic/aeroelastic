@@ -102,6 +102,25 @@ const transformGesture = select(
   }
 )(pressedKeys)
 
+const shapeAddGesture = select(
+  keys => Object.keys(keys).indexOf('KeyN') !== -1
+)(pressedKeys)
+
+const rand128 = () => 128 + Math.floor(128 * Math.random())
+
+const enteringShapes = select(
+  add => add && {key: 'newRect' + Math.random(),
+    type: 'rectangle', localTransformMatrix: matrix.multiply(
+      matrix.translate(2 * rand128() - 256, 2 * rand128() - 256, 4 * rand128() - 768),
+      matrix.rotateX(Math.random() * 2 * Math.PI),
+      matrix.rotateY(Math.random() * 2 * Math.PI),
+      matrix.rotateZ(Math.random() * 2 * Math.PI)
+    ),
+    transformMatrix: matrix.translate(425, 290, 5), a: rand128(), b: rand128(),
+    backgroundColor: `rgb(${rand128()},${rand128()},${rand128()})`,
+    parent: 'rect1'}
+)(shapeAddGesture)
+
 const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
     if(uid === prev.uid || !down ) return prev
@@ -133,17 +152,19 @@ const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}
 )(transformGesture, selectedShapes)
 
-const applyLocalTransforms = (shapes, transformIntent) => {
-  return shapes.map(shape => {
-    return {
-      // update the preexisting shape:
-      ...shape,
-      // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
-      ...transformIntent.shapes.find(key => key === shape.key) && {
-        localTransformMatrix: matrix.applyTransforms(transformIntent.transforms, shape.localTransformMatrix)
-      }
+const shapeApplyLocalTransforms = transformIntent => shape => {
+  return {
+    // update the preexisting shape:
+    ...shape,
+    // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
+    ...transformIntent.shapes.find(key => key === shape.key) && {
+      localTransformMatrix: matrix.applyTransforms(transformIntent.transforms, shape.localTransformMatrix)
     }
-  })
+  }
+}
+
+const applyLocalTransforms = (shapes, transformIntent) => {
+  return shapes.map(shapeApplyLocalTransforms(transformIntent))
 }
 
 const getUpstreamTransforms = (shapes, shape) => shape.parent
@@ -154,24 +175,31 @@ const getUpstreams = (shapes, shape) => shape.parent
   ? getUpstreams(shapes, shapes.find(s => s.key === shape.parent)).concat([shape])
   : [shape]
 
-const cascadeTransforms = shapes => {
-  return shapes.map(shape => {
-    const upstreams = getUpstreams(shapes, shape)
-    const upstreamTransforms = upstreams.map(shape => shape.localTransformMatrix)
-    const cascadedTransforms = matrix.reduceTransforms(upstreamTransforms)
-    return {
-      ...shape,
-      transformMatrix: cascadedTransforms
-    }
-  })
+const shapeCascadeTransforms = shapes => shape => {
+  const upstreams = getUpstreams(shapes, shape)
+  const upstreamTransforms = upstreams.map(shape => shape.localTransformMatrix)
+  const cascadedTransforms = matrix.reduceTransforms(upstreamTransforms)
+  return {
+    ...shape,
+    transformMatrix: cascadedTransforms
+  }
 }
 
+const cascadeTransforms = shapes => shapes.map(shapeCascadeTransforms(shapes))
+
 const nextShapes = select(
-  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
+  (preexistingShapes, enteringShapes) => {
     // this is the per-shape model update at the current PoC level
-    return cascadeTransforms(applyLocalTransforms(shapes,  transformIntent))
+    return preexistingShapes.concat(enteringShapes ? [enteringShapes] : [])
   }
-)(shapes, draggedShape, dragVector, mouseDowned, transformIntent)
+)(shapes, enteringShapes)
+
+const reprojectedShapes = select(
+  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
+    // per-shape model update of projections
+    return cascadeTransforms(applyLocalTransforms(shapes, transformIntent))
+  }
+)(nextShapes, draggedShape, dragVector, mouseDowned, transformIntent)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
@@ -182,7 +210,7 @@ const nextScene = select(
     selectedShapes,
     shapes
   })
-)(hoveredShape, selectedShapes, nextShapes)
+)(hoveredShape, selectedShapes, reprojectedShapes)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt,

@@ -132,7 +132,7 @@ const rotateZ = a => rotate(0, 0, 1, a)
  *         d    h    l    p      .    .    .    d * M + h * N + l * O + p * P
  *
  */
-const multiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]) => ([
+const mult = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]) => ([
 
   a * A + e * B + i * C + m * D,
   b * A + f * B + j * C + n * D,
@@ -154,6 +154,8 @@ const multiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, D,
   c * M + g * N + k * O + o * P,
   d * M + h * N + l * O + p * P
 ])
+
+const multiply = (...elements) => elements.slice(1).reduce((prev, next) => mult(prev, next), elements[0])
 
 /**
  * mvMultiply
