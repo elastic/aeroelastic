@@ -15,6 +15,7 @@ const renderIntoRoot = frag => render(frag, document.body)
 // renders a shape excluding its control points
 const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shape => {
   const dragged = selectedShapes.find(key => key === shape.key)
+  //if(shape.key.slice(0, 7) === 'newRect') debugger
   return h('div', {
     key: shape.key,
     class: 'rectangle',
@@ -25,8 +26,8 @@ const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shap
       height: dom.px(2 * shape.b),
       marginLeft: dom.px(-shape.a),
       marginTop: dom.px(-shape.b),
-      backgroundColor: shape.backgroundColor,
       background: shape.backgroundImage,
+      backgroundColor: shape.backgroundColor,
       outline: dragged ? `3px solid ${devColor}` : null,
       opacity: dragged || (shape.key === hoveredShape && hoveredShape.key) ? 0.95 : 0.95
     }

@@ -108,18 +108,25 @@ const shapeAddGesture = select(
 
 const rand128 = () => 128 + Math.floor(128 * Math.random())
 
+const shapeAddEvent = select(
+  action => action && action.actionType === 'shapeAddEvent' ? action.payload : null,
+)(primaryUpdate)
+
 const enteringShapes = select(
-  add => add && {key: 'newRect' + Math.random(),
-    type: 'rectangle', localTransformMatrix: matrix.multiply(
-      matrix.translate(2 * rand128() - 256, 2 * rand128() - 256, 4 * rand128() - 768),
-      matrix.rotateX(Math.random() * 2 * Math.PI),
-      matrix.rotateY(Math.random() * 2 * Math.PI),
-      matrix.rotateZ(Math.random() * 2 * Math.PI)
-    ),
-    transformMatrix: matrix.translate(425, 290, 5), a: rand128(), b: rand128(),
-    backgroundColor: `rgb(${rand128()},${rand128()},${rand128()})`,
-    parent: 'rect1'}
-)(shapeAddGesture)
+  (source1, source2) => {
+    const fromSource1 = source1 && {key: 'newRect' + Math.random(),
+      type: 'rectangle', localTransformMatrix: matrix.multiply(
+        matrix.translate(2 * rand128() - 256, 2 * rand128() - 256, 4 * rand128() - 768),
+        matrix.rotateX(Math.random() * 2 * Math.PI),
+        matrix.rotateY(Math.random() * 2 * Math.PI),
+        matrix.rotateZ(Math.random() * 2 * Math.PI)
+      ),
+      transformMatrix: matrix.translate(425, 290, 5), a: rand128(), b: rand128(),
+      backgroundColor: `rgb(${rand128()},${rand128()},${rand128()})`,
+      parent: 'rect1'}
+    const fromSource2 = source2
+    return [fromSource1, fromSource2].filter(d => d)
+  })(shapeAddGesture, shapeAddEvent)
 
 const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
@@ -190,7 +197,7 @@ const cascadeTransforms = shapes => shapes.map(shapeCascadeTransforms(shapes))
 const nextShapes = select(
   (preexistingShapes, enteringShapes) => {
     // this is the per-shape model update at the current PoC level
-    return preexistingShapes.concat(enteringShapes ? [enteringShapes] : [])
+    return preexistingShapes.concat(enteringShapes)
   }
 )(shapes, enteringShapes)
 
