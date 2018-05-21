@@ -117,10 +117,8 @@ const restateShapesEvent = select(
 )(primaryUpdate)
 
 const enteringShapes = select(
-  (source1, source2, restated) => {
-    if(restated) {
-      return restated
-    } else {
+  (source1, source2) => {
+
       const fromSource1 = source1 && {
         key: 'newRect' + Math.random(),
         type: 'rectangle', localTransformMatrix: matrix.multiply(
@@ -135,8 +133,8 @@ const enteringShapes = select(
       }
       const fromSource2 = source2
       return [fromSource1, fromSource2].filter(d => d)
-    }
-  })(shapeAddGesture, shapeAddEvent, restateShapesEvent)
+
+  })(shapeAddGesture, shapeAddEvent)
 
 const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
@@ -205,11 +203,14 @@ const shapeCascadeTransforms = shapes => shape => {
 const cascadeTransforms = shapes => shapes.map(shapeCascadeTransforms(shapes))
 
 const nextShapes = select(
-  (preexistingShapes, enteringShapes) => {
+  (preexistingShapes, enteringShapes, restated) => {
+    if(restated && restated.newShapes) {
+      return restated.newShapes
+    }
     // this is the per-shape model update at the current PoC level
     return preexistingShapes.concat(enteringShapes)
   }
-)(shapes, enteringShapes)
+)(shapes, enteringShapes, restateShapesEvent)
 
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
