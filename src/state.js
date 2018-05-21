@@ -53,12 +53,12 @@ const createStore = initialState => {
   const setCurrentState = newState => currentState = newState
   const setUpdater = updaterFunction => updateScene = updaterFunction
 
-  const commit = (actionType, payload, callback = () => {}) => {
-    currentState = updateScene({...currentState, primaryUpdate: {actionType, payload: {...payload, uid: makeUid()}}})
+  const commit = (type, payload, callback = () => {}) => {
+    currentState = updateScene({...currentState, primaryUpdate: {type, payload: {...payload, uid: makeUid()}}})
     callback()
   }
 
-  const dispatch = (actionType, payload) => setTimeout(() => commit(actionType, payload))
+  const dispatch = (type, payload) => setTimeout(() => commit(type, payload))
 
   return {getCurrentState, setCurrentState, setUpdater, commit, dispatch}
 }

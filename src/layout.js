@@ -109,11 +109,11 @@ const shapeAddGesture = select(
 const rand128 = () => 128 + Math.floor(128 * Math.random())
 
 const shapeAddEvent = select(
-  action => action && action.actionType === 'shapeAddEvent' ? action.payload : null,
+  action => action && action.type === 'shapeAddEvent' ? action.payload : null,
 )(primaryUpdate)
 
 const restateShapesEvent = select(
-  action => action && action.actionType === 'restateShapesEvent' ? action.payload : null,
+  action => action && action.type === 'restateShapesEvent' ? action.payload : null,
 )(primaryUpdate)
 
 const enteringShapes = select(

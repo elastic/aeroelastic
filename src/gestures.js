@@ -19,11 +19,11 @@ const primaryUpdate = state => state.primaryUpdate
 
 // dispatch the various types of actions
 const rawCursorPosition = select(
-  action => action && action.actionType === 'cursorPosition' ? action.payload : null
+  action => action && action.type === 'cursorPosition' ? action.payload : null
 )(primaryUpdate)
 
 const mouseButtonEvent = select(
-  action => action && action.actionType === 'mouseEvent' ? action.payload : null
+  action => action && action.type === 'mouseEvent' ? action.payload : null
 )(primaryUpdate)
 
 const actionUid = select(
@@ -31,7 +31,7 @@ const actionUid = select(
 )(primaryUpdate)
 
 const keyboardEvent = select(
-  action => action && action.actionType === 'keyboardEvent' ? action.payload : null,
+  action => action && action.type === 'keyboardEvent' ? action.payload : null,
 )(primaryUpdate)
 
 const pressedKeys = selectReduce(
