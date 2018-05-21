@@ -112,21 +112,31 @@ const shapeAddEvent = select(
   action => action && action.actionType === 'shapeAddEvent' ? action.payload : null,
 )(primaryUpdate)
 
+const restateShapesEvent = select(
+  action => action && action.actionType === 'restateShapesEvent' ? action.payload : null,
+)(primaryUpdate)
+
 const enteringShapes = select(
-  (source1, source2) => {
-    const fromSource1 = source1 && {key: 'newRect' + Math.random(),
-      type: 'rectangle', localTransformMatrix: matrix.multiply(
-        matrix.translate(2 * rand128() - 256, 2 * rand128() - 256, 4 * rand128() - 768),
-        matrix.rotateX(Math.random() * 2 * Math.PI),
-        matrix.rotateY(Math.random() * 2 * Math.PI),
-        matrix.rotateZ(Math.random() * 2 * Math.PI)
-      ),
-      transformMatrix: matrix.translate(425, 290, 5), a: rand128(), b: rand128(),
-      backgroundColor: `rgb(${rand128()},${rand128()},${rand128()})`,
-      parent: 'rect1'}
-    const fromSource2 = source2
-    return [fromSource1, fromSource2].filter(d => d)
-  })(shapeAddGesture, shapeAddEvent)
+  (source1, source2, restated) => {
+    if(restated) {
+      return restated
+    } else {
+      const fromSource1 = source1 && {
+        key: 'newRect' + Math.random(),
+        type: 'rectangle', localTransformMatrix: matrix.multiply(
+          matrix.translate(2 * rand128() - 256, 2 * rand128() - 256, 4 * rand128() - 768),
+          matrix.rotateX(Math.random() * 2 * Math.PI),
+          matrix.rotateY(Math.random() * 2 * Math.PI),
+          matrix.rotateZ(Math.random() * 2 * Math.PI)
+        ),
+        transformMatrix: matrix.translate(425, 290, 5), a: rand128(), b: rand128(),
+        backgroundColor: `rgb(${rand128()},${rand128()},${rand128()})`,
+        parent: 'rect1'
+      }
+      const fromSource2 = source2
+      return [fromSource1, fromSource2].filter(d => d)
+    }
+  })(shapeAddGesture, shapeAddEvent, restateShapesEvent)
 
 const selectedShapes = selectReduce(
   (prev, focusedShape, {down, uid}) => {
