@@ -48,14 +48,14 @@ const select = (fun, logFun) => (...inputs) => {
 
 const createStore = initialState => {
   let currentState = initialState
-  let updateScene = state => state // default: no side effect
+  let updater = state => state // default: no side effect
   const getCurrentState = () => currentState
   const setCurrentState = newState => currentState = newState
-  const setUpdater = updaterFunction => updateScene = updaterFunction
+  const setUpdater = updaterFunction => updater = updaterFunction
 
   const commit = (type, payload, callback = () => {}) => {
-    currentState = updateScene({...currentState, primaryUpdate: {type, payload: {...payload, uid: makeUid()}}})
-    callback()
+    currentState = updater({...currentState, primaryUpdate: {type, payload: {...payload, uid: makeUid()}}})
+    callback(currentState)
   }
 
   const dispatch = (type, payload) => setTimeout(() => commit(type, payload))
