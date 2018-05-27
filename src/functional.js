@@ -9,6 +9,14 @@
 const flatten = arrays => [].concat(...arrays)
 
 /**
+ * identity
+ *
+ * @param d
+ * @returns d
+ */
+const identity = d => d
+
+/**
  * map
  *
  * Maps a function over an array
@@ -22,5 +30,6 @@ const map = fun => array => array.map(value => fun(value))
 
 module.exports = {
   flatten,
+  identity,
   map
 }

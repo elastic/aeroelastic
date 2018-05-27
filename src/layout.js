@@ -20,6 +20,7 @@ const matrix = require('./matrix')
 
 const { singleSelect } = require('./config')
 
+const {identity} = require('./functional')
 
 /**
  * Selectors directly from a state object
@@ -72,7 +73,7 @@ const dragStartAt = selectReduce(
   {down: false}
 )(dragging, dragVector, focusedShape)
 
-const transformGesture = select(
+const keyTransformGesture = select(
   keys => {
     const result = Object.keys(keys)
       .map(keypress => {
@@ -101,6 +102,38 @@ const transformGesture = select(
     return result
   }
 )(pressedKeys)
+
+const mouseTransformGesture = selectReduce(
+  (prev, dragging, {x0, y0, x1, y1}) => {
+    if(dragging) {
+      const deltaX = x1 - x0
+      const deltaY = y1 - y0
+      const transform = matrix.translate(deltaX - prev.deltaX, deltaY - prev.deltaY, 0)
+      return {
+        deltaX,
+        deltaY,
+        transform
+      }
+    } else {
+      // reset - extract the common object literal?
+      return {
+        deltaX: 0,
+        deltaY: 0,
+        transform: null
+      }
+    }
+  },
+  {
+    deltaX: 0,
+    deltaY: 0,
+    transform: null
+  },
+  tuple => [tuple.transform].filter(identity)
+)(dragging, dragVector)
+
+const transformGesture = select(
+  (keyTransformGesture, mouseTransformGesture) => keyTransformGesture.concat(mouseTransformGesture)
+)(keyTransformGesture, mouseTransformGesture)
 
 const shapeAddGesture = select(
   keys => Object.keys(keys).indexOf('KeyN') !== -1
@@ -231,7 +264,7 @@ const nextScene = select(
 )(hoveredShape, selectedShapes, reprojectedShapes)
 
 module.exports = {
-  cursorPosition, mouseIsDown, dragStartAt,
+  cursorPosition, mouseIsDown, dragStartAt, dragVector,
   nextScene, focusedShape,
   primaryUpdate, shapes, focusedShapes, selectedShapes
 }

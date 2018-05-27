@@ -15,6 +15,7 @@ const store = createStore(initialState)
 
 const {
         dragStartAt,
+        dragVector,
         nextScene, focusedShape, selectedShapes,
         primaryUpdate
       } = require('./src/layout')
