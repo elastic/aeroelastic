@@ -200,13 +200,27 @@ const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}
 )(transformGesture, selectedShapes)
 
+const fromScreen = currentTransform => transform => {
+  const isTranslate = transform[12] !== 0 || transform[13] !== 0
+  if(isTranslate) {
+    const composite = matrix.compositeComponent(currentTransform)
+    const inverse = matrix.invert(composite)
+    return matrix.translateComponent(matrix.multiply(inverse, transform))
+  } else {
+    return transform
+  }
+}
+
 const shapeApplyLocalTransforms = transformIntent => shape => {
   return {
     // update the preexisting shape:
     ...shape,
     // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
     ...transformIntent.shapes.find(key => key === shape.key) && {
-      localTransformMatrix: matrix.applyTransforms(transformIntent.transforms, shape.localTransformMatrix)
+      localTransformMatrix: matrix.applyTransforms(
+        transformIntent.transforms.map(fromScreen(shape.localTransformMatrix)),
+        shape.localTransformMatrix
+      )
     }
   }
 }

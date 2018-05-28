@@ -37,6 +37,7 @@ const scenegraph = select(
 const rand128 = () => 128 + Math.floor(128 * Math.random())
 
 let count = 10
+if(0)
 window.setInterval(() => {
   const newShape = {key: 'newRect_' + count,
     type: 'rectangle', localTransformMatrix: matrix.multiply(

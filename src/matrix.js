@@ -232,11 +232,16 @@ const invert = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) => {
   }
 }
 
+const translateComponent = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) =>
+  ([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, m, n, o, p])
+
+const compositeComponent = ([a, b, c, d, e, f, g, h, i, j, k, l,]) =>
+  ([a, b, c, d, e, f, g, h, i, j, k, l, 0, 0, 0, 1])
+
 const reduceTransforms = transforms => transforms.length === 1 ? transforms[0] : transforms.slice(1).reduce(
   (prev, next) => multiply(prev, next),
   transforms[0]
 )
-
 
 // applies an arbitrary number of transforms - left to right - to a preexisting transform matrix
 const applyTransforms = (transforms, previousTransformMatrix) => transforms.reduce(
@@ -246,5 +251,6 @@ const applyTransforms = (transforms, previousTransformMatrix) => transforms.redu
 
 module.exports = {
   ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, shear, rotateX, rotateY, rotateZ, scale,
-  perspective, multiply, mvMultiply, invert, normalize, applyTransforms, reduceTransforms
+  perspective, multiply, mvMultiply, invert, normalize, applyTransforms, reduceTransforms,
+  translateComponent, compositeComponent
 }

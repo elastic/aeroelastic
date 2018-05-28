@@ -19,7 +19,7 @@ const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shap
   return h('div', {
     key: shape.key,
     class: 'rectangle',
-    onclick: ({clientX, clientY}) => console.log('clicked on', shape.key, 'at', clientX, clientY),
+    //onclick: ({clientX, clientY}) => console.log('clicked on', shape.key, 'at', clientX, clientY),
     style: {
       transform: dom.matrixToCSS(shape.transformMatrix),
       width: dom.px(2 * shape.a),
