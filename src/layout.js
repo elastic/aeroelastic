@@ -4,10 +4,10 @@ const {
       } = require('./state')
 
 const {
-        actionUid,
         dragging,
         dragVector,
         cursorPosition,
+        gestureEnd,
         mouseButton,
         mouseDowned,
         mouseIsDown,
@@ -270,12 +270,13 @@ const reprojectedShapes = select(
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
 // collection of shapes themselves
 const nextScene = select(
-  (hoveredShape, selectedShapes, shapes) => ({
+  (hoveredShape, selectedShapes, shapes, gestureEnd) => ({
     hoveredShape,
     selectedShapes,
-    shapes
+    shapes,
+    gestureEnd
   })
-)(hoveredShape, selectedShapes, reprojectedShapes)
+)(hoveredShape, selectedShapes, reprojectedShapes, gestureEnd)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt, dragVector,

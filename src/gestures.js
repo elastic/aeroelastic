@@ -52,6 +52,17 @@ const pressedKeys = selectReduce(
   {}
 )(keyboardEvent)
 
+const keyUp = selectReduce(
+  (prev, next) => {
+    switch(next && next.event) {
+      case 'keyDown': return false
+      case 'keyUp': return true
+      default: return prev
+    }
+  },
+  true
+)(keyboardEvent)
+
 const cursorPosition = selectReduce(
   (previous, position) => position || previous,
   {x: 0, y: 0}
@@ -76,6 +87,8 @@ const mouseIsDown = selectReduce(
     : previous,
   false
 )(mouseButtonEvent)
+
+const gestureEnd = select((keyUp, mouseIsDown) => keyUp && !mouseIsDown)(keyUp, mouseIsDown)
 
 /**
  * mouseButtonStateTransitions
@@ -131,10 +144,10 @@ const dragVector = select(
 )(mouseButtonState, cursorPosition)
 
 module.exports = {
-  actionUid,
   dragging,
   dragVector,
   cursorPosition,
+  gestureEnd,
   mouseButton,
   mouseDowned,
   mouseIsDown,
