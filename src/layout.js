@@ -18,7 +18,7 @@ const { shapesAt } = require('./geometry')
 
 const matrix = require('./matrix')
 
-const { singleSelect } = require('./config')
+const { singleSelect, depthSelect } = require('./config')
 
 const {identity} = require('./functional')
 
@@ -46,12 +46,16 @@ const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) 
  */
 
 const shapes = select(scene => scene.shapes)(scene)
+
+const hoveredShapes = select(
+  (shapes, cursorPosition) => shapesAt(shapes, cursorPosition),
+)(shapes, cursorPosition)
+
 const hoveredShape = selectReduce(
-  (prev, shapes, cursorPosition) => {
-    const hoveredShapes = shapesAt(shapes, cursorPosition)
+  (prev, hoveredShapes) => {
     if(hoveredShapes.length) {
       const depthIndex = (prev.depthIndex + 1) % hoveredShapes.length
-      console.log(depthIndex, hoveredShapes.map(s => s.key))
+      //console.log(depthIndex, hoveredShapes.map(s => s.key))
       return {
         shape: hoveredShapes[prev.depthIndex],
         depthIndex
@@ -68,7 +72,8 @@ const hoveredShape = selectReduce(
     depthIndex: 0
   },
   tuple => tuple.shape
-)(shapes, cursorPosition)
+)(hoveredShapes)
+
 const draggedShape = select(draggingShape)(scene, hoveredShape, mouseIsDown, mouseDowned)
 
 // the currently dragged shape is considered in-focus; if no dragging is going on, then the hovered shape
@@ -192,31 +197,41 @@ const enteringShapes = select(
   })(shapeAddGesture, shapeAddEvent)
 
 const selectedShapes = selectReduce(
-  (prev, focusedShape, {down, uid}) => {
+  (prev, hoveredShapes, {down, uid}) => {
     if(uid === prev.uid || !down ) return prev
     const shapes = prev.shapes
-    const found = shapes.find(key => focusedShape && key === focusedShape.key)
+    const found = hoveredShapes
     if(singleSelect) {
-      return {
-        shapes: focusedShape
-          ? [focusedShape.key]
-          : [],
-        uid
-      }
+      const depthIndex = depthSelect ? (prev.depthIndex + 1) % hoveredShapes.length : 0
+      return hoveredShapes.length
+        ? {
+          shapes: [hoveredShapes[depthIndex].key],
+          uid,
+          depthIndex,
+        }
+        : {
+          shapes: [],
+          uid,
+          depthIndex: 0
+        }
     }
     else {
       return {
         shapes: found
-          ? shapes.filter(key => key !== focusedShape.key) // remove from selection
-          : shapes.concat(focusedShape ? [focusedShape.key] : []), // add to selection
+          ? shapes.filter(key => key !== hoveredShapes.key) // remove from selection
+          : shapes.concat(hoveredShapes ? [hoveredShapes.key] : []), // add to selection
         uid
       }
     }
   },
-  {shapes: [], uid: null},
+  {
+    shapes: [],
+    uid: null,
+    depthIndex: 0
+  },
   d => d.shapes
   // d => {console.log(d.shapes); return d.shapes}
-)(hoveredShape, mouseButton)
+)(hoveredShapes, mouseButton)
 
 const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}

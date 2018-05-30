@@ -60,7 +60,7 @@ const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
   return {z, intersection, inside: Math.abs(sx) <= a && Math.abs(sy) <= b, shape}
 })
 
-// Pick top shape out of possibly several shapes (presumably under the same point).
+// Z-order the possibly several shapes under the same point.
 // Since CSS X points to the right, Y to the bottom (not the top!) and Z toward the viewer, it's a left-handed coordinate
 // system. Yet another wording is that X and Z point toward the expected directions (right, and towards the viewer,
 // respectively), but Y is pointing toward the bottom (South). It's called left-handed because we can position the thumb (X),
@@ -69,26 +69,10 @@ const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
 //
 // If it were a right handed coordinate system, AND Y still pointed down, then Z should increase away from the
 // viewer. But that's not the case. So we maximize the Z value to tell what's on top.
-const topShape = shapes => shapes.reduce((prev, {shape, inside, z}) => {
-  return inside && (z >= prev.z) ? {z, shape} : prev
-}, {z: -Infinity, shape: null})
-
-// returns the shape - closest to the reader in the Z-stack - that the reader hovers over with the mouse
-const topShapeAt = (shapes, {x, y}) => {
-  const hoveredShapes = shapesAtPoint(shapes, x, y)
-  const result = topShape(hoveredShapes).shape
- // console.log('hovering over:', result && result.key, x, y)
-  return result
-}
-
-const shapesAt = (shapes, {x, y}) => {const result = shapesAtPoint(shapes, x, y)
+const shapesAt = (shapes, {x, y}) => shapesAtPoint(shapes, x, y)
   .filter(shape => shape.inside)
   .sort((shape1, shape2) => shape2.z - shape1.z)
-  .map(shape => shape.shape)
-
-//if(result.length) debugger
-  return result
-} // decreasing order, ie. from front (closest to viewer) to back
+  .map(shape => shape.shape) // decreasing order, ie. from front (closest to viewer) to back
 
 module.exports = {
   shapesAt
