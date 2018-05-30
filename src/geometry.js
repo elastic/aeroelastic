@@ -56,6 +56,7 @@ const shapesAtPoint = (shapes, x, y) => shapes.map(shape => {
   const [sx, sy] = intersection
 
   // z is needed downstream, to tell which one is the closest shape hit by an x, y ray (shapes can be tilted in z)
+  // it looks weird to even return items where inside === false, but it could be useful for hotspots outside the rectangle
   return {z, intersection, inside: Math.abs(sx) <= a && Math.abs(sy) <= b, shape}
 })
 
@@ -80,6 +81,15 @@ const topShapeAt = (shapes, {x, y}) => {
   return result
 }
 
+const shapesAt = (shapes, {x, y}) => {const result = shapesAtPoint(shapes, x, y)
+  .filter(shape => shape.inside)
+  .sort((shape1, shape2) => shape2.z - shape1.z)
+  .map(shape => shape.shape)
+
+//if(result.length) debugger
+  return result
+} // decreasing order, ie. from front (closest to viewer) to back
+
 module.exports = {
-  topShapeAt
+  shapesAt
 }
