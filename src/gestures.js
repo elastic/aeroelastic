@@ -63,6 +63,18 @@ const keyUp = selectReduce(
   true
 )(keyboardEvent)
 
+const metaHeld = selectReduce(
+  (prev, next) => {
+    if(!next || next.code !== 'MetaLeft' && next.code !== 'MetaRight') return prev
+    switch(next && next.event) {
+      case 'keyDown': return true
+      case 'keyUp': return false
+      default: return prev
+    }
+  },
+  true
+)(keyboardEvent)
+
 const cursorPosition = selectReduce(
   (previous, position) => position || previous,
   {x: 0, y: 0}
@@ -148,6 +160,7 @@ module.exports = {
   dragVector,
   cursorPosition,
   gestureEnd,
+  metaHeld,
   mouseButton,
   mouseDowned,
   mouseIsDown,

@@ -8,6 +8,7 @@ const {
         dragVector,
         cursorPosition,
         gestureEnd,
+        metaHeld,
         mouseButton,
         mouseDowned,
         mouseIsDown,
@@ -196,24 +197,27 @@ const enteringShapes = select(
 
   })(shapeAddGesture, shapeAddEvent)
 
+const initialSelectedShapeState = {
+  shapes: [],
+  uid: null,
+  depthIndex: 0
+}
+
 const selectedShapes = selectReduce(
-  (prev, hoveredShapes, {down, uid}) => {
+  (prev, hoveredShapes, {down, uid}, metaHeld) => {
     if(uid === prev.uid || !down ) return prev
     const shapes = prev.shapes
     const found = hoveredShapes
     if(singleSelect) {
-      const depthIndex = depthSelect ? (prev.depthIndex + 1) % hoveredShapes.length : 0
+      // cycle from top ie. from zero after the cursor position changed ie. !sameLocation
+      const depthIndex = depthSelect && metaHeld ? (prev.depthIndex + 1) % hoveredShapes.length : 0
       return hoveredShapes.length
         ? {
           shapes: [hoveredShapes[depthIndex].key],
           uid,
-          depthIndex,
+          depthIndex
         }
-        : {
-          shapes: [],
-          uid,
-          depthIndex: 0
-        }
+        : initialSelectedShapeState
     }
     else {
       return {
@@ -224,14 +228,9 @@ const selectedShapes = selectReduce(
       }
     }
   },
-  {
-    shapes: [],
-    uid: null,
-    depthIndex: 0
-  },
+  initialSelectedShapeState,
   d => d.shapes
-  // d => {console.log(d.shapes); return d.shapes}
-)(hoveredShapes, mouseButton)
+)(hoveredShapes, mouseButton, metaHeld)
 
 const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}
@@ -296,12 +295,19 @@ const nextShapes = select(
   }
 )(shapes, enteringShapes, restateShapesEvent)
 
+const annotatedShapes = select(
+  shapes => {
+    const annotations = []
+    return shapes.concat(annotations)
+  }
+)(nextShapes)
+
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
     // per-shape model update of projections
     return cascadeTransforms(applyLocalTransforms(shapes, transformIntent))
   }
-)(nextShapes, draggedShape, dragVector, mouseDowned, transformIntent)
+)(annotatedShapes, draggedShape, dragVector, mouseDowned, transformIntent)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
