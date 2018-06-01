@@ -213,7 +213,7 @@ const selectedShapes = selectReduce(
       const depthIndex = depthSelect && metaHeld ? (prev.depthIndex + 1) % hoveredShapes.length : 0
       return hoveredShapes.length
         ? {
-          shapes: [hoveredShapes[depthIndex].key],
+          shapes: [hoveredShapes[depthIndex]],
           uid,
           depthIndex
         }
@@ -222,8 +222,8 @@ const selectedShapes = selectReduce(
     else {
       return {
         shapes: found
-          ? shapes.filter(key => key !== hoveredShapes.key) // remove from selection
-          : shapes.concat(hoveredShapes ? [hoveredShapes.key] : []), // add to selection
+          ? shapes.filter(s => s.key !== hoveredShapes.key) // remove from selection
+          : shapes.concat(hoveredShapes ? [hoveredShapes] : []), // add to selection
         uid
       }
     }
@@ -232,9 +232,13 @@ const selectedShapes = selectReduce(
   d => d.shapes
 )(hoveredShapes, mouseButton, metaHeld)
 
+const selectedShapeKeys = select(
+  shapes => shapes.map(shape => shape.key)
+)(selectedShapes)
+
 const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}
-)(transformGesture, selectedShapes)
+)(transformGesture, selectedShapeKeys)
 
 const fromScreen = currentTransform => transform => {
   const isTranslate = transform[12] !== 0 || transform[13] !== 0
@@ -295,12 +299,58 @@ const nextShapes = select(
   }
 )(shapes, enteringShapes, restateShapesEvent)
 
-const annotatedShapes = select(
-  shapes => {
-    const annotations = []
-    return shapes.concat(annotations)
+const alignmentGuides = (shapes, draggedShapes) => {
+  const result = []
+  let counter = 0
+  for(let i = 0; i < draggedShapes.length; i++) {
+    const d = draggedShapes[i]
+    if(d.type === 'annotation') continue
+    for(let j = 0; j < shapes.length; j++) {
+      const s = shapes[j]
+      if(d.key === s.key) continue
+      if(s.type === 'annotation') continue
+      for(let k = 0; k < 2; k++) {
+        for(let l = 0; l < 2; l++) {
+          for(let dim = 0; dim < 2; dim++) {
+            const dd = d.transformMatrix[dim + 12] + (k ? 1 : -1) * (dim ? d.b : d.a)
+            const ss = s.transformMatrix[dim + 12] + (l ? 1 : -1) * (dim ? s.b : s.a)
+            if(Math.abs(dd - ss) < 1) {
+              result.push({
+                key: counter++,
+                transformMatrix: matrix.translate(dim ? 0 : ss, dim ? ss : 0, 0),
+                a: dim ? 2000 : 0.5,
+                b: dim ? 0.5 : 2000,
+              })
+            }
+          }
+        }
+      }
+    }
   }
-)(nextShapes)
+  return result
+}
+
+// initial simplification
+const draggedShapes = select(
+  (shapes, selectedShapeKeys, mouseIsDown) => mouseIsDown ? shapes.filter(shape => selectedShapeKeys.indexOf(shape.key) !== -1) : []
+)(nextShapes, selectedShapeKeys, mouseIsDown)
+
+const annotatedShapes = select(
+  (shapes, draggedShapes) => {
+    const annotations = draggedShapes.length
+      ? alignmentGuides(shapes, draggedShapes).map(shape => ({
+        ...shape,
+        key: 'snapLine_' + shape.key,
+        type: 'annotation',
+        localTransformMatrix: shape.transformMatrix,
+        backgroundColor: 'magenta'
+      }))
+      : []
+    return shapes
+      .filter(shape => shape.type !== 'annotation') // remove preexisting annotations
+      .concat(annotations) // add current annotations
+  }
+)(nextShapes, draggedShapes)
 
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
@@ -313,18 +363,20 @@ const reprojectedShapes = select(
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
 // collection of shapes themselves
 const nextScene = select(
-  (hoveredShape, selectedShapes, shapes, gestureEnd) => ({
-    hoveredShape,
-    selectedShapes,
-    shapes,
-    gestureEnd
-  })
-)(hoveredShape, selectedShapes, reprojectedShapes, gestureEnd)
+  (hoveredShape, selectedShapes, shapes, gestureEnd) => {
+    return {
+      hoveredShape,
+      selectedShapes,
+      shapes,
+      gestureEnd
+    }
+  }
+)(hoveredShape, selectedShapeKeys, reprojectedShapes, gestureEnd)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt, dragVector,
   nextScene, focusedShape,
-  primaryUpdate, shapes, focusedShapes, selectedShapes
+  primaryUpdate, shapes, focusedShapes, selectedShapes: selectedShapeKeys
 }
 
 /**

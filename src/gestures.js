@@ -65,14 +65,14 @@ const keyUp = selectReduce(
 
 const metaHeld = selectReduce(
   (prev, next) => {
-    if(!next || next.code !== 'MetaLeft' && next.code !== 'MetaRight') return prev
+    if(!next || !next.code || next.code.slice(0, 4) !== 'Meta') return prev
     switch(next && next.event) {
       case 'keyDown': return true
       case 'keyUp': return false
       default: return prev
     }
   },
-  true
+  false
 )(keyboardEvent)
 
 const cursorPosition = selectReduce(
