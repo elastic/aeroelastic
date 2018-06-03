@@ -316,11 +316,11 @@ const alignmentGuides = (shapes, draggedShapes) => {
       if(d.id === s.id) continue
       if(s.type === 'annotation') continue
       const sTransformMatrix = s.transformMatrix
-      for(let k = 0; k < 2; k++) {
-        for(let l = 0; l < 2; l++) {
+      for(let k = -1; k < 2; k++) {
+        for(let l = -1; l < 2; l++) {
           for(let dim = 0; dim < 2; dim++) {
-            const dd = dTransformMatrix[dim + 12] + (k ? 1 : -1) * (dim ? d.b : d.a)
-            const ss = sTransformMatrix[dim + 12] + (l ? 1 : -1) * (dim ? s.b : s.a)
+            const dd = dTransformMatrix[dim + 12] + k * (dim ? d.b : d.a)
+            const ss = sTransformMatrix[dim + 12] + l * (dim ? s.b : s.a)
             const key = k + '|' + dim
             const signedDistance = dd - ss
             const distance = Math.abs(signedDistance)
@@ -329,10 +329,10 @@ const alignmentGuides = (shapes, draggedShapes) => {
               const perpendicularDim = 1 - dim
               const anchor = perpendicularDim + 12
               const perpendicularPoints = [
-                dTransformMatrix[anchor] - (perpendicularDim ? d.b : d.a),
-                dTransformMatrix[anchor] + (perpendicularDim ? d.b : d.a),
-                sTransformMatrix[anchor] - (perpendicularDim ? s.b : s.a),
-                sTransformMatrix[anchor] + (perpendicularDim ? s.b : s.a),
+                dTransformMatrix[anchor] + k * (perpendicularDim ? d.b : d.a),
+                dTransformMatrix[anchor] - k * (perpendicularDim ? d.b : d.a),
+                sTransformMatrix[anchor] + l * (perpendicularDim ? s.b : s.a),
+                sTransformMatrix[anchor] - l * (perpendicularDim ? s.b : s.a),
               ]
               const lowPoint = Math.min(...perpendicularPoints)
               const highPoint = Math.max(...perpendicularPoints)
