@@ -14,12 +14,12 @@ const renderIntoRoot = frag => render(frag, document.body)
 
 // renders a shape excluding its control points
 const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shape => {
-  const dragged = selectedShapes.find(key => key === shape.key)
-  //if(shape.key.slice(0, 7) === 'newRect') debugger
+  const dragged = selectedShapes.find(id => id === shape.id)
+  //if(shape.id.slice(0, 7) === 'newRect') debugger
   return h('div', {
-    key: shape.key,
+    id: shape.id,
     class: 'rectangle',
-    //onclick: ({clientX, clientY}) => console.log('clicked on', shape.key, 'at', clientX, clientY),
+    //onclick: ({clientX, clientY}) => console.log('clicked on', shape.id, 'at', clientX, clientY),
     style: {
       transform: dom.matrixToCSS(shape.transformMatrix),
       width: dom.px(2 * shape.a),
@@ -29,7 +29,7 @@ const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shap
       background: shape.backgroundImage,
       backgroundColor: shape.backgroundColor,
       outline: shape.type === 'annotation' ? 'none' : (dragged ? `1px solid ${devColor}` : null),
-      opacity: dragged || (shape.key === hoveredShape && hoveredShape.key) ? 0.95 : 0.95
+      opacity: dragged || (shape.id === hoveredShape && hoveredShape.id) ? 0.95 : 0.95
     }
   })
 })
@@ -44,7 +44,7 @@ const makeSubstrateFrag = commit => {
   let downQueue = []
   return shapeFrags => {
     return h('div', {
-        key: 'root',
+        id: 'root',
         id: 'root',
         tabindex: '0', // needed for the div to register keyboard events
         onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY, uid: makeUid()}),
@@ -66,13 +66,13 @@ const makeSubstrateFrag = commit => {
       },
       shapeFrags,
       'Operations:',
-      h('li', {key: 'text1'}, 'mouse click: select rectangle to manipulate'),
-      h('li', {key: 'text2'}, 'W, A, S, D: translate along X / Y'),
-      h('li', {key: 'text3'}, 'F, C: translate along Z'),
-      h('li', {key: 'text4'}, 'X, Y, Z: rotate around X, Y or Z respectively'),
-      h('li', {key: 'text5'}, 'I, J, K, L: scale (increase/decrease) along X / Y'),
-      h('li', {key: 'text6'}, 'P: toggle perspective viewing'),
-      h('li', {key: 'text7'}, 'E, R, T, G: shear along x / Y')
+      h('li', {id: 'text1'}, 'mouse click: select rectangle to manipulate'),
+      h('li', {id: 'text2'}, 'W, A, S, D: translate along X / Y'),
+      h('li', {id: 'text3'}, 'F, C: translate along Z'),
+      h('li', {id: 'text4'}, 'X, Y, Z: rotate around X, Y or Z respectively'),
+      h('li', {id: 'text5'}, 'I, J, K, L: scale (increase/decrease) along X / Y'),
+      h('li', {id: 'text6'}, 'P: toggle perspective viewing'),
+      h('li', {id: 'text7'}, 'E, R, T, G: shear along x / Y')
     )
   }
 }

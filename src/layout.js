@@ -37,7 +37,7 @@ const scene = state => state.currentScene
 
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
-  const dragInProgress = down && shapes.reduce((prev, next) => prev || draggedShape && next.key === draggedShape.key, false)
+  const dragInProgress = down && shapes.reduce((prev, next) => prev || draggedShape && next.id === draggedShape.id, false)
   return dragInProgress && draggedShape  || down && mouseDowned && hoveredShape
 }
 
@@ -56,7 +56,7 @@ const hoveredShape = selectReduce(
   (prev, hoveredShapes) => {
     if(hoveredShapes.length) {
       const depthIndex = (prev.depthIndex + 1) % hoveredShapes.length
-      //console.log(depthIndex, hoveredShapes.map(s => s.key))
+      //console.log(depthIndex, hoveredShapes.map(s => s.id))
       return {
         shape: hoveredShapes[prev.depthIndex],
         depthIndex
@@ -84,7 +84,7 @@ const focusedShape = select(
 
 // focusedShapes has updated position etc. information while focusedShape may have stale position
 const focusedShapes = select(
-  (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.key === focusedShape.key)
+  (shapes, focusedShape) => shapes.filter(shape => focusedShape && shape.id === focusedShape.id)
 )(shapes, focusedShape)
 
 const dragStartAt = selectReduce(
@@ -181,7 +181,7 @@ const enteringShapes = select(
   (source1, source2) => {
 
       const fromSource1 = source1 && {
-        key: 'newRect' + Math.random(),
+        id: 'newRect' + Math.random(),
         type: 'rectangle', localTransformMatrix: matrix.multiply(
           matrix.translate(2 * rand128() - 256, 2 * rand128() - 256, 4 * rand128() - 768),
           matrix.rotateX(Math.random() * 2 * Math.PI),
@@ -222,7 +222,7 @@ const selectedShapes = selectReduce(
     else {
       return {
         shapes: found
-          ? shapes.filter(s => s.key !== hoveredShapes.key) // remove from selection
+          ? shapes.filter(s => s.id !== hoveredShapes.id) // remove from selection
           : shapes.concat(hoveredShapes ? [hoveredShapes] : []), // add to selection
         uid
       }
@@ -232,13 +232,13 @@ const selectedShapes = selectReduce(
   d => d.shapes
 )(hoveredShapes, mouseButton, metaHeld)
 
-const selectedShapeKeys = select(
-  shapes => shapes.map(shape => shape.key)
+const selectedShapeIds = select(
+  shapes => shapes.map(shape => shape.id)
 )(selectedShapes)
 
 const transformIntent = select(
   (transforms, shapes) => {return {transforms, shapes}}
-)(transformGesture, selectedShapeKeys)
+)(transformGesture, selectedShapeIds)
 
 const fromScreen = currentTransform => transform => {
   const isTranslate = transform[12] !== 0 || transform[13] !== 0
@@ -256,7 +256,7 @@ const shapeApplyLocalTransforms = transformIntent => shape => {
     // update the preexisting shape:
     ...shape,
     // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
-    ...transformIntent.shapes.find(key => key === shape.key) && {
+    ...transformIntent.shapes.find(id => id === shape.id) && {
       localTransformMatrix: matrix.applyTransforms(
         transformIntent.transforms.map(fromScreen(shape.localTransformMatrix)),
         shape.localTransformMatrix
@@ -270,11 +270,11 @@ const applyLocalTransforms = (shapes, transformIntent) => {
 }
 
 const getUpstreamTransforms = (shapes, shape) => shape.parent
-  ? getUpstreamTransforms(shapes, shapes.find(s => s.key === shape.parent)).concat([shape.localTransformMatrix])
+  ? getUpstreamTransforms(shapes, shapes.find(s => s.id === shape.parent)).concat([shape.localTransformMatrix])
   : [shape.localTransformMatrix]
 
 const getUpstreams = (shapes, shape) => shape.parent
-  ? getUpstreams(shapes, shapes.find(s => s.key === shape.parent)).concat([shape])
+  ? getUpstreams(shapes, shapes.find(s => s.id === shape.parent)).concat([shape])
   : [shape]
 
 const shapeCascadeTransforms = shapes => shape => {
@@ -307,7 +307,7 @@ const alignmentGuides = (shapes, draggedShapes) => {
     if(d.type === 'annotation') continue
     for(let j = 0; j < shapes.length; j++) {
       const s = shapes[j]
-      if(d.key === s.key) continue
+      if(d.id === s.id) continue
       if(s.type === 'annotation') continue
       for(let k = 0; k < 2; k++) {
         for(let l = 0; l < 2; l++) {
@@ -316,7 +316,7 @@ const alignmentGuides = (shapes, draggedShapes) => {
             const ss = s.transformMatrix[dim + 12] + (l ? 1 : -1) * (dim ? s.b : s.a)
             if(Math.abs(dd - ss) < 1) {
               result.push({
-                key: counter++,
+                id: counter++,
                 transformMatrix: matrix.translate(dim ? 0 : ss, dim ? ss : 0, 0),
                 a: dim ? 2000 : 0.5,
                 b: dim ? 0.5 : 2000,
@@ -332,15 +332,15 @@ const alignmentGuides = (shapes, draggedShapes) => {
 
 // initial simplification
 const draggedShapes = select(
-  (shapes, selectedShapeKeys, mouseIsDown) => mouseIsDown ? shapes.filter(shape => selectedShapeKeys.indexOf(shape.key) !== -1) : []
-)(nextShapes, selectedShapeKeys, mouseIsDown)
+  (shapes, selectedShapeIds, mouseIsDown) => mouseIsDown ? shapes.filter(shape => selectedShapeIds.indexOf(shape.id) !== -1) : []
+)(nextShapes, selectedShapeIds, mouseIsDown)
 
 const annotatedShapes = select(
   (shapes, draggedShapes) => {
     const annotations = draggedShapes.length
       ? alignmentGuides(shapes, draggedShapes).map(shape => ({
         ...shape,
-        key: 'snapLine_' + shape.key,
+        id: 'snapLine_' + shape.id,
         type: 'annotation',
         localTransformMatrix: shape.transformMatrix,
         backgroundColor: 'magenta'
@@ -371,12 +371,12 @@ const nextScene = select(
       gestureEnd
     }
   }
-)(hoveredShape, selectedShapeKeys, reprojectedShapes, gestureEnd)
+)(hoveredShape, selectedShapeIds, reprojectedShapes, gestureEnd)
 
 module.exports = {
   cursorPosition, mouseIsDown, dragStartAt, dragVector,
   nextScene, focusedShape,
-  primaryUpdate, shapes, focusedShapes, selectedShapes: selectedShapeKeys
+  primaryUpdate, shapes, focusedShapes, selectedShapes: selectedShapeIds
 }
 
 /**

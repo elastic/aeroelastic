@@ -39,7 +39,7 @@ const rand128 = () => 128 + Math.floor(128 * Math.random())
 let count = 10
 if(0)
 window.setInterval(() => {
-  const newShape = {key: 'newRect_' + count,
+  const newShape = {id: 'newRect_' + count,
     type: 'rectangle', localTransformMatrix: matrix.multiply(
       matrix.translate(2 * rand128() - 256, 2 * rand128() - 256, 4 * rand128() - 768),
       matrix.rotateX(Math.random() * 2 * Math.PI),
