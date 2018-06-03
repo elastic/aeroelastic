@@ -326,11 +326,23 @@ const alignmentGuides = (shapes, draggedShapes) => {
             const distance = Math.abs(signedDistance)
             const currentClosest = result[key]
             if(Math.round(distance) <= guideDistance && (!currentClosest || currentClosest && distance < currentClosest.distance)) {
+              const perpendicularDim = 1 - dim
+              const anchor = perpendicularDim + 12
+              const perpendicularPoints = [
+                dTransformMatrix[anchor] - (perpendicularDim ? d.b : d.a),
+                dTransformMatrix[anchor] + (perpendicularDim ? d.b : d.a),
+                sTransformMatrix[anchor] - (perpendicularDim ? s.b : s.a),
+                sTransformMatrix[anchor] + (perpendicularDim ? s.b : s.a),
+              ]
+              const lowPoint = Math.min(...perpendicularPoints)
+              const highPoint = Math.max(...perpendicularPoints)
+              const midPoint = (lowPoint + highPoint) / 2
+              const radius  = midPoint - lowPoint
               result[key] = {
                 id: counter++,
-                transformMatrix: matrix.translate(dim ? 0 : ss, dim ? ss : 0, 0),
-                a: dim ? 2000 : 0.5,
-                b: dim ? 0.5 : 2000,
+                transformMatrix: matrix.translate(dim ? midPoint : ss, dim ? ss : midPoint, 100),
+                a: dim ? radius : 0.5,
+                b: dim ? 0.5 : radius,
                 distance,
                 signedDistance,
                 dimension: dim ? 'vertical' : 'horizontal',
