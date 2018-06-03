@@ -19,7 +19,12 @@ const { shapesAt } = require('./geometry')
 
 const matrix = require('./matrix')
 
-const { singleSelect, depthSelect } = require('./config')
+const {
+        guideDistance,
+        singleSelect,
+        depthSelect,
+        snapConstraint
+} = require('./config')
 
 const {identity} = require('./functional')
 
@@ -300,40 +305,54 @@ const nextShapes = select(
 )(shapes, enteringShapes, restateShapesEvent)
 
 const alignmentGuides = (shapes, draggedShapes) => {
-  const result = []
+  const result = {}
   let counter = 0
   for(let i = 0; i < draggedShapes.length; i++) {
     const d = draggedShapes[i]
     if(d.type === 'annotation') continue
+    const dTransformMatrix = d.transformMatrix
     for(let j = 0; j < shapes.length; j++) {
       const s = shapes[j]
       if(d.id === s.id) continue
       if(s.type === 'annotation') continue
+      const sTransformMatrix = s.transformMatrix
       for(let k = 0; k < 2; k++) {
         for(let l = 0; l < 2; l++) {
           for(let dim = 0; dim < 2; dim++) {
-            const dd = d.transformMatrix[dim + 12] + (k ? 1 : -1) * (dim ? d.b : d.a)
-            const ss = s.transformMatrix[dim + 12] + (l ? 1 : -1) * (dim ? s.b : s.a)
-            if(Math.abs(dd - ss) < 1) {
-              result.push({
+            const dd = dTransformMatrix[dim + 12] + (k ? 1 : -1) * (dim ? d.b : d.a)
+            const ss = sTransformMatrix[dim + 12] + (l ? 1 : -1) * (dim ? s.b : s.a)
+            const key = k + '|' + dim
+            const signedDistance = dd - ss
+            const distance = Math.abs(signedDistance)
+            const currentClosest = result[key]
+            if(Math.round(distance) <= guideDistance && (!currentClosest || currentClosest && distance < currentClosest.distance)) {
+              result[key] = {
                 id: counter++,
                 transformMatrix: matrix.translate(dim ? 0 : ss, dim ? ss : 0, 0),
                 a: dim ? 2000 : 0.5,
                 b: dim ? 0.5 : 2000,
-              })
+                distance,
+                signedDistance,
+                dimension: dim ? 'vertical' : 'horizontal',
+                anchor: k ? 'upper' : 'lower',
+                constrained: d.id,
+                constrainer: s.id
+              }
             }
           }
         }
       }
     }
   }
-  return result
+  return Object.values(result)
 }
 
 // initial simplification
 const draggedShapes = select(
   (shapes, selectedShapeIds, mouseIsDown) => mouseIsDown ? shapes.filter(shape => selectedShapeIds.indexOf(shape.id) !== -1) : []
 )(nextShapes, selectedShapeIds, mouseIsDown)
+
+const closestConstraint = (prev = {distance: Infinity}, next) => next.distance < prev.distance ? {constraint: next, distance: next.distance} : prev
 
 const annotatedShapes = select(
   (shapes, draggedShapes) => {
@@ -346,8 +365,36 @@ const annotatedShapes = select(
         backgroundColor: 'magenta'
       }))
       : []
-    return shapes
-      .filter(shape => shape.type !== 'annotation') // remove preexisting annotations
+    // remove preexisting annotations
+    const contentShapes = shapes.filter(shape => shape.type !== 'annotation')
+    const constraints = annotations // this will change as we add more annotation types
+    const horizontalConstraint = (
+      constraints
+        .filter(constraint => constraint.dimension === 'horizontal')
+        .reduce(closestConstraint, undefined)
+      || {constraint: null}
+    ).constraint
+    const verticalConstraint = (
+      constraints
+        .filter(constraint => constraint.dimension === 'vertical')
+        .reduce(closestConstraint, undefined)
+      || {constraint: null}
+    ).constraint
+    const snappedShapes = contentShapes.map(shape => {
+      const snapOffsetX = snapConstraint && horizontalConstraint && horizontalConstraint.constrained === shape.id
+        ? -horizontalConstraint.signedDistance
+        : 0
+      const snapOffsetY = snapConstraint && verticalConstraint && verticalConstraint.constrained === shape.id
+        ? -verticalConstraint.signedDistance
+        : 0
+      if(snapOffsetX || snapOffsetY) {
+        const snapOffset = matrix.translate(snapOffsetX, snapOffsetY, 0)
+        return {...shape, constrainedLocalTransformMatrix: matrix.multiply(shape.localTransformMatrix, snapOffset)}
+      } else {
+        return shape
+      }
+    })
+    return snappedShapes
       .concat(annotations) // add current annotations
   }
 )(nextShapes, draggedShapes)

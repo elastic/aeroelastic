@@ -238,6 +238,14 @@ const translateComponent = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p]) =>
 const compositeComponent = ([a, b, c, d, e, f, g, h, i, j, k, l,]) =>
   ([a, b, c, d, e, f, g, h, i, j, k, l, 0, 0, 0, 1])
 
+const add = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]) => (
+  [a + A, b + B, c + C, d + D, e + E, f + F, g + G, h + H, i + I, j + J, k + K, l + L, m + M, n + N, o + O, p + P]
+)
+
+const subtract = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]) => (
+  [a - A, b - B, c - C, d - D, e - E, f - F, g - G, h - H, i - I, j - J, k - K, l - L, m - M, n - N, o - O, p - P]
+)
+
 const reduceTransforms = transforms => transforms.length === 1 ? transforms[0] : transforms.slice(1).reduce(
   (prev, next) => multiply(prev, next),
   transforms[0]
@@ -252,5 +260,5 @@ const applyTransforms = (transforms, previousTransformMatrix) => transforms.redu
 module.exports = {
   ORIGIN, NULLVECTOR, NULLMATRIX, UNITMATRIX, transpose, translate, rotate, shear, rotateX, rotateY, rotateZ, scale,
   perspective, multiply, mvMultiply, invert, normalize, applyTransforms, reduceTransforms,
-  translateComponent, compositeComponent
+  translateComponent, compositeComponent, add, subtract
 }
