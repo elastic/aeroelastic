@@ -305,18 +305,27 @@ const nextShapes = select(
 )(shapes, enteringShapes, restateShapesEvent)
 
 // todo move to geometry.js
-const getExtremum = (dTransformMatrix, d, dim, k, l, mult1, mult2) => {
+const getExtremum = (transformMatrix, d, dim, k, l, mult1, mult2) => {
   const u = k * mult1 * (dim ? d.b : d.a)
   const v = l * mult2 * (dim ? d.a : d.b)
   const unitVector = dim ? [v, u, 0, 1] : [u, v, 0, 1]
-  const projection = matrix.normalize(matrix.mvMultiply(dTransformMatrix, unitVector))
+  const projection = matrix.normalize(matrix.mvMultiply(transformMatrix, unitVector))
   return [projection[dim ? 1 : 0], projection[dim ? 0 : 1]]
 }
+
+// todo move to geometry.js
+const getCorners = (transformMatrix, d, dim, k, l) => ([
+  getExtremum(transformMatrix, d, dim, k, l, 1, 1),
+  getExtremum(transformMatrix, d, dim, k, l, 1, -1),
+  getExtremum(transformMatrix, d, dim, k, l, -1, 1),
+  getExtremum(transformMatrix, d, dim, k, l, -1, -1)
+])
 
 const alignmentGuides = (shapes, draggedShapes) => {
   const result = {}
   let counter = 0
   // todo replace for loops with [].map calls; DRY it up, break out parts; several of which to move to geometry.js
+  // todo switch to informative variable names
   for(let i = 0; i < draggedShapes.length; i++) {
     const d = draggedShapes[i]
     if(d.type === 'annotation') continue
@@ -332,19 +341,11 @@ const alignmentGuides = (shapes, draggedShapes) => {
           for(let dim = 0; dim < 2; dim++) {
 
             // four corners of the dragged shape
-            const dd1 = getExtremum(dTransformMatrix, d, dim, k, l, 1, 1)
-            const dd2 = getExtremum(dTransformMatrix, d, dim, k, l, 1, -1)
-            const dd3 = getExtremum(dTransformMatrix, d, dim, k, l, -1, 1)
-            const dd4 = getExtremum(dTransformMatrix, d, dim, k, l, -1, -1)
+            const ddArray = getCorners(dTransformMatrix, d, dim, k, l)
 
             // four corners of the stationery shape
-            const ss1 = getExtremum(sTransformMatrix, s, dim, l, k, 1, 1)
-            const ss2 = getExtremum(sTransformMatrix, s, dim, l, k, 1, -1)
-            const ss3 = getExtremum(sTransformMatrix, s, dim, l, k, -1, 1)
-            const ss4 = getExtremum(sTransformMatrix, s, dim, l, k, -1, -1)
+            const ssArray = getCorners(sTransformMatrix, s, dim, l, k)
 
-            const ddArray = [dd1, dd2, dd3, dd4]
-            const ssArray = [ss1, ss2, ss3, ss4]
             const dd = (k || 1) * Math.max(...ddArray.map(v => (k || 1) * v[0]))
             const ss = (l || 1) * Math.max(...ssArray.map(v => (l || 1) * v[0]))
             const key = k + '|' + dim
@@ -383,7 +384,17 @@ const draggedShapes = select(
   (shapes, selectedShapeIds, mouseIsDown) => mouseIsDown ? shapes.filter(shape => selectedShapeIds.indexOf(shape.id) !== -1) : []
 )(nextShapes, selectedShapeIds, mouseIsDown)
 
-const closestConstraint = (prev = {distance: Infinity}, next) => next.distance < prev.distance ? {constraint: next, distance: next.distance} : prev
+const isHorizontal = constraint => constraint.dimension === 'horizontal'
+const isVertical = constraint => constraint.dimension === 'vertical'
+
+const closestConstraint = (prev = {distance: Infinity}, next) =>
+  next.distance < prev.distance ? {constraint: next, distance: next.distance} : prev
+
+const directionalConstraint = (constraints, filterFun) => {
+  const directionalConstraints = constraints.filter(filterFun)
+  const closest = directionalConstraints.reduce(closestConstraint, undefined)
+  return closest && closest.constraint
+}
 
 const annotatedShapes = select(
   (shapes, draggedShapes) => {
@@ -399,19 +410,9 @@ const annotatedShapes = select(
       : []
     // remove preexisting annotations
     const contentShapes = shapes.filter(shape => shape.type !== 'annotation')
-    const constraints = annotations // this will change as we add more annotation types
-    const horizontalConstraint = (
-      constraints
-        .filter(constraint => constraint.dimension === 'horizontal')
-        .reduce(closestConstraint, undefined)
-      || {constraint: null}
-    ).constraint
-    const verticalConstraint = (
-      constraints
-        .filter(constraint => constraint.dimension === 'vertical')
-        .reduce(closestConstraint, undefined)
-      || {constraint: null}
-    ).constraint
+    const constraints = annotations.filter(annotation => annotation.subtype === 'alignmentGuide')
+    const horizontalConstraint = directionalConstraint(constraints, isHorizontal)
+    const verticalConstraint = directionalConstraint(constraints, isVertical)
     const snappedShapes = contentShapes.map(shape => {
       const snapOffsetX = snapConstraint && horizontalConstraint && horizontalConstraint.constrained === shape.id
         ? -horizontalConstraint.signedDistance
@@ -429,7 +430,7 @@ const annotatedShapes = select(
     return snappedShapes
       .concat(annotations) // add current annotations
   }
-)(nextShapes, draggedShapes)
+)(nextShapes, hoveredShapes) // could be draggedShapes, if we desire alignment guidelines only then
 
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
