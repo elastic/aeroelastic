@@ -352,9 +352,7 @@ const alignmentGuides = (shapes, draggedShapes) => {
             const distance = Math.abs(signedDistance)
             const currentClosest = result[key]
             if(Math.round(distance) <= guideDistance && (!currentClosest || currentClosest && distance < currentClosest.distance)) {
-              const dAnchor = ddArray.find(v => v[0] === dd)
-              const sAnchor = ssArray.find(v => v[0] === ss)
-              const orthogonalValues = [dAnchor[1], sAnchor[1]]
+              const orthogonalValues = ddArray.concat(ssArray).map(v => v[1])
               const lowPoint = Math.min(...orthogonalValues)
               const highPoint = Math.max(...orthogonalValues)
               const midPoint = (lowPoint + highPoint) / 2
