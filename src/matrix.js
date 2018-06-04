@@ -181,7 +181,7 @@ const mvMultiply = ([a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p], [A, B, C, 
   d * A + h * B + l * C + p * D
 ])
 
-const normalize = ([A, B, C, D]) => ([A / D, B / D, C / D, 1])
+const normalize = ([A, B, C, D]) => D === 1 ? [A, B, C, D] : [A / D, B / D, C / D, 1]
 
 /**
  * invert

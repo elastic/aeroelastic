@@ -4,7 +4,7 @@
 
 const depthSelect = true
 const devColor = 'magenta'
-const guideDistance = 1
+const guideDistance = 3
 const singleSelect = true
 const snapConstraint = false
 

@@ -304,9 +304,19 @@ const nextShapes = select(
   }
 )(shapes, enteringShapes, restateShapesEvent)
 
+// todo move to geometry.js
+const getExtremum = (dTransformMatrix, d, dim, k, l, mult1, mult2) => {
+  const u = k * mult1 * (dim ? d.b : d.a)
+  const v = l * mult2 * (dim ? d.a : d.b)
+  const unitVector = dim ? [v, u, 0, 1] : [u, v, 0, 1]
+  const projection = matrix.normalize(matrix.mvMultiply(dTransformMatrix, unitVector))
+  return [projection[dim ? 1 : 0], projection[dim ? 0 : 1]]
+}
+
 const alignmentGuides = (shapes, draggedShapes) => {
   const result = {}
   let counter = 0
+  // todo replace for loops with [].map calls; DRY it up, break out parts; several of which to move to geometry.js
   for(let i = 0; i < draggedShapes.length; i++) {
     const d = draggedShapes[i]
     if(d.type === 'annotation') continue
@@ -318,24 +328,35 @@ const alignmentGuides = (shapes, draggedShapes) => {
       const sTransformMatrix = s.transformMatrix
       for(let k = -1; k < 2; k++) {
         for(let l = -1; l < 2; l++) {
+          if(k && !l || !k && l) continue // don't worry about midpoints of the edges, only the center
           for(let dim = 0; dim < 2; dim++) {
-            const dd = dTransformMatrix[dim + 12] + k * (dim ? d.b : d.a)
-            const ss = sTransformMatrix[dim + 12] + l * (dim ? s.b : s.a)
+
+            // four corners of the dragged shape
+            const dd1 = getExtremum(dTransformMatrix, d, dim, k, l, 1, 1)
+            const dd2 = getExtremum(dTransformMatrix, d, dim, k, l, 1, -1)
+            const dd3 = getExtremum(dTransformMatrix, d, dim, k, l, -1, 1)
+            const dd4 = getExtremum(dTransformMatrix, d, dim, k, l, -1, -1)
+
+            // four corners of the stationery shape
+            const ss1 = getExtremum(sTransformMatrix, s, dim, l, k, 1, 1)
+            const ss2 = getExtremum(sTransformMatrix, s, dim, l, k, 1, -1)
+            const ss3 = getExtremum(sTransformMatrix, s, dim, l, k, -1, 1)
+            const ss4 = getExtremum(sTransformMatrix, s, dim, l, k, -1, -1)
+
+            const ddArray = [dd1, dd2, dd3, dd4]
+            const ssArray = [ss1, ss2, ss3, ss4]
+            const dd = (k || 1) * Math.max(...ddArray.map(v => (k || 1) * v[0]))
+            const ss = (l || 1) * Math.max(...ssArray.map(v => (l || 1) * v[0]))
             const key = k + '|' + dim
             const signedDistance = dd - ss
             const distance = Math.abs(signedDistance)
             const currentClosest = result[key]
             if(Math.round(distance) <= guideDistance && (!currentClosest || currentClosest && distance < currentClosest.distance)) {
-              const perpendicularDim = 1 - dim
-              const anchor = perpendicularDim + 12
-              const perpendicularPoints = [
-                dTransformMatrix[anchor] + k * (perpendicularDim ? d.b : d.a),
-                dTransformMatrix[anchor] - k * (perpendicularDim ? d.b : d.a),
-                sTransformMatrix[anchor] + l * (perpendicularDim ? s.b : s.a),
-                sTransformMatrix[anchor] - l * (perpendicularDim ? s.b : s.a),
-              ]
-              const lowPoint = Math.min(...perpendicularPoints)
-              const highPoint = Math.max(...perpendicularPoints)
+              const dAnchor = ddArray.find(v => v[0] === dd)
+              const sAnchor = ssArray.find(v => v[0] === ss)
+              const orthogonalValues = [dAnchor[1], sAnchor[1]]
+              const lowPoint = Math.min(...orthogonalValues)
+              const highPoint = Math.max(...orthogonalValues)
               const midPoint = (lowPoint + highPoint) / 2
               const radius  = midPoint - lowPoint
               result[key] = {
@@ -373,6 +394,7 @@ const annotatedShapes = select(
         ...shape,
         id: 'snapLine_' + shape.id,
         type: 'annotation',
+        subtype: 'alignmentGuide',
         localTransformMatrix: shape.transformMatrix,
         backgroundColor: 'magenta'
       }))
