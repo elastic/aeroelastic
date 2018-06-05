@@ -19,12 +19,7 @@ const { shapesAt } = require('./geometry')
 
 const matrix = require('./matrix')
 
-const {
-        guideDistance,
-        singleSelect,
-        depthSelect,
-        snapConstraint
-} = require('./config')
+const config = require('./config')
 
 const {identity} = require('./functional')
 
@@ -214,9 +209,9 @@ const selectedShapes = selectReduce(
     if(uid === prev.uid || !down ) return prev
     const shapes = prev.shapes
     const found = hoveredShapes
-    if(singleSelect) {
+    if(config.singleSelect) {
       // cycle from top ie. from zero after the cursor position changed ie. !sameLocation
-      const depthIndex = depthSelect && metaHeld ? (prev.depthIndex + 1) % hoveredShapes.length : 0
+      const depthIndex = config.depthSelect && metaHeld ? (prev.depthIndex + 1) % hoveredShapes.length : 0
       return hoveredShapes.length
         ? {
           shapes: [hoveredShapes[depthIndex]],
@@ -353,7 +348,7 @@ const alignmentGuides = (shapes, draggedShapes) => {
             const signedDistance = dd - ss
             const distance = Math.abs(signedDistance)
             const currentClosest = result[key]
-            if(Math.round(distance) <= guideDistance && (!currentClosest || currentClosest && distance < currentClosest.distance)) {
+            if(Math.round(distance) <= config.guideDistance && (!currentClosest || currentClosest && distance < currentClosest.distance)) {
               const orthogonalValues = ddArray.concat(ssArray).map(v => v[1])
               const lowPoint = Math.min(...orthogonalValues)
               const highPoint = Math.max(...orthogonalValues)
@@ -412,19 +407,40 @@ const alignmentGuideAnnotations = select(
   }
 )(nextShapes, hoveredShapes)
 
+const rotationAnnotations = select(
+  (shapes, shapesToAnnotate) => shapesToAnnotate.map((shape, i) => {
+    const foundShape = shapes.find(s => shape.id === s.id)
+    if(!foundShape) return
+    const {id, b} = foundShape
+    const centerTop = matrix.translate(0, -b, 0)
+    const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, 0)
+    const transform = matrix.multiply(centerTop, pixelOffset)
+    return {
+      id: 'rotationHandle_' + i,
+      type: 'annotation',
+      subtype: 'rotationHandle',
+      parent: id,
+      localTransformMatrix: transform,
+      backgroundColor: 'rgb(0,0,255,0.3)',
+      a: 8,
+      b: 8
+    }
+  }).filter(d => !!d)
+)(nextShapes, selectedShapes)
+
 const annotatedShapes = select(
-  (shapes, alignmentGuideAnnotations) => {
-    const annotations = alignmentGuideAnnotations
+  (shapes, alignmentGuideAnnotations, rotationAnnotations) => {
+    const annotations = alignmentGuideAnnotations.concat(rotationAnnotations)
     // remove preexisting annotations
     const contentShapes = shapes.filter(shape => shape.type !== 'annotation')
     const constraints = annotations.filter(annotation => annotation.subtype === 'alignmentGuide')
     const horizontalConstraint = directionalConstraint(constraints, isHorizontal)
     const verticalConstraint = directionalConstraint(constraints, isVertical)
     const snappedShapes = contentShapes.map(shape => {
-      const snapOffsetX = snapConstraint && horizontalConstraint && horizontalConstraint.constrained === shape.id
+      const snapOffsetX = config.snapConstraint && horizontalConstraint && horizontalConstraint.constrained === shape.id
         ? -horizontalConstraint.signedDistance
         : 0
-      const snapOffsetY = snapConstraint && verticalConstraint && verticalConstraint.constrained === shape.id
+      const snapOffsetY = config.snapConstraint && verticalConstraint && verticalConstraint.constrained === shape.id
         ? -verticalConstraint.signedDistance
         : 0
       if(snapOffsetX || snapOffsetY) {
@@ -437,7 +453,7 @@ const annotatedShapes = select(
     return snappedShapes
       .concat(annotations) // add current annotations
   }
-)(nextShapes, alignmentGuideAnnotations)
+)(nextShapes, alignmentGuideAnnotations, rotationAnnotations)
 
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
