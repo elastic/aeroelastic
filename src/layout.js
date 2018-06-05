@@ -182,6 +182,7 @@ const restateShapesEvent = select(
   action => action && action.type === 'restateShapesEvent' ? action.payload : null,
 )(primaryUpdate)
 
+// todo remove this test function
 const enteringShapes = select(
   (source1, source2) => {
 
@@ -396,10 +397,10 @@ const directionalConstraint = (constraints, filterFun) => {
   return closest && closest.constraint
 }
 
-const annotatedShapes = select(
-  (shapes, draggedShapes) => {
-    const annotations = draggedShapes.length
-      ? alignmentGuides(shapes, draggedShapes).map(shape => ({
+const alignmentGuideAnnotations = select(
+  (shapes, guidedShapes) => {
+    return guidedShapes.length
+      ? alignmentGuides(shapes, guidedShapes).map(shape => ({
         ...shape,
         id: 'snapLine_' + shape.id,
         type: 'annotation',
@@ -408,6 +409,12 @@ const annotatedShapes = select(
         backgroundColor: 'magenta'
       }))
       : []
+  }
+)(nextShapes, hoveredShapes)
+
+const annotatedShapes = select(
+  (shapes, alignmentGuideAnnotations) => {
+    const annotations = alignmentGuideAnnotations
     // remove preexisting annotations
     const contentShapes = shapes.filter(shape => shape.type !== 'annotation')
     const constraints = annotations.filter(annotation => annotation.subtype === 'alignmentGuide')
@@ -430,7 +437,7 @@ const annotatedShapes = select(
     return snappedShapes
       .concat(annotations) // add current annotations
   }
-)(nextShapes, hoveredShapes) // could be draggedShapes, if we desire alignment guidelines only then
+)(nextShapes, alignmentGuideAnnotations)
 
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
