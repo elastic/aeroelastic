@@ -21,7 +21,7 @@ const matrix = require('./matrix')
 
 const config = require('./config')
 
-const {identity} = require('./functional')
+const {identity, log} = require('./functional')
 
 /**
  * Selectors directly from a state object
@@ -38,7 +38,8 @@ const scene = state => state.currentScene
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
   const dragInProgress = down && shapes.reduce((prev, next) => prev || draggedShape && next.id === draggedShape.id, false)
-  return dragInProgress && draggedShape  || down && mouseDowned && hoveredShape
+  //console.log({dragInProgress, draggedShape, down, mouseDowned, hoveredShape})
+  return (dragInProgress && draggedShape || down && mouseDowned && hoveredShape)
 }
 
 
@@ -126,7 +127,7 @@ const keyTransformGesture = select(
           case 'KeyH': return matrix.shear(0, -0.1)
         }
       })
-      .filter(d => d)
+      .filter(identity)
     return result
   }
 )(pressedKeys)
@@ -194,7 +195,7 @@ const enteringShapes = select(
         parent: 'rect1'
       }
       const fromSource2 = source2
-      return [fromSource1, fromSource2].filter(d => d)
+      return [fromSource1, fromSource2].filter(identity)
 
   })(shapeAddGesture, shapeAddEvent)
 
@@ -238,7 +239,9 @@ const selectedShapeIds = select(
 )(selectedShapes)
 
 const transformIntent = select(
-  (transforms, shapes) => {return {transforms, shapes}}
+  (transforms, shapes) => {
+    ///console.log('transformIntent', shapes.map(s=>s.id))
+    return {transforms, shapes}}
 )(transformGesture, selectedShapeIds)
 
 const fromScreen = currentTransform => transform => {
@@ -317,13 +320,14 @@ const getCorners = (transformMatrix, d, dim, k, l) => ([
   getExtremum(transformMatrix, d, dim, k, l, -1, -1)
 ])
 
-const alignmentGuides = (shapes, draggedShapes) => {
+const alignmentGuides = (shapes, guidedShapes) => {
+  ///console.log('guidedShapes:', guidedShapes.map(s => s.id))
   const result = {}
   let counter = 0
   // todo replace for loops with [].map calls; DRY it up, break out parts; several of which to move to geometry.js
   // todo switch to informative variable names
-  for(let i = 0; i < draggedShapes.length; i++) {
-    const d = draggedShapes[i]
+  for(let i = 0; i < guidedShapes.length; i++) {
+    const d = guidedShapes[i]
     if(d.type === 'annotation') continue
     const dTransformMatrix = d.transformMatrix
     for(let j = 0; j < shapes.length; j++) {
@@ -400,6 +404,7 @@ const alignmentGuideAnnotations = select(
         id: 'snapLine_' + shape.id,
         type: 'annotation',
         subtype: 'alignmentGuide',
+        interactive: false,
         localTransformMatrix: shape.transformMatrix,
         backgroundColor: 'magenta'
       }))
@@ -408,28 +413,50 @@ const alignmentGuideAnnotations = select(
 )(nextShapes, hoveredShapes)
 
 const rotationAnnotations = select(
-  (shapes, shapesToAnnotate) => shapesToAnnotate.map((shape, i) => {
-    const foundShape = shapes.find(s => shape.id === s.id)
-    if(!foundShape) return
-    const {id, b} = foundShape
-    const centerTop = matrix.translate(0, -b, 0)
-    const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, 0)
-    const transform = matrix.multiply(centerTop, pixelOffset)
-    return {
-      id: 'rotationHandle_' + i,
-      type: 'annotation',
-      subtype: 'rotationHandle',
-      parent: id,
-      localTransformMatrix: transform,
-      backgroundColor: 'rgb(0,0,255,0.3)',
-      a: 8,
-      b: 8
-    }
-  }).filter(d => !!d)
+  (shapes, selectedShapes) => {
+    const shapesToAnnotate = selectedShapes
+    ///console.log('shapesToAnnotate =',shapesToAnnotate.map(s => s.id))
+    //if(shapesToAnnotate.length && shapesToAnnotate[0].id === 'rotationHandle_0') debugger
+    return shapesToAnnotate.map((shape, i) => {
+      const foundShape = shapes.find(s => shape.id === s.id)
+      if(!foundShape || foundShape.type === 'annotation') {
+        // preserve any interactive annotation when handling
+        return foundShape.interactive && selectedShapes.find(shape => shape.id === foundShape.id)
+      }
+      const {id, b} = foundShape
+      const centerTop = matrix.translate(0, -b, 0)
+      const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, 0)
+      const transform = matrix.multiply(centerTop, pixelOffset)
+      return {
+        id: 'rotationHandle_' + i,
+        type: 'annotation',
+        subtype: 'rotationHandle',
+        interactive: true,
+        parent: id,
+        localTransformMatrix: transform,
+        backgroundColor: 'rgb(0,0,255,0.3)',
+        a: 8,
+        b: 8
+      }
+    }).filter(identity)}
 )(nextShapes, selectedShapes)
 
+// not all annotations can interact
+const interactiveAnnotations = rotationAnnotations // there will be more!
+
+const interactedAnnotations = select(
+  (interactiveAnnotations, draggedShape) => {
+    if(draggedShape) {
+      //debugger
+      ///console.log('interactedAnnotations> dragging:', draggedShape.id, 'interactiveAnnotations:', interactiveAnnotations.map(s=>s.id))
+      }
+
+    draggedShape && interactiveAnnotations.filter(shape => shape.id === draggedShape.id)}
+)(interactiveAnnotations, draggedShape)
+
 const annotatedShapes = select(
-  (shapes, alignmentGuideAnnotations, rotationAnnotations) => {
+  (shapes, interactedAnnotations, alignmentGuideAnnotations, rotationAnnotations) => {
+    ///console.log('interactedAnnotations:', interactedAnnotations)
     const annotations = alignmentGuideAnnotations.concat(rotationAnnotations)
     // remove preexisting annotations
     const contentShapes = shapes.filter(shape => shape.type !== 'annotation')
@@ -453,7 +480,7 @@ const annotatedShapes = select(
     return snappedShapes
       .concat(annotations) // add current annotations
   }
-)(nextShapes, alignmentGuideAnnotations, rotationAnnotations)
+)(nextShapes, interactedAnnotations, alignmentGuideAnnotations, rotationAnnotations)
 
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
@@ -527,4 +554,47 @@ module.exports = {
  * higher levels, eg. click (gesture) over an icon (focus) puts us in a new mode, which then alters what specific gestures,
  * modes and foci are possible; it can be an arbitrary graph. Let's try to characterize this graph...
  *
+ */
+
+/**
+ * Selections
+ *
+ * On first sight, selection is simple. The user clicks on an Element, and thus the Element becomes selected; any previous
+ * selection is cleared. If the user clicks anywhere else on the Canvas, the selection goes away.
+ *
+ * There are however wrinkles so large, they dwarf the original shape of the cloth:
+ *
+ * 1. Selecting occluded items
+ *   a. by sequentially meta+clicking at a location
+ *   b. via some other means, eg. some modal or non-modal popup box listing the elements underneath one another
+ * 2. Selecting multiple items
+ *   a. by option-clicking
+ *   b. by rectangle selection or lasso selection, with requirement for point / line / area / volume touching an element
+ *   c. by rectangle selection or lasso selection, with requirement for point / line / area / volume fully including an element
+ *   d. select all elements of a group
+ * 3. How to combine occluded item selection with multiple item selection?
+ *   a. separate the notion of vertical cycling and selection (naive, otoh known by user, implementations conflate them)
+ *   b. resort to the dialog or form selection (multiple ticks)
+ *   c. volume aware selection
+ * 4. Group related select
+ *   a. select a group by its leaf node and drag the whole group with it
+ *   b. select an element of a group and only move that (within the group)
+ *   c. hierarchy aware select: eg. select all leaf nodes of a group at any level
+ * 5. Composite selections (generalization of selecting multiple items)
+ *   a. additive selections: eg. multiple rectangular brushes
+ *   b. subtractive selection: eg. selecting all but a few elements of a group
+ * 6. Annotation selection. Modeling controls eg. resize and rotate hotspots as annotations is useful because the
+ *    display and interaction often goes hand in hand. In other words, a passive legend is but a special case of
+ *    an active affordance: it just isn't interactive (noop). Also, annotations are useful to model as shapes
+ *    because:
+ *      a. they're part of the scenegraph
+ *      b. hierarchical relations can be exploited, eg. a leaf shape or a group may have annotation that's locally
+ *         positionable (eg. resize or rotate hotspots)
+ *      c. the transform/projection math, and often, other facilities (eg. drag) can be shared (DRY)
+ *    The complications are:
+ *      a. clicking on and dragging a rotate handle shouldn't do the full selection, ie. it shouldn't get
+ *         a 'selected' border, and the rotate handle shouldn't get a rotate handle of its own, recursively :-)
+ *      b. clicking on a rotation handle, which is outside the element, should preserve the selected state of
+ *         the element
+ *      c. tbc
  */

@@ -28,8 +28,20 @@ const identity = d => d
  */
 const map = fun => array => array.map(value => fun(value))
 
+/**
+ *
+ * @param d
+ * @param printerFun
+ * @returns d
+ */
+const log = (d, printerFun = identity) => {
+  console.log(printerFun(d))
+  return d
+}
+
 module.exports = {
   flatten,
   identity,
+  log,
   map
 }
