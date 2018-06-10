@@ -100,7 +100,18 @@ const mouseIsDown = selectReduce(
   false
 )(mouseButtonEvent)
 
-const gestureEnd = select((keyUp, mouseIsDown) => keyUp && !mouseIsDown)(keyUp, mouseIsDown)
+const gestureEnd = selectReduce(
+  (prev, keyUp, mouseIsDown) => {
+    const inAction = !keyUp || mouseIsDown
+    const ended = !inAction && prev.inAction
+    return {ended, inAction}
+  },
+  {
+    ended: false,
+    inAction: false
+  },
+  d => d.ended
+)(keyUp, mouseIsDown)
 
 /**
  * mouseButtonStateTransitions
