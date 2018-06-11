@@ -38,8 +38,9 @@ const scene = state => state.currentScene
 // returns the currently dragged shape, or a falsey value otherwise
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
   const dragInProgress = down && shapes.reduce((prev, next) => prev || draggedShape && next.id === draggedShape.id, false)
-  //console.log({dragInProgress, draggedShape, down, mouseDowned, hoveredShape})
-  return (dragInProgress && draggedShape || down && mouseDowned && hoveredShape)
+  const result = dragInProgress && draggedShape || down && mouseDowned && hoveredShape
+  //console.log(result)
+  return result
 }
 
 
@@ -92,6 +93,7 @@ const dragStartAt = selectReduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
     if(down) {
       const newDragStart = mouseDowned && !previous.down
+      console.log(newDragStart ? focusedShape : previous.dragStartShape)
       return newDragStart
         ? {down, x: x1, y: y1, dragStartShape: focusedShape}
         : previous
@@ -202,30 +204,40 @@ const enteringShapes = select(
 const initialSelectedShapeState = {
   shapes: [],
   uid: null,
-  depthIndex: 0
+  depthIndex: 0,
+  down: false,
+  metaHeld: false,
+  metaChanged: false
 }
 
 const selectedShapes = selectReduce(
   (prev, hoveredShapes, {down, uid}, metaHeld) => {
-    if(uid === prev.uid || !down ) return prev
+    if(uid === prev.uid) return prev
     const shapes = prev.shapes
-    const found = hoveredShapes
     if(config.singleSelect) {
       // cycle from top ie. from zero after the cursor position changed ie. !sameLocation
-      const depthIndex = config.depthSelect && metaHeld ? (prev.depthIndex + 1) % hoveredShapes.length : 0
-      return hoveredShapes.length
-        ? {
-          shapes: [hoveredShapes[depthIndex]],
-          uid,
-          depthIndex
-        }
-        : initialSelectedShapeState
+      const metaChanged = metaHeld !== prev.metaHeld
+      const depthIndex = config.depthSelect && !metaChanged && metaHeld ? (prev.depthIndex + (down && !prev.down ? 1 : 0)) % hoveredShapes.length : 0
+      return down
+        ? (hoveredShapes.length
+            ? {
+              shapes: [hoveredShapes[depthIndex]],
+              uid,
+              depthIndex,
+              down,
+              metaHeld,
+              metaChanged: depthIndex === prev.depthIndex ? metaChanged : false
+            }
+            : {...initialSelectedShapeState, uid, down, metaHeld, metaChanged}
+        )
+        : {...prev, down, uid, metaHeld, metaChanged}
     }
     else {
+      if(!down) return {...prev, uid}
       return {
-        shapes: found
-          ? shapes.filter(s => s.id !== hoveredShapes.id) // remove from selection
-          : shapes.concat(hoveredShapes ? [hoveredShapes] : []), // add to selection
+        shapes: hoveredShapes.length
+          ? shapes.filter(shape => !hoveredShapes.find(s => s.id === shape.id)).concat(hoveredShapes.filter(shape => !shapes.find(s => s.id === shape.id))) // xor relation - todo: abstract out
+          : [],
         uid
       }
     }
@@ -240,7 +252,7 @@ const selectedShapeIds = select(
 
 const transformIntent = select(
   (transforms, shapes) => {
-    ///console.log('transformIntent', shapes.map(s=>s.id))
+    //console.log('transformIntent', shapes)
     return {transforms, shapes}}
 )(transformGesture, selectedShapeIds)
 
@@ -504,7 +516,7 @@ const nextScene = select(
 )(hoveredShape, selectedShapeIds, reprojectedShapes, gestureEnd)
 
 module.exports = {
-  cursorPosition, mouseIsDown, dragStartAt, dragVector,
+  cursorPosition, mouseIsDown, /*dragStartAt, */dragVector,
   nextScene, focusedShape,
   primaryUpdate, shapes, focusedShapes, selectedShapes: selectedShapeIds
 }

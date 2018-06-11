@@ -45,20 +45,19 @@ const makeSubstrateFrag = commit => {
   return shapeFrags => {
     return h('div', {
         id: 'root',
-        id: 'root',
         tabindex: '0', // needed for the div to register keyboard events
         onmousemove: event => commit('cursorPosition', {x: event.clientX, y: event.clientY, uid: makeUid()}),
         onmouseup: event => commit('mouseEvent', {event: 'mouseUp', x: event.clientX, y: event.clientY, uid: makeUid()}),
         onmousedown: event => commit('mouseEvent', {event: 'mouseDown', x: event.clientX, y: event.clientY, uid: makeUid()}),
         onkeydown: ({code}) => {
-          window.clearInterval(timer)
-          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1], uid: makeUid()})}, 1000 / 60 * 2)
+          //window.clearInterval(timer)
+          //timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1], uid: makeUid()})}, 1000 / 60 * 2)
           if(downQueue[downQueue.length - 1] !== code) downQueue.push(code)
           return commit('keyboardEvent', {event: 'keyDown', code, uid: makeUid()})
         },
         onkeyup: ({code}) => {
-          window.clearInterval(timer)
-          timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1], uid: makeUid()})}, 1000 / 60 * 2)
+          //window.clearInterval(timer)
+          //timer = window.setInterval(() => {commit('keyboardEvent', {event: 'keyDown', code: downQueue[downQueue.length - 1], uid: makeUid()})}, 1000 / 60 * 2)
           downQueue.splice(downQueue.indexOf(code), 1)
           return commit('keyboardEvent', {event: 'keyUp', code, uid: makeUid()})
         },
