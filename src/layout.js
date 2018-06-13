@@ -254,19 +254,38 @@ const selectedShapeIds = select(
   shapes => shapes.map(shape => shape.id)
 )(selectedShapes)
 
+const rotationManipulation = ({transform, shape, directShape}) => {
+  if(!shape ||!directShape) return {transforms: [], shapes: []}
+  const oldLoc = directShape.transformMatrix
+  const newLoc = matrix.multiply(oldLoc, transform)
+  const center = shape.transformMatrix
+  console.log('center', center[12], center[13], 'oldLoc', oldLoc[12], oldLoc[13], 'newLoc', newLoc[12], newLoc[13])
+  const oldLAngle = Math.atan2(center[13] - oldLoc[13], center[12] - oldLoc[12])
+  const newLAngle = Math.atan2(center[13] - newLoc[13], center[12] - newLoc[12])
+  const angle = newLAngle - oldLAngle
+  const result = matrix.rotateZ(-angle)
+  //console.log(shape.id, directShape.id)
+  return {transforms: [result], shapes: [shape.id]}
+}
+
 const directShapeManipulation = (transforms, directShapes) => {
   const shapes = directShapes.map(shape => shape.type !== 'annotation' && shape.id).filter(identity)
-  return {transforms, shapes}}
+  return {transforms, shapes}
+}
 
-const annotationManipulation = (transforms, directShapes) => {
-  const shapes = directShapes.map(shape => shape.type === 'annotation' && shape.parent).filter(identity)
-  return {transforms, shapes}}
+const annotationManipulation = (directTransforms, directShapes, allShapes) => {
+  const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === 'rotationHandle' && shape.parent)
+  const shapes = shapeIds.map(id => id && allShapes.find(shape => shape.id === id))
+  const tuples = unnest(shapes.map((shape, i) => directTransforms.map(transform => ({transform, shape, directShape: directShapes[i]}))))
+  return tuples.map(rotationManipulation)
+}
 
 const transformIntents = select(
-  (transforms, directShapes) => ([
+  (transforms, directShapes, shapes) => ([
     directShapeManipulation(transforms, directShapes),
-    annotationManipulation(transforms, directShapes)
-  ]))(transformGesture, selectedShapes)
+    ...annotationManipulation(transforms, directShapes, shapes)
+  ])
+)(transformGesture, selectedShapes, shapes)
 
 const fromScreen = currentTransform => transform => {
   const isTranslate = transform[12] !== 0 || transform[13] !== 0
@@ -274,7 +293,6 @@ const fromScreen = currentTransform => transform => {
     const composite = matrix.compositeComponent(currentTransform)
     const inverse = matrix.invert(composite)
     const result = matrix.translateComponent(matrix.multiply(inverse, transform))
-    if(Number.isNaN(result[12])) debugger
     return result
   } else {
     return transform
@@ -284,12 +302,10 @@ const fromScreen = currentTransform => transform => {
 const shapeApplyLocalTransforms = transformIntents => shape => {
   const nestedMappedIntents = transformIntents.map(transformIntent => transformIntent.transforms.length && transformIntent.shapes.find(id => id === shape.id) && transformIntent.transforms.map(fromScreen(shape.localTransformMatrix))).filter(identity)
   const mappedIntents = unnest(nestedMappedIntents)
-  //if(transformIntents.length && transformIntents[0].shapes.length && shape.id === transformIntents[0].shapes[0] && transformIntents[0].transforms.length) debugger
   const localTransformMatrix = mappedIntents.length && matrix.applyTransforms(
     mappedIntents,
     shape.localTransformMatrix
   )
-  if(Number.isNaN(localTransformMatrix[12])) debugger
   const result = {
     // update the preexisting shape:
     ...shape,
@@ -298,7 +314,6 @@ const shapeApplyLocalTransforms = transformIntents => shape => {
       localTransformMatrix
     }
   }
-  if(Number.isNaN(result.localTransformMatrix[12])) debugger
   return result
 }
 
@@ -479,17 +494,11 @@ const interactiveAnnotations = rotationAnnotations // there will be more!
 
 const interactedAnnotations = select(
   (interactiveAnnotations, draggedShape) => {
-    if(draggedShape) {
-      //debugger
-      ///console.log('interactedAnnotations> dragging:', draggedShape.id, 'interactiveAnnotations:', interactiveAnnotations.map(s=>s.id))
-      }
-
-    draggedShape && interactiveAnnotations.filter(shape => shape.id === draggedShape.id)}
+    return draggedShape && interactiveAnnotations.filter(shape => shape.id === draggedShape.id)}
 )(interactiveAnnotations, draggedShape)
 
 const annotatedShapes = select(
-  (shapes, interactedAnnotations, alignmentGuideAnnotations, rotationAnnotations) => {
-    ///console.log('interactedAnnotations:', interactedAnnotations)
+  (shapes, alignmentGuideAnnotations, rotationAnnotations) => {
     const annotations = alignmentGuideAnnotations.concat(rotationAnnotations)
     // remove preexisting annotations
     const contentShapes = shapes.filter(shape => shape.type !== 'annotation')
@@ -513,7 +522,7 @@ const annotatedShapes = select(
     return snappedShapes
       .concat(annotations) // add current annotations
   }
-)(nextShapes, interactedAnnotations, alignmentGuideAnnotations, rotationAnnotations)
+)(nextShapes, alignmentGuideAnnotations, rotationAnnotations)
 
 const reprojectedShapes = select(
   (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntents) => {
