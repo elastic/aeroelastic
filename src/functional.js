@@ -29,9 +29,10 @@ const identity = d => d
 const map = fun => array => array.map(value => fun(value))
 
 /**
+ * log
  *
  * @param d
- * @param printerFun
+ * @param {Function} printerFun
  * @returns d
  */
 const log = (d, printerFun = identity) => {
@@ -39,9 +40,32 @@ const log = (d, printerFun = identity) => {
   return d
 }
 
+/**
+ * disjunctiveUnion
+ *
+ * @param {Function} keyFun
+ * @param {*[]} set1
+ * @param {*[]} set2
+ * @returns *[]
+ */
+const disjunctiveUnion = (keyFun, set1, set2) =>
+  set1
+    .filter(s1 => !set2.find(s2 => keyFun(s2) === keyFun(s1)))
+    .concat(set2.filter(s2 => !set1.find(s1 => keyFun(s1) === keyFun(s2))))
+
+/**
+ * unnest
+ *
+ * @param {*[][]} vectorOfVectors
+ * @returns {*[]}
+ */
+const unnest = vectorOfVectors => [].concat.apply([], vectorOfVectors)
+
 module.exports = {
+  disjunctiveUnion,
   flatten,
   identity,
   log,
-  map
+  map,
+  unnest
 }

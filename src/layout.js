@@ -21,7 +21,7 @@ const matrix = require('./matrix')
 
 const config = require('./config')
 
-const {identity, log} = require('./functional')
+const {identity, disjunctiveUnion, unnest} = require('./functional')
 
 /**
  * Selectors directly from a state object
@@ -210,37 +210,41 @@ const initialSelectedShapeState = {
   metaChanged: false
 }
 
+const singleSelect = (prev, hoveredShapes, metaHeld, down, uid) => {
+  // cycle from top ie. from zero after the cursor position changed ie. !sameLocation
+  const metaChanged = metaHeld !== prev.metaHeld
+  const depthIndex = config.depthSelect && !metaChanged && metaHeld ? (prev.depthIndex + (down && !prev.down ? 1 : 0)) % hoveredShapes.length : 0
+  if(!down) {
+    // take action on mouse down only
+    return {...prev, down, uid, metaHeld, metaChanged}
+  }
+  return hoveredShapes.length
+    ? {
+      shapes: [hoveredShapes[depthIndex]],
+      uid,
+      depthIndex,
+      down,
+      metaHeld,
+      metaChanged: depthIndex === prev.depthIndex ? metaChanged : false
+    }
+    : {...initialSelectedShapeState, uid, down, metaHeld, metaChanged}
+}
+
+const multiSelect = (prev, hoveredShapes, metaHeld, down, uid) => {
+  if(!down) return {...prev, uid}
+  return {
+    shapes: hoveredShapes.length
+      ?  disjunctiveUnion(shape => shape.id, prev.shapes, hoveredShapes)
+      : [],
+    uid
+  }
+}
+
 const selectedShapes = selectReduce(
   (prev, hoveredShapes, {down, uid}, metaHeld) => {
     if(uid === prev.uid) return prev
-    const shapes = prev.shapes
-    if(config.singleSelect) {
-      // cycle from top ie. from zero after the cursor position changed ie. !sameLocation
-      const metaChanged = metaHeld !== prev.metaHeld
-      const depthIndex = config.depthSelect && !metaChanged && metaHeld ? (prev.depthIndex + (down && !prev.down ? 1 : 0)) % hoveredShapes.length : 0
-      return down
-        ? (hoveredShapes.length
-            ? {
-              shapes: [hoveredShapes[depthIndex]],
-              uid,
-              depthIndex,
-              down,
-              metaHeld,
-              metaChanged: depthIndex === prev.depthIndex ? metaChanged : false
-            }
-            : {...initialSelectedShapeState, uid, down, metaHeld, metaChanged}
-        )
-        : {...prev, down, uid, metaHeld, metaChanged}
-    }
-    else {
-      if(!down) return {...prev, uid}
-      return {
-        shapes: hoveredShapes.length
-          ? shapes.filter(shape => !hoveredShapes.find(s => s.id === shape.id)).concat(hoveredShapes.filter(shape => !shapes.find(s => s.id === shape.id))) // xor relation - todo: abstract out
-          : [],
-        uid
-      }
-    }
+    const selectFunction = config.singleSelect ? singleSelect : multiSelect
+    return selectFunction(prev, hoveredShapes, metaHeld, down, uid)
   },
   initialSelectedShapeState,
   d => d.shapes
@@ -250,39 +254,56 @@ const selectedShapeIds = select(
   shapes => shapes.map(shape => shape.id)
 )(selectedShapes)
 
-const transformIntent = select(
-  (transforms, shapes) => {
-    //console.log('transformIntent', shapes)
-    return {transforms, shapes}}
-)(transformGesture, selectedShapeIds)
+const directShapeManipulation = (transforms, directShapes) => {
+  const shapes = directShapes.map(shape => shape.type !== 'annotation' && shape.id).filter(identity)
+  return {transforms, shapes}}
+
+const annotationManipulation = (transforms, directShapes) => {
+  const shapes = directShapes.map(shape => shape.type === 'annotation' && shape.parent).filter(identity)
+  return {transforms, shapes}}
+
+const transformIntents = select(
+  (transforms, directShapes) => ([
+    directShapeManipulation(transforms, directShapes),
+    annotationManipulation(transforms, directShapes)
+  ]))(transformGesture, selectedShapes)
 
 const fromScreen = currentTransform => transform => {
   const isTranslate = transform[12] !== 0 || transform[13] !== 0
   if(isTranslate) {
     const composite = matrix.compositeComponent(currentTransform)
     const inverse = matrix.invert(composite)
-    return matrix.translateComponent(matrix.multiply(inverse, transform))
+    const result = matrix.translateComponent(matrix.multiply(inverse, transform))
+    if(Number.isNaN(result[12])) debugger
+    return result
   } else {
     return transform
   }
 }
 
-const shapeApplyLocalTransforms = transformIntent => shape => {
-  return {
+const shapeApplyLocalTransforms = transformIntents => shape => {
+  const nestedMappedIntents = transformIntents.map(transformIntent => transformIntent.transforms.length && transformIntent.shapes.find(id => id === shape.id) && transformIntent.transforms.map(fromScreen(shape.localTransformMatrix))).filter(identity)
+  const mappedIntents = unnest(nestedMappedIntents)
+  //if(transformIntents.length && transformIntents[0].shapes.length && shape.id === transformIntents[0].shapes[0] && transformIntents[0].transforms.length) debugger
+  const localTransformMatrix = mappedIntents.length && matrix.applyTransforms(
+    mappedIntents,
+    shape.localTransformMatrix
+  )
+  if(Number.isNaN(localTransformMatrix[12])) debugger
+  const result = {
     // update the preexisting shape:
     ...shape,
     // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
-    ...transformIntent.shapes.find(id => id === shape.id) && {
-      localTransformMatrix: matrix.applyTransforms(
-        transformIntent.transforms.map(fromScreen(shape.localTransformMatrix)),
-        shape.localTransformMatrix
-      )
+    ...mappedIntents.length && {
+      localTransformMatrix
     }
   }
+  if(Number.isNaN(result.localTransformMatrix[12])) debugger
+  return result
 }
 
-const applyLocalTransforms = (shapes, transformIntent) => {
-  return shapes.map(shapeApplyLocalTransforms(transformIntent))
+const applyLocalTransforms = (shapes, transformIntents) => {
+  return shapes.map(shapeApplyLocalTransforms(transformIntents))
 }
 
 const getUpstreamTransforms = (shapes, shape) => shape.parent
@@ -495,11 +516,11 @@ const annotatedShapes = select(
 )(nextShapes, interactedAnnotations, alignmentGuideAnnotations, rotationAnnotations)
 
 const reprojectedShapes = select(
-  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntent) => {
+  (shapes, draggedShape, {x0, y0, x1, y1}, mouseDowned, transformIntents) => {
     // per-shape model update of projections
-    return cascadeTransforms(applyLocalTransforms(shapes, transformIntent))
+    return cascadeTransforms(applyLocalTransforms(shapes, transformIntents))
   }
-)(annotatedShapes, draggedShape, dragVector, mouseDowned, transformIntent)
+)(annotatedShapes, draggedShape, dragVector, mouseDowned, transformIntents)
 
 // this is the core scenegraph update invocation: upon new cursor position etc. emit the new scenegraph
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
