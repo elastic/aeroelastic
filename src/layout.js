@@ -254,17 +254,14 @@ const selectedShapeIds = select(
   shapes => shapes.map(shape => shape.id)
 )(selectedShapes)
 
-const rotationManipulation = ({transform, shape, directShape}) => {
+const rotationManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
   if(!shape ||!directShape) return {transforms: [], shapes: []}
-  const oldLoc = directShape.transformMatrix
-  const newLoc = matrix.multiply(oldLoc, transform)
   const center = shape.transformMatrix
-  console.log('center', center[12], center[13], 'oldLoc', oldLoc[12], oldLoc[13], 'newLoc', newLoc[12], newLoc[13])
-  const oldLAngle = Math.atan2(center[13] - oldLoc[13], center[12] - oldLoc[12])
-  const newLAngle = Math.atan2(center[13] - newLoc[13], center[12] - newLoc[12])
-  const angle = newLAngle - oldLAngle
-  const result = matrix.rotateZ(-angle)
-  //console.log(shape.id, directShape.id)
+  const centerPosition = matrix.mvMultiply(center, matrix.ORIGIN)
+  const vector = matrix.mvMultiply(matrix.multiply(center, directShape.localTransformMatrix), matrix.ORIGIN)
+  const oldAngle = Math.atan2(centerPosition[1] - vector[1], centerPosition[0] - vector[0])
+  const newAngle = Math.atan2(centerPosition[1] - y, centerPosition[0] - x)
+  const result = matrix.rotateZ(oldAngle - newAngle)
   return {transforms: [result], shapes: [shape.id]}
 }
 
@@ -273,19 +270,19 @@ const directShapeManipulation = (transforms, directShapes) => {
   return {transforms, shapes}
 }
 
-const annotationManipulation = (directTransforms, directShapes, allShapes) => {
+const annotationManipulation = (directTransforms, directShapes, allShapes, cursorPosition) => {
   const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === 'rotationHandle' && shape.parent)
   const shapes = shapeIds.map(id => id && allShapes.find(shape => shape.id === id))
-  const tuples = unnest(shapes.map((shape, i) => directTransforms.map(transform => ({transform, shape, directShape: directShapes[i]}))))
+  const tuples = unnest(shapes.map((shape, i) => directTransforms.map(transform => ({transform, shape, directShape: directShapes[i], cursorPosition}))))
   return tuples.map(rotationManipulation)
 }
 
 const transformIntents = select(
-  (transforms, directShapes, shapes) => ([
+  (transforms, directShapes, shapes, cursorPosition) => ([
     directShapeManipulation(transforms, directShapes),
-    ...annotationManipulation(transforms, directShapes, shapes)
+    ...annotationManipulation(transforms, directShapes, shapes, cursorPosition)
   ])
-)(transformGesture, selectedShapes, shapes)
+)(transformGesture, selectedShapes, shapes, cursorPosition)
 
 const fromScreen = currentTransform => transform => {
   const isTranslate = transform[12] !== 0 || transform[13] !== 0
@@ -306,6 +303,7 @@ const shapeApplyLocalTransforms = transformIntents => shape => {
     mappedIntents,
     shape.localTransformMatrix
   )
+  //if(mappedIntents.length && shape.id === 'rect3') console.log('in shapeApplyLocalTransforms:', localTransformMatrix)
   const result = {
     // update the preexisting shape:
     ...shape,
@@ -426,6 +424,7 @@ const alignmentGuides = (shapes, guidedShapes) => {
   }
   return Object.values(result)
 }
+
 
 // initial simplification
 const draggedShapes = select(
