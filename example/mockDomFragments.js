@@ -28,7 +28,7 @@ const makeShapeFrags = (shapes, hoveredShape, selectedShapes) => shapes.map(shap
       marginTop: dom.px(-shape.b),
       background: shape.backgroundImage,
       backgroundColor: shape.backgroundColor,
-      outline: shape.type === 'annotation' ? 'none' : (dragged ? `1px solid ${devColor}` : null),
+      outline: shape.type === 'annotation' ? 'none' : (false && dragged ? `1px solid ${devColor}` : null),
       opacity: dragged || (shape.id === hoveredShape && hoveredShape.id) ? 0.95 : 0.95
     }
   })

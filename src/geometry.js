@@ -74,6 +74,22 @@ const shapesAt = (shapes, {x, y}) => shapesAtPoint(shapes, x, y)
   .sort((shape1, shape2) => shape2.z - shape1.z)
   .map(shape => shape.shape) // decreasing order, ie. from front (closest to viewer) to back
 
+const getExtremum = (transformMatrix, d, dim, k, l, mult1, mult2) => {
+  const u = k * mult1 * (dim ? d.b : d.a)
+  const v = l * mult2 * (dim ? d.a : d.b)
+  const unitVector = dim ? [v, u, 0, 1] : [u, v, 0, 1]
+  const projection = matrix.normalize(matrix.mvMultiply(transformMatrix, unitVector))
+  return [projection[dim ? 1 : 0], projection[dim ? 0 : 1]]
+}
+
+const getCorners = (transformMatrix, d, dim, k, l) => ([
+  getExtremum(transformMatrix, d, dim, k, l, 1, 1),
+  getExtremum(transformMatrix, d, dim, k, l, 1, -1),
+  getExtremum(transformMatrix, d, dim, k, l, -1, 1),
+  getExtremum(transformMatrix, d, dim, k, l, -1, -1)
+])
+
 module.exports = {
+  getCorners,
   shapesAt
 }
