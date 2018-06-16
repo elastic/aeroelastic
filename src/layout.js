@@ -265,6 +265,14 @@ const rotationManipulation = ({transform, shape, directShape, cursorPosition: {x
   return {transforms: [result], shapes: [shape.id]}
 }
 
+const resizeManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
+  if(!shape ||!directShape) return {transforms: [], shapes: []}
+  const center = shape.transformMatrix
+  const vector = matrix.mvMultiply(matrix.multiply(center, directShape.localTransformMatrix), matrix.ORIGIN)
+  const result = matrix.translate(x - vector[0], y - vector[1], 0)
+  return {transforms: [result], shapes: [shape.id]}
+}
+
 const directShapeTranslateManipulation = (transforms, directShapes) => {
   const shapes = directShapes.map(shape => shape.type !== 'annotation' && shape.id).filter(identity)
   return [{transforms, shapes}]
@@ -278,7 +286,10 @@ const rotationAnnotationManipulation = (directTransforms, directShapes, allShape
 }
 
 const resizeAnnotationManipulation = (directTransforms, directShapes, allShapes, cursorPosition) => {
-  return []
+  const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === 'resizeHandle' && shape.parent)
+  const shapes = shapeIds.map(id => id && allShapes.find(shape => shape.id === id))
+  const tuples = unnest(shapes.map((shape, i) => directTransforms.map(transform => ({transform, shape, directShape: directShapes[i], cursorPosition}))))
+  return tuples.map(resizeManipulation)
 }
 
 const transformIntents = select(
@@ -484,7 +495,7 @@ const resizeAnnotations = select(
     const shapesToAnnotate = selectedShapes
     return unnest(shapesToAnnotate.map((shape, i) => {
       const foundShape = shapes.find(s => shape.id === s.id)
-      if(false && foundShape && foundShape.subtype === 'resizeHandle') {
+      if(foundShape && foundShape.subtype === 'resizeHandle') {
         // preserve any interactive annotation when handling
         return foundShape.interactive ? selectedShapes.find(shape => shape.id === foundShape.id) : []
       }
@@ -496,7 +507,7 @@ const resizeAnnotations = select(
         [-1, -1], [1, -1], [1, 1], [-1, 1], // corners
         [0, -1], [1, 0], [0, 1], [-1, 0] // edge midpoints
       ].map(([x, y]) => {
-        const markerPlace = matrix.translate(x * a, y * b, 0)
+        const markerPlace = matrix.translate(x * a, y * b, config.resizeAnnotationOffsetZ)
         const pixelOffset = matrix.translate(-x * config.resizeAnnotationOffset, -y * config.resizeAnnotationOffset, 0)
         const transform = matrix.multiply(markerPlace, pixelOffset)
         const xName = xNames[x]
@@ -551,6 +562,7 @@ const resizeAnnotations = select(
     })).filter(identity)}
 )(nextShapes, selectedShapes)
 
+/*
 // not all annotations can interact
 const interactiveAnnotations = select((rotationAnnotations, resizeAnnotations) =>
   [].concat(
@@ -563,6 +575,7 @@ const interactedAnnotations = select(
   (interactiveAnnotations, draggedShape) => {
     return draggedShape && interactiveAnnotations.filter(shape => shape.id === draggedShape.id)}
 )(interactiveAnnotations, draggedShape)
+*/
 
 const annotatedShapes = select(
   (shapes, alignmentGuideAnnotations, rotationAnnotations, resizeAnnotations) => {
