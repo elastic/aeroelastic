@@ -18,10 +18,11 @@ const {
 const { shapesAt, getCorners } = require('./geometry')
 
 const matrix = require('./matrix')
+const matrix2d = require('./matrix2d')
 
 const config = require('./config')
 
-const {identity, disjunctiveUnion, unnest} = require('./functional')
+const {identity, disjunctiveUnion, mean, unnest} = require('./functional')
 
 /**
  * Selectors directly from a state object
@@ -39,7 +40,6 @@ const scene = state => state.currentScene
 const draggingShape = ({draggedShape, shapes}, hoveredShape, down, mouseDowned) => {
   const dragInProgress = down && shapes.reduce((prev, next) => prev || draggedShape && next.id === draggedShape.id, false)
   const result = dragInProgress && draggedShape || down && mouseDowned && hoveredShape
-  //console.log(result)
   return result
 }
 
@@ -58,7 +58,6 @@ const hoveredShape = selectReduce(
   (prev, hoveredShapes) => {
     if(hoveredShapes.length) {
       const depthIndex = (prev.depthIndex + 1) % hoveredShapes.length
-      //console.log(depthIndex, hoveredShapes.map(s => s.id))
       return {
         shape: hoveredShapes[prev.depthIndex],
         depthIndex
@@ -93,7 +92,6 @@ const dragStartAt = selectReduce(
   (previous, mouseDowned, {down, x0, y0, x1, y1}, focusedShape) => {
     if(down) {
       const newDragStart = mouseDowned && !previous.down
-      console.log(newDragStart ? focusedShape : previous.dragStartShape)
       return newDragStart
         ? {down, x: x1, y: y1, dragStartShape: focusedShape}
         : previous
@@ -109,24 +107,25 @@ const keyTransformGesture = select(
     const result = Object.keys(keys)
       .map(keypress => {
         switch(keypress) {
-          case 'KeyW': return matrix.translate(0, -5, 0)
-          case 'KeyA': return matrix.translate(-5, 0, 0)
-          case 'KeyS': return matrix.translate(0, 5, 0)
-          case 'KeyD': return matrix.translate(5, 0, 0)
-          case 'KeyF': return matrix.translate(0, 0, -20)
-          case 'KeyC': return matrix.translate(0, 0, 20)
-          case 'KeyX': return matrix.rotateX(Math.PI / 45)
-          case 'KeyY': return matrix.rotateY(Math.PI / 45 / 1.3)
-          case 'KeyZ': return matrix.rotateZ(Math.PI / 45 / 1.6)
-          case 'KeyI': return matrix.scale(1, 1.05, 1)
-          case 'KeyJ': return matrix.scale(1 / 1.05, 1, 1)
-          case 'KeyK': return matrix.scale(1, 1 / 1.05, 1)
-          case 'KeyL': return matrix.scale(1.05, 1, 1)
-          case 'KeyP': return matrix.perspective(2000)
-          case 'KeyR': return matrix.shear(0.1, 0)
-          case 'KeyT': return matrix.shear(-0.1, 0)
-          case 'KeyU': return matrix.shear(0, 0.1)
-          case 'KeyH': return matrix.shear(0, -0.1)
+          case 'KeyW': return {transform: matrix.translate(0, -5, 0)}
+          case 'KeyA': return {transform: matrix.translate(-5, 0, 0)}
+          case 'KeyS': return {transform: matrix.translate(0, 5, 0)}
+          case 'KeyD': return {transform: matrix.translate(5, 0, 0)}
+          case 'KeyF': return {transform: matrix.translate(0, 0, -20)}
+          case 'KeyC': return {transform: matrix.translate(0, 0, 20)}
+          case 'KeyX': return {transform: matrix.rotateX(Math.PI / 45)}
+          case 'KeyY': return {transform: matrix.rotateY(Math.PI / 45 / 1.3)}
+          case 'KeyZ': return {transform: matrix.rotateZ(Math.PI / 45 / 1.6)}
+          case 'KeyI': return {transform: matrix.scale(1, 1.05, 1)}
+          case 'KeyJ': return {transform: matrix.scale(1 / 1.05, 1, 1)}
+          case 'KeyK': return {transform: matrix.scale(1, 1 / 1.05, 1)}
+          case 'KeyL': return {transform: matrix.scale(1.05, 1, 1)}
+          case 'KeyP': return {transform: matrix.perspective(2000)}
+          case 'KeyR': return {transform: matrix.shear(0.1, 0)}
+          case 'KeyT': return {transform: matrix.shear(-0.1, 0)}
+          case 'KeyU': return {transform: matrix.shear(0, 0.1)}
+          case 'KeyH': return {transform: matrix.shear(0, -0.1)}
+          case 'KeyM': return {transform: matrix.UNITMATRIX, sizes: [1.0, 0, 0, 0, 1.0, 0, 10, 0, 1]}
         }
       })
       .filter(identity)
@@ -159,10 +158,10 @@ const mouseTransformGesture = selectReduce(
     deltaY: 0,
     transform: null
   },
-  tuple => [tuple.transform].filter(identity)
+  tuple => [tuple.transform].filter(identity).map(transform => ({transform}))
 )(dragging, dragVector)
 
-const transformGesture = select(
+const transformGestures = select(
   (keyTransformGesture, mouseTransformGesture) => keyTransformGesture.concat(mouseTransformGesture)
 )(keyTransformGesture, mouseTransformGesture)
 
@@ -244,7 +243,8 @@ const selectedShapes = selectReduce(
   (prev, hoveredShapes, {down, uid}, metaHeld) => {
     if(uid === prev.uid) return prev
     const selectFunction = config.singleSelect ? singleSelect : multiSelect
-    return selectFunction(prev, hoveredShapes, metaHeld, down, uid)
+    const result = selectFunction(prev, hoveredShapes, metaHeld, down, uid)
+    return result
   },
   initialSelectedShapeState,
   d => d.shapes
@@ -255,6 +255,7 @@ const selectedShapeIds = select(
 )(selectedShapes)
 
 const rotationManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
+  // rotate around a Z-parallel line going through the shape center (ie. around the center)
   if(!shape ||!directShape) return {transforms: [], shapes: []}
   const center = shape.transformMatrix
   const centerPosition = matrix.mvMultiply(center, matrix.ORIGIN)
@@ -265,7 +266,43 @@ const rotationManipulation = ({transform, shape, directShape, cursorPosition: {x
   return {transforms: [result], shapes: [shape.id]}
 }
 
-const resizeManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
+const centeredScaleManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
+  // scaling such that the center remains in place (ie. the other side of the shape can grow/shrink)
+  if(!shape ||!directShape) return {transforms: [], shapes: []}
+  const center = shape.transformMatrix
+  const vector = matrix.mvMultiply(matrix.multiply(center, directShape.localTransformMatrix), matrix.ORIGIN)
+  const shapeCenter = matrix.mvMultiply(center, matrix.ORIGIN)
+  const horizontalRatio = directShape.horizontalPosition === 'center' ? 1 : Math.max(0.5, (x - shapeCenter[0]) / (vector[0] - shapeCenter[0]))
+  const verticalRatio = directShape.verticalPosition === 'center' ? 1 : Math.max(0.5, (y - shapeCenter[1]) / (vector[1] - shapeCenter[1]))
+  const result = matrix.scale(horizontalRatio, verticalRatio, 1)
+  return {transforms: [result], shapes: [shape.id]}
+}
+
+const resizeMultiplierHorizontal = {left: -1, center: 0, right: 1}
+const resizeMultiplierVertical = {top: -1, center: 0, bottom: 1}
+
+const centeredResizeManipulation = ({gesture, shape, directShape, cursorPosition: {x, y}}) => {
+  const transform = gesture.transform
+  // scaling such that the center remains in place (ie. the other side of the shape can grow/shrink)
+  if(!shape ||!directShape) return {transforms: [], shapes: []}
+  // transform the incoming `transform` so that resizing is aligned with shape orientation
+  const vector = matrix.mvMultiply(
+    matrix.multiply(
+      matrix.invert(matrix.compositeComponent(shape.localTransformMatrix)), // rid the translate component
+      transform
+    ),
+    matrix.ORIGIN
+  )
+  const orientationMask = [
+    resizeMultiplierHorizontal[directShape.horizontalPosition],
+    resizeMultiplierVertical[directShape.verticalPosition],
+    0
+  ]
+  return {transforms: [], sizes: [gesture.sizes || matrix2d.translate(...matrix2d.componentProduct(vector, orientationMask))], shapes: [shape.id]}
+}
+
+const translateManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
+  // usable for a drag hotspot if dragging is not done via the main shape
   if(!shape ||!directShape) return {transforms: [], shapes: []}
   const center = shape.transformMatrix
   const vector = matrix.mvMultiply(matrix.multiply(center, directShape.localTransformMatrix), matrix.ORIGIN)
@@ -285,20 +322,20 @@ const rotationAnnotationManipulation = (directTransforms, directShapes, allShape
   return tuples.map(rotationManipulation)
 }
 
-const resizeAnnotationManipulation = (directTransforms, directShapes, allShapes, cursorPosition) => {
-  const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === 'resizeHandle' && shape.parent)
+const resizeAnnotationManipulation = (transformGestures, directShapes, allShapes, cursorPosition) => {
+  const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === config.resizeHandleName && shape.parent)
   const shapes = shapeIds.map(id => id && allShapes.find(shape => shape.id === id))
-  const tuples = unnest(shapes.map((shape, i) => directTransforms.map(transform => ({transform, shape, directShape: directShapes[i], cursorPosition}))))
-  return tuples.map(resizeManipulation)
+  const tuples = unnest(shapes.map((shape, i) => transformGestures.map(gesture => ({gesture, shape, directShape: directShapes[i], cursorPosition}))))
+  return tuples.map(centeredResizeManipulation)
 }
 
 const transformIntents = select(
-  (transforms, directShapes, shapes, cursorPosition) => ([
-    ...directShapeTranslateManipulation(transforms, directShapes),
-    ...rotationAnnotationManipulation(transforms, directShapes, shapes, cursorPosition),
-    ...resizeAnnotationManipulation(transforms, directShapes, shapes, cursorPosition),
+  (transformGestures, directShapes, shapes, cursorPosition) => ([
+    ...directShapeTranslateManipulation(transformGestures.map(g => g.transform), directShapes),
+    ...rotationAnnotationManipulation(transformGestures.map(g => g.transform), directShapes, shapes, cursorPosition),
+    ...resizeAnnotationManipulation(transformGestures, directShapes, shapes, cursorPosition),
   ])
-)(transformGesture, selectedShapes, shapes, cursorPosition)
+)(transformGestures, selectedShapes, shapes, cursorPosition)
 
 const fromScreen = currentTransform => transform => {
   const isTranslate = transform[12] !== 0 || transform[13] !== 0
@@ -312,20 +349,40 @@ const fromScreen = currentTransform => transform => {
   }
 }
 
-const shapeApplyLocalTransforms = transformIntents => shape => {
-  const nestedMappedIntents = transformIntents.map(transformIntent => transformIntent.transforms.length && transformIntent.shapes.find(id => id === shape.id) && transformIntent.transforms.map(fromScreen(shape.localTransformMatrix))).filter(identity)
-  const mappedIntents = unnest(nestedMappedIntents)
-  const localTransformMatrix = mappedIntents.length && matrix.applyTransforms(
-    mappedIntents,
+const shapeApplyLocalTransforms = intents => shape => {
+  const transformIntents = unnest(intents
+    .map(intent =>
+      intent.transforms.length
+      && intent.shapes.find(id => id === shape.id)
+      && intent.transforms.map(fromScreen(shape.localTransformMatrix)))
+    .filter(identity))
+  const sizeIntents = unnest(intents
+    .map(intent =>
+      intent.sizes
+      && intent.sizes.length
+      && intent.shapes.find(id => id === shape.id)
+      && intent.sizes
+    )
+    .filter(identity))
+  const localTransformMatrix = transformIntents.length && matrix.applyTransforms(
+    transformIntents,
     shape.localTransformMatrix
   )
-  //if(mappedIntents.length && shape.id === 'rect3') console.log('in shapeApplyLocalTransforms:', localTransformMatrix)
+  const sizeMatrix = sizeIntents.length && matrix2d.applyTransforms(
+    sizeIntents,
+    matrix2d.UNITMATRIX
+  )
+  const sizeVector = sizeMatrix && matrix2d.mvMultiply(sizeMatrix, [shape.a, shape.b, 1])
   const result = {
     // update the preexisting shape:
     ...shape,
     // apply transforms (holding multiple keys applies multiple transforms simultaneously, so we must reduce)
-    ...mappedIntents.length && {
+    ...transformIntents.length && {
       localTransformMatrix
+    },
+    ...sizeIntents.length && {
+      a: sizeVector[0],
+      b: sizeVector[1]
     }
   }
   return result
@@ -366,7 +423,6 @@ const nextShapes = select(
 )(shapes, enteringShapes, restateShapesEvent)
 
 const alignmentGuides = (shapes, guidedShapes) => {
-  ///console.log('guidedShapes:', guidedShapes.map(s => s.id))
   const result = {}
   let counter = 0
   // todo replace for loops with [].map calls; DRY it up, break out parts; several of which to move to geometry.js
@@ -446,9 +502,9 @@ const alignmentGuideAnnotations = select(
     return guidedShapes.length
       ? alignmentGuides(shapes, guidedShapes).map(shape => ({
         ...shape,
-        id: 'snapLine_' + shape.id,
+        id: config.alignmentGuideName + '_' + shape.id,
         type: 'annotation',
-        subtype: 'alignmentGuide',
+        subtype: config.alignmentGuideName,
         interactive: false,
         localTransformMatrix: shape.transformMatrix,
         backgroundColor: 'magenta'
@@ -474,15 +530,15 @@ const rotationAnnotations = select(
       const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, 0)
       const transform = matrix.multiply(centerTop, pixelOffset)
       return {
-        id: 'rotationHandle_' + i,
+        id: config.rotationHandleName + '_' + i,
         type: 'annotation',
-        subtype: 'rotationHandle',
+        subtype: config.rotationHandleName,
         interactive: true,
         parent: id,
         localTransformMatrix: transform,
         backgroundColor: 'rgb(0,0,255,0.3)',
-        a: 8,
-        b: 8
+        a: config.rotationHandleSize,
+        b: config.rotationHandleSize
       }
     }).filter(identity)}
 )(nextShapes, selectedShapes)
@@ -490,76 +546,84 @@ const rotationAnnotations = select(
 const xNames = {'-1': 'left', '0': 'center', '1': 'right'}
 const yNames = {'-1': 'top', '0': 'center', '1': 'bottom'}
 
+const resizePointAnnotations = (parent, a, b) => ([x, y]) => {
+  const markerPlace = matrix.translate(x * a, y * b, config.resizeAnnotationOffsetZ)
+  const pixelOffset = matrix.translate(-x * config.resizeAnnotationOffset, -y * config.resizeAnnotationOffset, 0)
+  const transform = matrix.multiply(markerPlace, pixelOffset)
+  const xName = xNames[x]
+  const yName = yNames[y]
+  return {
+    id: [config.resizeHandleName, xName, yName, parent].join('_'),
+    type: 'annotation',
+    subtype: config.resizeHandleName,
+    horizontalPosition: xName,
+    verticalPosition: yName,
+    interactive: true,
+    parent,
+    localTransformMatrix: transform,
+    backgroundColor: 'rgb(0,255,0,1)',
+    a: config.resizeAnnotationSize,
+    b: config.resizeAnnotationSize
+  }
+}
+
+const resizeEdgeAnnotations = (parent, a, b) => ([[x0, y0], [x1, y1]]) => {
+  const x = a * mean(x0, x1)
+  const y = b * mean(y0, y1)
+  const markerPlace = matrix.translate(x, y, 0)
+  const transform = markerPlace // no offset etc. at the moment
+  const horizontal = y0 === y1
+  const length = horizontal ? a * Math.abs(x1 - x0) : b * Math.abs(y1 - y0)
+  const sectionHalfLength = Math.max(0, length / 2 - config.resizeAnnotationConnectorOffset)
+  const width = 1
+  return {
+    id: [config.resizeConnectorName, xNames[x0], yNames[y0], xNames[x1], yNames[y1], parent].join('_'),
+    type: 'annotation',
+    subtype: config.resizeConnectorName,
+    interactive: true,
+    parent,
+    localTransformMatrix: transform,
+    backgroundColor: config.devColor,
+    a: horizontal ? sectionHalfLength : width,
+    b: horizontal ? width : sectionHalfLength
+  }
+}
+
+const resizeAnnotationsFunction = (shapes, selectedShapes) => {
+  const shapesToAnnotate = selectedShapes
+  return unnest(shapesToAnnotate.map(shape => {
+    const foundShape = shapes.find(s => shape.id === s.id)
+    const properShape = foundShape && (foundShape.subtype === config.resizeHandleName ? shapes.find(s => shape.parent === s.id) : foundShape)
+    const {a, b} = properShape || {}
+    if(foundShape && foundShape.subtype === config.resizeHandleName) {
+      // preserve any interactive annotation when handling
+      const result = foundShape.interactive
+        ? resizeAnnotationsFunction(shapes, [shapes.find(s => shape.parent === s.id)])
+        : []
+      return result
+    }
+    if(!foundShape || foundShape.type === 'annotation') {
+      return []
+    }
+    const resizePoints = [
+      [-1, -1], [1, -1], [1, 1], [-1, 1], // corners
+      [0, -1], [1, 0], [0, 1], [-1, 0] // edge midpoints
+    ].map(resizePointAnnotations(shape.id, a, b))
+    const connectors = [
+      [[-1, -1], [ 0, -1]],
+      [[ 0, -1], [ 1, -1]],
+      [[ 1, -1], [ 1,  0]],
+      [[ 1,  0], [ 1,  1]],
+      [[ 1,  1], [ 0,  1]],
+      [[ 0,  1], [-1,  1]],
+      [[-1,  1], [-1,  0]],
+      [[-1,  0], [-1, -1]],
+    ].map(resizeEdgeAnnotations(shape.id, a, b))
+    return [...resizePoints, ...connectors]
+  })).filter(identity)}
+
 const resizeAnnotations = select(
-  (shapes, selectedShapes) => {
-    const shapesToAnnotate = selectedShapes
-    return unnest(shapesToAnnotate.map((shape, i) => {
-      const foundShape = shapes.find(s => shape.id === s.id)
-      if(foundShape && foundShape.subtype === 'resizeHandle') {
-        // preserve any interactive annotation when handling
-        return foundShape.interactive ? selectedShapes.find(shape => shape.id === foundShape.id) : []
-      }
-      if(!foundShape || foundShape.type === 'annotation') {
-        return []
-      }
-      const {id, a, b} = foundShape
-      const resizePoints = [
-        [-1, -1], [1, -1], [1, 1], [-1, 1], // corners
-        [0, -1], [1, 0], [0, 1], [-1, 0] // edge midpoints
-      ].map(([x, y]) => {
-        const markerPlace = matrix.translate(x * a, y * b, config.resizeAnnotationOffsetZ)
-        const pixelOffset = matrix.translate(-x * config.resizeAnnotationOffset, -y * config.resizeAnnotationOffset, 0)
-        const transform = matrix.multiply(markerPlace, pixelOffset)
-        const xName = xNames[x]
-        const yName = yNames[y]
-        return {
-          id: ['resizeHandle', xName, yName, i].join('_'),
-          type: 'annotation',
-          subtype: 'resizeHandle',
-          interactive: true,
-          parent: id,
-          localTransformMatrix: transform,
-          backgroundColor: 'rgb(0,255,0,1)',
-          a: config.resizeAnnotationSize,
-          b: config.resizeAnnotationSize
-        }
-      })
-      const mean = (a, b) => (a + b) / 2 // todo move to functions.js
-      const connectors = [
-        [[-1, -1], [ 0, -1]],
-        [[ 0, -1], [ 1, -1]],
-        [[ 1, -1], [ 1,  0]],
-        [[ 1,  0], [ 1,  1]],
-        [[ 1,  1], [ 0,  1]],
-        [[ 0,  1], [-1,  1]],
-        [[-1,  1], [-1,  0]],
-        [[-1,  0], [-1, -1]],
-      ].map(([[x0, y0], [x1, y1]]) => {
-        const x = a * mean(x0, x1)
-        const y = b * mean(y0, y1)
-        const markerPlace = matrix.translate(x, y, 0)
-        const transform = markerPlace // no offset etc. at the moment
-        const horizontal = y0 === y1
-        const length = horizontal ? a * Math.abs(x1 - x0) : b * Math.abs(y1 - y0)
-        const sectionHalfLength = Math.max(0, length / 2 - config.resizeAnnotationConnectorOffset)
-        const width = 1
-        return {
-          id: ['resizeConnector', xNames[x0], yNames[y0], xNames[x1], yNames[y1], i].join('_'),
-          type: 'annotation',
-          subtype: 'resizeConnector',
-          interactive: true,
-          parent: id,
-          localTransformMatrix: transform,
-          backgroundColor: config.devColor,
-          a: horizontal ? sectionHalfLength : width,
-          b: horizontal ? width : sectionHalfLength
-        }
-      })
-      return [].concat(
-        resizePoints,
-        connectors
-      )
-    })).filter(identity)}
+  resizeAnnotationsFunction
 )(nextShapes, selectedShapes)
 
 /*
@@ -586,7 +650,7 @@ const annotatedShapes = select(
     )
     // remove preexisting annotations
     const contentShapes = shapes.filter(shape => shape.type !== 'annotation')
-    const constraints = annotations.filter(annotation => annotation.subtype === 'alignmentGuide')
+    const constraints = annotations.filter(annotation => annotation.subtype === config.alignmentGuideName)
     const horizontalConstraint = directionalConstraint(constraints, isHorizontal)
     const verticalConstraint = directionalConstraint(constraints, isVertical)
     const snappedShapes = contentShapes.map(shape => {

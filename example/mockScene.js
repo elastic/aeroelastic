@@ -21,7 +21,7 @@ const initialShapes = [
     backgroundColor: 'rgba(0,0,0,0)', backgroundImage: elasticLogo, parent: 'rect1'}, // #f4cae4
   {id: 'rect5', type: 'rectangle', localTransformMatrix: matrix.translate(1260, 200, 30), transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#e6f5c9',
     backgroundImage: pattern3},
-  {id: 'rect6', type: 'rectangle', localTransformMatrix: matrix.translate(1260, 500, 90), transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#b3e2cd',
+  {id: 'rect6', type: 'rectangle', localTransformMatrix: matrix.translate(1280, 500, 90), transformMatrix: matrix.translate(1060, 200, 90), a: 160, b: 100, backgroundColor: '#b3e2cd',
     backgroundImage: pattern1},
   {id: 'rect7',  parent: 'rect1', localTransformMatrix: matrix.translate(400, 200,    0), transformMatrix: matrix.translate(1060, 200, 90), a: 3, b: 3, backgroundColor: 'rgba(0,0,255,1)'},
   {id: 'rect8',  parent: 'rect7', localTransformMatrix: matrix.translate(   0,    0, -220), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: '#b3e2cd', backgroundImage: pattern1},

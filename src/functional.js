@@ -54,6 +54,14 @@ const disjunctiveUnion = (keyFun, set1, set2) =>
     .concat(set2.filter(s2 => !set1.find(s1 => keyFun(s1) === keyFun(s2))))
 
 /**
+ *
+ * @param {number} a
+ * @param {number} b
+ * @returns {number} the mean of the two parameters
+ */
+const mean = (a, b) => (a + b) / 2
+
+/**
  * unnest
  *
  * @param {*[][]} vectorOfVectors
@@ -67,5 +75,6 @@ module.exports = {
   identity,
   log,
   map,
+  mean,
   unnest
 }
