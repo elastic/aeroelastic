@@ -126,6 +126,8 @@ const keyTransformGesture = select(
           case 'KeyU': return {transform: matrix.shear(0, 0.1)}
           case 'KeyH': return {transform: matrix.shear(0, -0.1)}
           case 'KeyM': return {transform: matrix.UNITMATRIX, sizes: [1.0, 0, 0, 0, 1.0, 0, 10, 0, 1]}
+          case 'Backspace':
+          case 'Delete': return {transform: matrix.UNITMATRIX, delete: true}
         }
       })
       .filter(identity)
@@ -301,6 +303,34 @@ const centeredResizeManipulation = ({gesture, shape, directShape, cursorPosition
   return {transforms: [], sizes: [gesture.sizes || matrix2d.translate(...matrix2d.componentProduct(vector, orientationMask))], shapes: [shape.id]}
 }
 
+const asymmetricResizeManipulation = ({gesture, shape, directShape}) => {
+  const transform = gesture.transform
+  // scaling such that the center remains in place (ie. the other side of the shape can grow/shrink)
+  if(!shape ||!directShape) return {transforms: [], shapes: []}
+  // transform the incoming `transform` so that resizing is aligned with shape orientation
+  const compositeComponent = matrix.compositeComponent(shape.localTransformMatrix)
+  const inv = matrix.invert(compositeComponent) // rid the translate component
+  const vector = matrix.mvMultiply(
+    matrix.multiply(
+      inv,
+      transform
+    ),
+    matrix.ORIGIN
+  )
+  const orientationMask = [
+    resizeMultiplierHorizontal[directShape.horizontalPosition] / 2,
+    resizeMultiplierVertical[directShape.verticalPosition] / 2,
+    0
+  ]
+  const wut = matrix2d.componentProduct(vector, orientationMask)
+  const wut2 = matrix.mvMultiply(matrix.multiply(
+    compositeComponent,
+    matrix.scale(resizeMultiplierHorizontal[directShape.horizontalPosition], resizeMultiplierVertical[directShape.verticalPosition], 1),
+    matrix.translate(wut[0], wut[1], 0)
+  ), matrix.ORIGIN)
+  return {transforms: [matrix.translate(wut2[0], wut2[1], 0)], sizes: [gesture.sizes || matrix2d.translate(...wut)], shapes: [shape.id]}
+}
+
 const translateManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
   // usable for a drag hotspot if dragging is not done via the main shape
   if(!shape ||!directShape) return {transforms: [], shapes: []}
@@ -316,24 +346,24 @@ const directShapeTranslateManipulation = (transforms, directShapes) => {
 }
 
 const rotationAnnotationManipulation = (directTransforms, directShapes, allShapes, cursorPosition) => {
-  const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === 'rotationHandle' && shape.parent)
+  const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === config.rotationHandleName && shape.parent)
   const shapes = shapeIds.map(id => id && allShapes.find(shape => shape.id === id))
   const tuples = unnest(shapes.map((shape, i) => directTransforms.map(transform => ({transform, shape, directShape: directShapes[i], cursorPosition}))))
   return tuples.map(rotationManipulation)
 }
 
-const resizeAnnotationManipulation = (transformGestures, directShapes, allShapes, cursorPosition) => {
+const resizeAnnotationManipulation = (transformGestures, directShapes, allShapes) => {
   const shapeIds = directShapes.map(shape => shape.type === 'annotation' && shape.subtype === config.resizeHandleName && shape.parent)
   const shapes = shapeIds.map(id => id && allShapes.find(shape => shape.id === id))
-  const tuples = unnest(shapes.map((shape, i) => transformGestures.map(gesture => ({gesture, shape, directShape: directShapes[i], cursorPosition}))))
-  return tuples.map(centeredResizeManipulation)
+  const tuples = unnest(shapes.map((shape, i) => transformGestures.map(gesture => ({gesture, shape, directShape: directShapes[i]}))))
+  return tuples.map(asymmetricResizeManipulation)
 }
 
 const transformIntents = select(
   (transformGestures, directShapes, shapes, cursorPosition) => ([
     ...directShapeTranslateManipulation(transformGestures.map(g => g.transform), directShapes),
     ...rotationAnnotationManipulation(transformGestures.map(g => g.transform), directShapes, shapes, cursorPosition),
-    ...resizeAnnotationManipulation(transformGestures, directShapes, shapes, cursorPosition),
+    ...resizeAnnotationManipulation(transformGestures, directShapes, shapes),
   ])
 )(transformGestures, selectedShapes, shapes, cursorPosition)
 
