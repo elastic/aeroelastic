@@ -300,7 +300,11 @@ const centeredResizeManipulation = ({gesture, shape, directShape, cursorPosition
     resizeMultiplierVertical[directShape.verticalPosition],
     0
   ]
-  return {transforms: [], sizes: [gesture.sizes || matrix2d.translate(...matrix2d.componentProduct(vector, orientationMask))], shapes: [shape.id]}
+  return {
+    transforms: [],
+    sizes: [gesture.sizes || matrix2d.translate(...matrix2d.componentProduct(vector, orientationMask))],
+    shapes: [shape.id]
+  }
 }
 
 const asymmetricResizeManipulation = ({gesture, shape, directShape}) => {
@@ -323,6 +327,12 @@ const asymmetricResizeManipulation = ({gesture, shape, directShape}) => {
     0
   ]
   const orientedVector = matrix2d.componentProduct(vector, orientationMask)
+
+  // correct for possible negative size
+  // const newAB = matrix2d.mvMultiply(sizeMatrix, [shape.a, shape.b, 1])
+  orientedVector[0] += -Math.min(shape.a, 0) // correct for negative size
+  orientedVector[1] += -Math.min(shape.b, 0) // correct for negative size
+
   const antiRotatedVector = matrix.mvMultiply(
     matrix.multiply(
       compositeComponent,
@@ -335,9 +345,10 @@ const asymmetricResizeManipulation = ({gesture, shape, directShape}) => {
     ),
     matrix.ORIGIN
   )
+  const sizeMatrix = gesture.sizes || matrix2d.translate(...orientedVector)
   return {
     transforms: [matrix.translate(antiRotatedVector[0], antiRotatedVector[1], 0)],
-    sizes: [gesture.sizes || matrix2d.translate(...orientedVector)],
+    sizes: [sizeMatrix],
     shapes: [shape.id]
   }
 }
@@ -616,7 +627,7 @@ const resizeEdgeAnnotations = (parent, a, b) => ([[x0, y0], [x1, y1]]) => {
   const horizontal = y0 === y1
   const length = horizontal ? a * Math.abs(x1 - x0) : b * Math.abs(y1 - y0)
   const sectionHalfLength = Math.max(0, length / 2 - config.resizeAnnotationConnectorOffset)
-  const width = 1
+  const width = 0.5
   return {
     id: [config.resizeConnectorName, xNames[x0], yNames[y0], xNames[x1], yNames[y1], parent].join('_'),
     type: 'annotation',
