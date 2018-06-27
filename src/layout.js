@@ -322,13 +322,24 @@ const asymmetricResizeManipulation = ({gesture, shape, directShape}) => {
     resizeMultiplierVertical[directShape.verticalPosition] / 2,
     0
   ]
-  const wut = matrix2d.componentProduct(vector, orientationMask)
-  const wut2 = matrix.mvMultiply(matrix.multiply(
-    compositeComponent,
-    matrix.scale(resizeMultiplierHorizontal[directShape.horizontalPosition], resizeMultiplierVertical[directShape.verticalPosition], 1),
-    matrix.translate(wut[0], wut[1], 0)
-  ), matrix.ORIGIN)
-  return {transforms: [matrix.translate(wut2[0], wut2[1], 0)], sizes: [gesture.sizes || matrix2d.translate(...wut)], shapes: [shape.id]}
+  const orientedVector = matrix2d.componentProduct(vector, orientationMask)
+  const antiRotatedVector = matrix.mvMultiply(
+    matrix.multiply(
+      compositeComponent,
+      matrix.scale(
+        resizeMultiplierHorizontal[directShape.horizontalPosition],
+        resizeMultiplierVertical[directShape.verticalPosition],
+        1
+      ),
+      matrix.translate(orientedVector[0], orientedVector[1], 0)
+    ),
+    matrix.ORIGIN
+  )
+  return {
+    transforms: [matrix.translate(antiRotatedVector[0], antiRotatedVector[1], 0)],
+    sizes: [gesture.sizes || matrix2d.translate(...orientedVector)],
+    shapes: [shape.id]
+  }
 }
 
 const translateManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
