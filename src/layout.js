@@ -282,6 +282,8 @@ const centeredScaleManipulation = ({transform, shape, directShape, cursorPositio
 
 const resizeMultiplierHorizontal = {left: -1, center: 0, right: 1}
 const resizeMultiplierVertical = {top: -1, center: 0, bottom: 1}
+const xNames = {'-1': 'left', '0': 'center', '1': 'right'}
+const yNames = {'-1': 'top', '0': 'center', '1': 'bottom'}
 
 const centeredResizeManipulation = ({gesture, shape, directShape, cursorPosition: {x, y}}) => {
   const transform = gesture.transform
@@ -565,38 +567,38 @@ const alignmentGuideAnnotations = select(
   }
 )(nextShapes, hoveredShapes)
 
+const rotationAnnotation = (shapes, selectedShapes, shape, i) => {
+  const foundShape = shapes.find(s => shape.id === s.id)
+  if(!foundShape) {
+    return false
+  }
+  if(foundShape.type === 'annotation') {
+    return rotationAnnotation(shapes, selectedShapes, shapes.find(s => foundShape.parent === s.id), i)
+  }
+  const {id, b} = foundShape
+  const centerTop = matrix.translate(0, -b, 0)
+  const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, 0)
+  const transform = matrix.multiply(centerTop, pixelOffset)
+  return {
+    id: config.rotationHandleName + '_' + i,
+    type: 'annotation',
+    subtype: config.rotationHandleName,
+    interactive: true,
+    parent: id,
+    localTransformMatrix: transform,
+    backgroundColor: 'rgb(0,0,255,0.3)',
+    a: config.rotationHandleSize,
+    b: config.rotationHandleSize
+  }
+}
+
 const rotationAnnotations = select(
   (shapes, selectedShapes) => {
     const shapesToAnnotate = selectedShapes
     return shapesToAnnotate.map((shape, i) => {
-      const foundShape = shapes.find(s => shape.id === s.id)
-      if(foundShape && foundShape.subtype === 'rotationHandle') {
-        // preserve any interactive annotation when handling
-        return foundShape.interactive && selectedShapes.find(shape => shape.id === foundShape.id)
-      }
-      if(!foundShape || foundShape.type === 'annotation') {
-        return false
-      }
-      const {id, b} = foundShape
-      const centerTop = matrix.translate(0, -b, 0)
-      const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, 0)
-      const transform = matrix.multiply(centerTop, pixelOffset)
-      return {
-        id: config.rotationHandleName + '_' + i,
-        type: 'annotation',
-        subtype: config.rotationHandleName,
-        interactive: true,
-        parent: id,
-        localTransformMatrix: transform,
-        backgroundColor: 'rgb(0,0,255,0.3)',
-        a: config.rotationHandleSize,
-        b: config.rotationHandleSize
-      }
+      return rotationAnnotation(shapes, selectedShapes, shape, i)
     }).filter(identity)}
 )(nextShapes, selectedShapes)
-
-const xNames = {'-1': 'left', '0': 'center', '1': 'right'}
-const yNames = {'-1': 'top', '0': 'center', '1': 'bottom'}
 
 const resizePointAnnotations = (parent, a, b) => ([x, y]) => {
   const markerPlace = matrix.translate(x * a, y * b, config.resizeAnnotationOffsetZ)
@@ -641,38 +643,46 @@ const resizeEdgeAnnotations = (parent, a, b) => ([[x0, y0], [x1, y1]]) => {
   }
 }
 
+const resizeAnnotation = (shapes, selectedShapes, shape) => {
+  const foundShape = shapes.find(s => shape.id === s.id)
+  const properShape = foundShape && (foundShape.subtype === config.resizeHandleName ? shapes.find(s => shape.parent === s.id) : foundShape)
+  const {a, b} = properShape || {}
+  if(!foundShape) {
+    return []
+  }
+  if(foundShape.subtype === config.resizeHandleName) {
+    // preserve any interactive annotation when handling
+    const result = foundShape.interactive
+      ? resizeAnnotationsFunction(shapes, [shapes.find(s => shape.parent === s.id)])
+      : []
+    return result
+  }
+  if(foundShape.type === 'annotation') {
+    return resizeAnnotation(shapes, selectedShapes, shapes.find(s => foundShape.parent === s.id))
+  }
+  const resizePoints = [
+    [-1, -1], [1, -1], [1, 1], [-1, 1], // corners
+    [0, -1], [1, 0], [0, 1], [-1, 0] // edge midpoints
+  ].map(resizePointAnnotations(shape.id, a, b))
+  const connectors = [
+    [[-1, -1], [ 0, -1]],
+    [[ 0, -1], [ 1, -1]],
+    [[ 1, -1], [ 1,  0]],
+    [[ 1,  0], [ 1,  1]],
+    [[ 1,  1], [ 0,  1]],
+    [[ 0,  1], [-1,  1]],
+    [[-1,  1], [-1,  0]],
+    [[-1,  0], [-1, -1]],
+  ].map(resizeEdgeAnnotations(shape.id, a, b))
+  return [...resizePoints, ...connectors]
+}
+
 const resizeAnnotationsFunction = (shapes, selectedShapes) => {
   const shapesToAnnotate = selectedShapes
   return unnest(shapesToAnnotate.map(shape => {
-    const foundShape = shapes.find(s => shape.id === s.id)
-    const properShape = foundShape && (foundShape.subtype === config.resizeHandleName ? shapes.find(s => shape.parent === s.id) : foundShape)
-    const {a, b} = properShape || {}
-    if(foundShape && foundShape.subtype === config.resizeHandleName) {
-      // preserve any interactive annotation when handling
-      const result = foundShape.interactive
-        ? resizeAnnotationsFunction(shapes, [shapes.find(s => shape.parent === s.id)])
-        : []
-      return result
-    }
-    if(!foundShape || foundShape.type === 'annotation') {
-      return []
-    }
-    const resizePoints = [
-      [-1, -1], [1, -1], [1, 1], [-1, 1], // corners
-      [0, -1], [1, 0], [0, 1], [-1, 0] // edge midpoints
-    ].map(resizePointAnnotations(shape.id, a, b))
-    const connectors = [
-      [[-1, -1], [ 0, -1]],
-      [[ 0, -1], [ 1, -1]],
-      [[ 1, -1], [ 1,  0]],
-      [[ 1,  0], [ 1,  1]],
-      [[ 1,  1], [ 0,  1]],
-      [[ 0,  1], [-1,  1]],
-      [[-1,  1], [-1,  0]],
-      [[-1,  0], [-1, -1]],
-    ].map(resizeEdgeAnnotations(shape.id, a, b))
-    return [...resizePoints, ...connectors]
-  })).filter(identity)}
+    return resizeAnnotation(shapes, selectedShapes, shape)
+  }).filter(identity))
+}
 
 const resizeAnnotations = select(
   resizeAnnotationsFunction
