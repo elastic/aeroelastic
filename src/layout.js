@@ -581,7 +581,7 @@ const rotationAnnotation = (shapes, selectedShapes, shape, i) => {
   }
   const {id, b} = foundShape
   const centerTop = matrix.translate(0, -b, 0)
-  const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, 0)
+  const pixelOffset = matrix.translate(0, -config.rotateAnnotationOffset, config.atopZ)
   const transform = matrix.multiply(centerTop, pixelOffset)
   return {
     id: config.rotationHandleName + '_' + i,
@@ -606,7 +606,7 @@ const rotationAnnotations = select(
 
 const resizePointAnnotations = (parent, a, b) => ([x, y]) => {
   const markerPlace = matrix.translate(x * a, y * b, config.resizeAnnotationOffsetZ)
-  const pixelOffset = matrix.translate(-x * config.resizeAnnotationOffset, -y * config.resizeAnnotationOffset, 0)
+  const pixelOffset = matrix.translate(-x * config.resizeAnnotationOffset, -y * config.resizeAnnotationOffset, config.atopZ)
   const transform = matrix.multiply(markerPlace, pixelOffset)
   const xName = xNames[x]
   const yName = yNames[y]
@@ -628,7 +628,7 @@ const resizePointAnnotations = (parent, a, b) => ([x, y]) => {
 const resizeEdgeAnnotations = (parent, a, b) => ([[x0, y0], [x1, y1]]) => {
   const x = a * mean(x0, x1)
   const y = b * mean(y0, y1)
-  const markerPlace = matrix.translate(x, y, 0)
+  const markerPlace = matrix.translate(x, y, config.atopZ)
   const transform = markerPlace // no offset etc. at the moment
   const horizontal = y0 === y1
   const length = horizontal ? a * Math.abs(x1 - x0) : b * Math.abs(y1 - y0)

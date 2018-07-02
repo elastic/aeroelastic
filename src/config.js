@@ -3,6 +3,7 @@
  */
 
 const alignmentGuideName = 'alignmentGuide'
+const atopZ = 1000;
 const depthSelect = false
 const devColor = 'magenta'
 const guideDistance = 2
@@ -20,6 +21,7 @@ const snapConstraint = false
 
 module.exports = {
   alignmentGuideName,
+  atopZ,
   depthSelect,
   devColor,
   guideDistance,
