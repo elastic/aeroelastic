@@ -256,6 +256,10 @@ const selectedShapeIds = select(
   shapes => shapes.map(shape => shape.id)
 )(selectedShapes)
 
+const selectedPrimaryShapeIds = select(
+  shapes => shapes.map(shape => shape.parent || shape.id)
+)(selectedShapes)
+
 const rotationManipulation = ({transform, shape, directShape, cursorPosition: {x, y}}) => {
   // rotate around a Z-parallel line going through the shape center (ie. around the center)
   if(!shape ||!directShape) return {transforms: [], shapes: []}
@@ -746,15 +750,16 @@ const reprojectedShapes = select(
 // it's _the_ state representation (at a PoC level...) comprising of transient properties eg. draggedShape, and the
 // collection of shapes themselves
 const nextScene = select(
-  (hoveredShape, selectedShapes, shapes, gestureEnd) => {
+  (hoveredShape, selectedShapes, selectedPrimaryShapes, shapes, gestureEnd) => {
     return {
       hoveredShape,
       selectedShapes,
+      selectedPrimaryShapes,
       shapes,
       gestureEnd
     }
   }
-)(hoveredShape, selectedShapeIds, reprojectedShapes, gestureEnd)
+)(hoveredShape, selectedShapeIds, selectedPrimaryShapeIds, reprojectedShapes, gestureEnd)
 
 module.exports = {
   cursorPosition, mouseIsDown, /*dragStartAt, */dragVector,
