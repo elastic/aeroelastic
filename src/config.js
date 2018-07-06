@@ -16,6 +16,7 @@ const rotateAnnotationOffset = 12
 const rotationHandleName = 'rotationHandle'
 const rotationHandleSize = 14
 const resizeHandleName = 'resizeHandle'
+const shortcuts = false
 const singleSelect = true
 const snapConstraint = false
 
@@ -34,6 +35,7 @@ module.exports = {
   rotateAnnotationOffset,
   rotationHandleName,
   rotationHandleSize,
+  shortcuts,
   singleSelect,
   snapConstraint
 }

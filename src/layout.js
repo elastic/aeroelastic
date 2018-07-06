@@ -103,8 +103,8 @@ const dragStartAt = selectReduce(
 )(dragging, dragVector, focusedShape)
 
 const keyTransformGesture = select(
-  keys => {
-    const result = Object.keys(keys)
+  keys => config.shortcuts
+    ? Object.keys(keys)
       .map(keypress => {
         switch(keypress) {
           case 'KeyW': return {transform: matrix.translate(0, -5, 0)}
@@ -131,8 +131,7 @@ const keyTransformGesture = select(
         }
       })
       .filter(identity)
-    return result
-  }
+    : []
 )(pressedKeys)
 
 const mouseTransformGesture = selectReduce(
