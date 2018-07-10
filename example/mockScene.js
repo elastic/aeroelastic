@@ -3,9 +3,7 @@ const {
         pattern2,
         pattern3,
         elasticLogo,
-        bach,
-        animviz,
-        graph
+        bach
       } = require('./mockAssets')
 
 const matrix = require('../src/matrix')
@@ -25,11 +23,11 @@ const initialShapes = [
     backgroundImage: pattern1},
   {id: 'rect7',  parent: 'rect1', localTransformMatrix: matrix.translate(400, 200,    0), transformMatrix: matrix.translate(1060, 200, 90), a: 3, b: 3, backgroundColor: 'rgba(0,0,255,1)'},
   {id: 'rect8',  parent: 'rect7', localTransformMatrix: matrix.translate(   0,    0, -220), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: '#b3e2cd', backgroundImage: pattern1},
-  {id: 'rect9',  parent: 'rect7', localTransformMatrix: matrix.translate(   0,    0,  -20), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: '#cbd5e8', backgroundImage: graph},
+  {id: 'rect9',  parent: 'rect7', localTransformMatrix: matrix.translate(   0,    0,  -20), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: '#cbd5e8'},
   {id: 'rect10', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate(-100,    0, -120), matrix.rotateY(Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: '#e6f5c9', backgroundImage: pattern1},
   {id: 'rect11', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate( 100,    0, -120), matrix.rotateY(-Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: 'white', backgroundImage: elasticLogo},
   {id: 'rect12', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate(   0, -100, -120), matrix.rotateX(Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: 'black', backgroundImage: bach},
-  {id: 'rect13', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate(   0, 100, -120), matrix.rotateX(Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: 'white', backgroundImage: animviz},
+  {id: 'rect13', parent: 'rect7', localTransformMatrix: matrix.multiply(matrix.translate(   0, 100, -120), matrix.rotateX(Math.PI / 2)), transformMatrix: matrix.translate(1060, 200, 90), a: 100, b: 100, backgroundColor: 'white'},
 ]
 
 const initialState = {
