@@ -511,25 +511,28 @@ const alignmentGuides = (shapes, guidedShapes) => {
             const distance = Math.abs(signedDistance)
             const currentClosest = result[key]
             if(Math.round(distance) <= config.guideDistance && (!currentClosest || distance <= currentClosest.distance)) {
-              const orthogonalValues = ddArray.concat(ssArray).map(v => v[1])
+              const orthogonalValues = [
+                ...ddArray,
+                ...ssArray,
+                ...currentClosest ? [[null, currentClosest.lowPoint], [null, currentClosest.highPoint]] : []
+              ].map(v => v[1])
               const lowPoint = Math.min(...orthogonalValues)
               const highPoint = Math.max(...orthogonalValues)
               const midPoint = (lowPoint + highPoint) / 2
               const radius  = midPoint - lowPoint
-              if(!currentClosest || distance < currentClosest.distance || radius > currentClosest.radius) {
-                result[key] = {
-                  id: counter++,
-                  transformMatrix: matrix.translate(dim ? midPoint : ss, dim ? ss : midPoint, 100),
-                  a: dim ? radius : 0.5,
-                  b: dim ? 0.5 : radius,
-                  radius,
-                  distance,
-                  signedDistance,
-                  dimension: dim ? 'vertical' : 'horizontal',
-                  anchor: k ? 'upper' : 'lower',
-                  constrained: d.id,
-                  constrainer: s.id
-                }
+              result[key] = {
+                id: counter++,
+                transformMatrix: matrix.translate(dim ? midPoint : ss, dim ? ss : midPoint, 100),
+                a: dim ? radius : 0.5,
+                b: dim ? 0.5 : radius,
+                lowPoint,
+                highPoint,
+                distance,
+                signedDistance,
+                dimension: dim ? 'vertical' : 'horizontal',
+                anchor: k ? 'upper' : 'lower',
+                constrained: d.id,
+                constrainer: s.id
               }
             }
           }
